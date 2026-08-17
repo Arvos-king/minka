@@ -62,6 +62,38 @@ main, en marchant dans les rayons :
 | `DELETE /api/shopping/items/completed` | Purge des articles cochés |
 | `DELETE /api/shopping/items/:id` | Suppression d'un article |
 
+### Frigo — `/frigo`
+
+Ce qu'il reste, et surtout ce qui va se perdre. La page met en tête un bandeau
+listant les produits périmés ou à consommer sous trois jours — c'est là que se
+joue l'intérêt du module.
+
+- les produits sont triés par échéance la plus proche, ceux sans date fermant
+  la marche ;
+- chaque ligne porte un badge d'échéance lisible (« Périmé hier », « Demain »,
+  « Dans 2 j », puis la date) ;
+- le champ d'ajout propose des raccourcis de date (3 jours, 1 semaine, 1 mois,
+  ou date précise) et **conserve la date choisie** d'un produit au suivant, pour
+  saisir d'affilée les courses qui périment le même jour ;
+- toucher une ligne déplie l'édition de la date et les actions secondaires ;
+- `−` à quantité 1 sort le produit du frigo, comme dans la liste de courses.
+
+Les dates sont interprétées **côté navigateur**, avec la date locale du
+téléphone : c'est celle de la personne qui ouvre le frigo qui fait foi, et cela
+évite d'avoir deux logiques de calendrier.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/fridge/items` | Contenu, trié par échéance |
+| `POST /api/fridge/items` | Ajout (`name`, `quantity`, `expiresOn` facultatifs) |
+| `PATCH /api/fridge/items/:id` | Modification — `expiresOn: null` retire la date |
+| `DELETE /api/fridge/items/:id` | Retrait du produit |
+
+**Passerelle vers la liste de courses** : un produit épuisé s'envoie dans les
+courses depuis les actions dépliées. Le bouton n'apparaît que si le module
+courses répond côté API, et le lien se limite à un appel HTTP — voir
+[Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
+
 ---
 
 ## Déploiement sur unRAID
@@ -296,6 +328,35 @@ export default {
 ```
 
 La route protégée et la tuile du tableau de bord apparaissent automatiquement.
+L'icône vit dans le dossier du module (voir `modules/fridge/FridgeIcon.jsx`) :
+ajouter une fonctionnalité n'oblige à modifier aucun fichier commun.
+
+### Deux aides fournies par le socle
+
+`useRefreshOnFocus(rafraichir)` — recharge les données au retour sur
+l'application, ce qui suffit à voir ce que l'autre a saisi sans temps réel. À
+préférer à un `useEffect` maison : `visibilitychange` et `focus` ne couvrent pas
+les mêmes situations et le détail se rate facilement.
+
+`useServerModule('shopping')` — indique si un autre module est monté côté API.
+
+### Faire dialoguer deux modules
+
+Un module qui veut proposer une passerelle vers un autre ne doit pas importer
+son code. Le frigo, qui envoie un produit dans la liste de courses, sert de
+modèle :
+
+```js
+const coursesDisponibles = useServerModule('shopping');
+// …puis un simple appel HTTP, sans import du module courses :
+api.post('/shopping/items', { name });
+```
+
+Le lien se limite au contrat d'API publique. Si le module courses disparaît, le
+bouton s'éteint de lui-même et rien ne casse. La présence est vérifiée auprès de
+`/api/health`, et non du registre du frontend : c'est bien l'API distante qu'on
+va appeler, et interroger le registre depuis un module qu'il vient lui-même de
+charger créerait un cycle d'imports.
 
 ---
 
@@ -309,7 +370,12 @@ La route protégée et la tuile du tableau de bord apparaissent automatiquement.
 - [x] **Étape 3 — Liste de courses** : premier module, interface mobile,
       mises à jour optimistes.
 
+- [x] **Module Frigo** : inventaire, dates de péremption, passerelle vers la
+      liste de courses.
+
 Pistes pour la suite : calendrier partagé, budget, liste de tâches — chacune
 suit le mode d'emploi ci-dessus. Côté liste de courses, les évolutions
 naturelles seraient les rayons, les articles récurrents, et le temps réel
-(SSE) à la place du rafraîchissement au retour sur l'application.
+(SSE) à la place du rafraîchissement au retour sur l'application. Côté frigo,
+une notification quand un produit approche de sa date supposerait d'ajouter le
+push web (VAPID), non configuré à ce jour.

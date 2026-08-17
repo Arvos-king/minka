@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useRefreshOnFocus } from '../../lib/useRefreshOnFocus.js';
 import { shoppingApi } from './api.js';
 
 /**
@@ -52,29 +53,9 @@ export function useShoppingList() {
     refresh();
   }, [refresh]);
 
-  /*
-   * Rafraîchissement au retour sur l'application.
-   *
-   * Sans temps réel, c'est ce qui permet de voir les articles ajoutés par
-   * l'autre : on rouvre l'onglet ou l'application, et la liste est à jour.
-   */
-  useEffect(() => {
-    // Retour depuis un autre onglet ou depuis l'écran verrouillé du téléphone.
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') refresh({ silent: true });
-    };
-    // Retour depuis une autre fenêtre : la page était déjà « visible » au sens
-    // de l'API, seul le focus a changé. Ne pas retester la visibilité ici, ce
-    // cas passerait sinon entre les mailles du filet.
-    const handleFocus = () => refresh({ silent: true });
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [refresh]);
+  // Voir les articles ajoutés par l'autre au retour sur l'application.
+  const refreshSilently = useCallback(() => refresh({ silent: true }), [refresh]);
+  useRefreshOnFocus(refreshSilently);
 
   const addItem = useCallback(async (name, quantity = 1) => {
     // Identifiant négatif provisoire : aucun risque de collision avec un
