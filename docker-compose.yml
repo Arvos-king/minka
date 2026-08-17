@@ -77,8 +77,9 @@ services:
         # avec un upstream injoignable et renverrait des 502 au premier appel.
         condition: service_healthy
     ports:
-      # 8067 (hitsterhome), 8080 (scorio) et 8088 (pointage-bus) sont déjà pris.
-      - "${APP_PORT:-8090}:80"
+      # Déjà pris sur ce serveur : 8067 (hitsterhome), 8080 (scorio),
+      # 8088 (pointage-bus), 8090 (Immich).
+      - "${APP_PORT:-8070}:80"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
       interval: 30s
@@ -88,7 +89,7 @@ services:
     labels:
       # Métadonnées reconnues par l'interface Docker d'unRAID.
       net.unraid.docker.managed: "composeman"
-      net.unraid.docker.webui: "http://[IP]:[PORT:8090]"
+      net.unraid.docker.webui: "http://[IP]:[PORT:8070]"
       # Icône affichée dans l'UI Docker — libre à toi de la remplacer.
       net.unraid.docker.icon: "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/grocy.png"
     networks:

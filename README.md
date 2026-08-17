@@ -13,7 +13,7 @@ dossier côté interface. Aucun fichier du socle n'est à modifier. Voir
 ## Architecture
 
 ```
-navigateur ──HTTPS──► Nginx Proxy Manager ──HTTP──► IP_UNRAID:8090
+navigateur ──HTTPS──► Nginx Proxy Manager ──HTTP──► IP_UNRAID:8070
                         (TLS, Force SSL)                  │
                                                           ▼
                                                    minka-web (nginx)
@@ -23,7 +23,7 @@ navigateur ──HTTPS──► Nginx Proxy Manager ──HTTP──► IP_UNRAI
 
 | Conteneur   | Rôle                                        | Port |
 | ----------- | ------------------------------------------- | ---- |
-| `minka-web` | Sert l'interface et relaie `/api`           | 8090 → 80 |
+| `minka-web` | Sert l'interface et relaie `/api`           | 8070 → 80 |
 | `minka-api` | API Node/Express, base SQLite               | interne uniquement |
 
 `minka-api` ne publie aucun port : l'API n'est joignable que par nginx, à
@@ -118,7 +118,7 @@ supprimer sa ligne dans la table `users` et redémarrer.
 
 ```bash
 docker compose ps
-curl http://localhost:8090/api/health
+curl http://localhost:8070/api/health
 ```
 
 La réponse attendue est `{"status":"ok","uptime":…,"modules":[…]}`.
@@ -139,7 +139,7 @@ trois qui méritent l'attention :
 ### ⚠️ `SESSION_COOKIE_SECURE` et l'accès direct par IP
 
 Avec `SESSION_COOKIE_SECURE=true`, **la connexion ne fonctionne pas via
-`http://IP_UNRAID:8090`** : le navigateur refuse d'enregistrer un cookie
+`http://IP_UNRAID:8070`** : le navigateur refuse d'enregistrer un cookie
 `Secure` reçu en clair. La page de connexion s'affiche, mais l'authentification
 semble « ne rien faire ».
 
@@ -156,7 +156,7 @@ proxy, donc à tout le monde en même temps : une série d'échecs vous bloquera
 tous les deux d'un coup.
 
 - `2` — derrière Nginx Proxy Manager (valeur par défaut)
-- `1` — en accès direct sur le port 8090, sans reverse proxy
+- `1` — en accès direct sur le port 8070, sans reverse proxy
 
 ---
 
@@ -169,7 +169,7 @@ Créer un **Proxy Host** avec les valeurs suivantes :
 | Details | Domain Names | `minka.<ton-domaine>` |
 | Details | Scheme | `http` |
 | Details | Forward Hostname / IP | l'adresse du serveur unRAID |
-| Details | Forward Port | `8090` |
+| Details | Forward Port | `8070` |
 | Details | Block Common Exploits | ✅ |
 | Details | Cache Assets | ❌ **à laisser désactivé** |
 | SSL | SSL Certificate | Let's Encrypt |
