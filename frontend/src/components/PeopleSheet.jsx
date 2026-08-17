@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 
-import { PlusIcon, TrashIcon, UserIcon } from '../../../components/icons.jsx';
-import { Button } from '../../../components/ui/Button.jsx';
-import { couleurPersonne } from '../people.js';
+import { couleurPersonne } from '../lib/people.js';
+import { PlusIcon, TrashIcon, UserIcon } from './icons.jsx';
+import { Button } from './ui/Button.jsx';
 
 /**
- * Gestion des participants du calendrier.
+ * Gestion des membres du foyer.
+ *
+ * Composant du socle : il sert au calendrier comme aux tâches, et à tout
+ * module futur qui attribuerait ses objets à quelqu'un.
  *
  * Tout le monde n'a pas de compte : les enfants et les animaux n'ont pas à se
- * connecter, mais on leur attribue des rendez-vous. Ceux qui ont un compte
- * apparaissent ici sans pouvoir être retirés — ils reviendraient au démarrage
- * suivant.
+ * connecter, mais on leur attribue des rendez-vous et des corvées. Ceux qui ont
+ * un compte apparaissent ici sans pouvoir être retirés — ils reviendraient au
+ * démarrage suivant.
  */
 export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
   const [nouveau, setNouveau] = useState('');
@@ -73,9 +76,9 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
         aria-label="Participants"
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Participants</h2>
+        <h2 className="text-lg font-semibold text-sand-900">Membres du foyer</h2>
         <p className="mt-1 text-sm text-sand-500">
-          Les membres du foyer à qui attribuer un événement, qu'ils aient un compte ou non.
+          Les personnes à qui attribuer un événement ou une tâche, qu'elles aient un compte ou non.
         </p>
 
         <ul className="mt-4 space-y-2">
@@ -123,15 +126,15 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
           <input
             value={nouveau}
             onChange={(e) => setNouveau(e.target.value)}
-            placeholder="Ajouter un participant…"
-            aria-label="Nom du participant à ajouter"
+            placeholder="Ajouter quelqu'un…"
+            aria-label="Nom de la personne à ajouter"
             maxLength={60}
             className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"
             disabled={nouveau.trim() === '' || enCours}
-            aria-label="Ajouter le participant"
+            aria-label="Ajouter la personne"
             className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors active:bg-brand-800 disabled:bg-sand-300"
           >
             <PlusIcon className="size-6" />
@@ -145,8 +148,8 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
         )}
 
         <p className="mt-3 text-xs text-sand-500">
-          Retirer un participant ne supprime pas ses événements : ils passent sur «&nbsp;tout le
-          monde&nbsp;».
+          Retirer quelqu'un ne supprime pas ses événements ni ses tâches : ils passent sur
+          «&nbsp;tout le monde&nbsp;».
         </p>
 
         <Button variant="secondary" onClick={onClose} className="mt-4 mb-4 w-full">

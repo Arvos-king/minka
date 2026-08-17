@@ -1,5 +1,5 @@
+import { couleurPersonne, nomPersonne } from '../../../lib/people.js';
 import { libelleHoraire, libelleJour } from '../agenda.js';
-import { couleurPersonne, nomPersonne } from '../people.js';
 
 /**
  * Les événements d'une même journée.

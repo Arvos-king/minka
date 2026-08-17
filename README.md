@@ -112,16 +112,8 @@ en-tête de jour collant pendant le défilement.
 Les événements sont **ponctuels** : pas de récurrence, choix assumé pour
 l'instant. Seuls les événements à venir sont affichés ; le passé reste en base.
 
-**Les participants ne sont pas les comptes.** Le foyer compte des membres qui
-n'ont pas à se connecter — enfants, animaux — mais à qui l'on rattache des
-rendez-vous. Leur créer un compte leur donnerait un mot de passe et un accès à
-l'application : ils vivent donc dans leur propre table. La liste se gère depuis
-le calendrier, en touchant la bande de couleurs en haut de l'agenda.
-
-Les titulaires d'un compte y apparaissent automatiquement, marqués « Compte »,
-et ne peuvent pas être retirés — ils reviendraient au démarrage suivant. Un
-compte créé plus tard est ajouté de lui-même. Retirer un participant ne
-supprime pas ses événements : ils passent sur « tout le monde ».
+Les événements s'attribuent aux [membres du foyer](#les-membres-du-foyer), que
+l'on gère en touchant la bande de couleurs en haut de l'agenda.
 
 | Route | Effet |
 | --- | --- |
@@ -129,16 +121,70 @@ supprime pas ses événements : ils passent sur « tout le monde ».
 | `POST /api/calendar/events` | Création |
 | `PATCH /api/calendar/events/:id` | Modification |
 | `DELETE /api/calendar/events/:id` | Suppression |
-| `GET /api/calendar/people` | Participants |
-| `POST /api/calendar/people` | Ajout d'un participant sans compte |
-| `PATCH /api/calendar/people/:id` | Renommage |
-| `DELETE /api/calendar/people/:id` | Retrait (refusé pour un titulaire de compte) |
 
 Date et heure sont stockées séparément : `startsAt` à `null` signifie « journée
 entière », ce qu'un horodatage à minuit ne saurait exprimer sans ambiguïté. Les
 règles de cohérence (fin après début, heure de fin sans heure de début) portent
 sur les champs pris ensemble : une modification partielle est donc fusionnée
 avec l'événement existant avant d'être validée.
+
+### Tâches — `/taches`
+
+Une liste unique, triée par échéance la plus proche, avec un filtre par
+personne en haut d'écran.
+
+- une tâche peut avoir une **échéance** et un **rythme** (chaque jour, semaine,
+  mois, année) ;
+- cocher une tâche récurrente ne la termine pas : elle **se replanifie** à
+  l'échéance suivante, et l'application l'annonce — sans ce message, on croirait
+  qu'il ne s'est rien passé ;
+- la replanification vise toujours une date future : une tâche hebdomadaire
+  cochée avec trois semaines de retard repart sur la prochaine occurrence, pas
+  sur une date déjà passée ;
+- les tâches faites basculent dans une section repliable, avec purge à
+  confirmation en deux temps ;
+- ce qui est en retard est signalé en rouge.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/tasks/items?status=pending\|done\|all` | Tâches et compteurs |
+| `POST /api/tasks/items` | Création |
+| `PATCH /api/tasks/items/:id` | Modification — `done: true` replanifie une tâche récurrente et renvoie `rescheduled` |
+| `DELETE /api/tasks/items/completed` | Purge des tâches faites |
+| `DELETE /api/tasks/items/:id` | Suppression |
+
+Le calcul d'échéance repart toujours de la date d'origine plutôt que de la
+précédente valeur calculée. C'est ce qui évite la dérive d'une tâche mensuelle
+tombant le 31 : en enchaînant les additions, elle serait ramenée au 28 en
+passant par février, puis y resterait.
+
+---
+
+## Les membres du foyer
+
+Le foyer compte des personnes qui n'ont pas à se connecter — enfants, animaux —
+mais à qui l'on rattache des rendez-vous et des corvées. Leur créer un compte
+leur donnerait un mot de passe et un accès à l'application : **les membres du
+foyer sont donc distincts des comptes**, et appartiennent au socle
+(`backend/src/lib/people.js`, `frontend/src/lib/people.js`) puisque le
+calendrier comme les tâches s'y réfèrent.
+
+La liste se gère depuis le calendrier ou les tâches, bouton « Gérer ». Les
+titulaires d'un compte y apparaissent automatiquement, marqués « Compte », et
+ne peuvent pas être retirés — ils reviendraient au démarrage suivant. Un compte
+créé plus tard est ajouté de lui-même. Retirer quelqu'un ne supprime ni ses
+événements ni ses tâches : ils passent sur « tout le monde ».
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/people` | Liste |
+| `POST /api/people` | Ajout d'une personne sans compte |
+| `PATCH /api/people/:id` | Renommage |
+| `DELETE /api/people/:id` | Retrait (refusé pour un titulaire de compte) |
+
+Un module qui veut attribuer ses objets à quelqu'un référence `people(id)` avec
+`ON DELETE SET NULL`, importe `personExists` côté API et `usePeople` côté
+interface. Il n'a jamais à connaître les autres modules.
 
 ---
 
@@ -429,8 +475,12 @@ charger créerait un cycle d'imports.
       liste de courses.
 - [x] **Module Calendrier** : agenda partagé, attribution par personne,
       séjours sur plusieurs jours.
+- [x] **Membres du foyer** remontés dans le socle, partagés par le calendrier
+      et les tâches.
+- [x] **Module Tâches** : échéances, tâches récurrentes qui se replanifient,
+      filtre par personne.
 
-Pistes pour la suite : budget, liste de tâches — chacune suit le mode d'emploi
+Pistes pour la suite : budget, notes partagées — chacun suit le mode d'emploi
 ci-dessus. Côté liste de courses, les évolutions naturelles seraient les rayons,
 les articles récurrents, et le temps réel (SSE) à la place du rafraîchissement
 au retour sur l'application. Côté calendrier, les événements récurrents et un

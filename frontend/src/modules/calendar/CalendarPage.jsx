@@ -1,27 +1,17 @@
 import { useState } from 'react';
 
 import { PlusIcon } from '../../components/icons.jsx';
+import { PeopleSheet } from '../../components/PeopleSheet.jsx';
+import { couleurPersonne, usePeople } from '../../lib/people.js';
 import { grouperParJour } from './agenda.js';
 import { CalendarIcon } from './CalendarIcon.jsx';
 import { DayGroup } from './components/DayGroup.jsx';
 import { EventSheet } from './components/EventSheet.jsx';
-import { PeopleSheet } from './components/PeopleSheet.jsx';
-import { couleurPersonne } from './people.js';
 import { useCalendar } from './useCalendar.js';
 
 export function CalendarPage() {
-  const {
-    events,
-    people,
-    status,
-    error,
-    dismissError,
-    saveEvent,
-    removeEvent,
-    addPerson,
-    renamePerson,
-    removePerson,
-  } = useCalendar();
+  const { events, status, error, dismissError, refresh, saveEvent, removeEvent } = useCalendar();
+  const { people, addPerson, renamePerson, removePerson } = usePeople();
 
   // null = panneau fermé ; un objet = panneau ouvert (vide pour une création).
   const [saisie, setSaisie] = useState(null);
@@ -113,7 +103,12 @@ export function CalendarPage() {
           people={people}
           onAdd={addPerson}
           onRename={renamePerson}
-          onRemove={removePerson}
+          onRemove={async (id) => {
+            await removePerson(id);
+            // Les événements qui lui étaient attribués passent sur « tout le
+            // monde » côté serveur : l'agenda doit s'en apercevoir.
+            await refresh({ silent: true });
+          }}
           onClose={() => setGestionParticipants(false)}
         />
       )}

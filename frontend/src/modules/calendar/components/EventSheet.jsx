@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
 import { aujourdhui } from '../../../lib/dates.js';
-import { couleurPersonne } from '../people.js';
+import { couleurPersonne } from '../../../lib/people.js';
 
 /**
  * Panneau de saisie d'un événement, glissé depuis le bas de l'écran.

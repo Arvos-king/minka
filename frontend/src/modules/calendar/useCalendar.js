@@ -6,15 +6,18 @@ import { calendarApi } from './api.js';
 /**
  * État du calendrier.
  *
- * Contrairement aux deux autres modules, les écritures ne sont pas optimistes :
- * un événement se saisit dans un formulaire, geste posé où l'on attend une
- * confirmation, et son rang dans l'agenda dépend de champs que l'utilisateur
- * vient de choisir. Recharger après enregistrement est ici plus honnête — et
- * imperceptible, puisque la réponse arrive pendant la fermeture du panneau.
+ * Contrairement aux listes de courses et du frigo, les écritures ne sont pas
+ * optimistes : un événement se saisit dans un formulaire, geste posé où l'on
+ * attend une confirmation, et son rang dans l'agenda dépend de champs que
+ * l'utilisateur vient de choisir. Recharger après enregistrement est ici plus
+ * honnête — et imperceptible, puisque la réponse arrive pendant la fermeture
+ * du panneau.
+ *
+ * Les membres du foyer ne sont pas gérés ici : ils appartiennent au socle
+ * (`lib/people.js`), qui les partage avec les tâches.
  */
 export function useCalendar() {
   const [events, setEvents] = useState([]);
-  const [people, setPeople] = useState([]);
   const [status, setStatus] = useState('loading'); // loading | ready | error
   const [error, setError] = useState(null);
 
@@ -30,19 +33,9 @@ export function useCalendar() {
     }
   }, []);
 
-  const refreshPeople = useCallback(
-    () =>
-      calendarApi
-        .listPeople()
-        .then((data) => setPeople(data.people))
-        .catch(() => setPeople([])),
-    [],
-  );
-
   useEffect(() => {
     refresh();
-    refreshPeople();
-  }, [refresh, refreshPeople]);
+  }, [refresh]);
 
   const refreshSilently = useCallback(() => refresh({ silent: true }), [refresh]);
   useRefreshOnFocus(refreshSilently);
@@ -74,43 +67,13 @@ export function useCalendar() {
     [refresh],
   );
 
-  const addPerson = useCallback(
-    async (displayName) => {
-      await calendarApi.createPerson(displayName);
-      await refreshPeople();
-    },
-    [refreshPeople],
-  );
-
-  const renamePerson = useCallback(
-    async (id, displayName) => {
-      await calendarApi.renamePerson(id, displayName);
-      await refreshPeople();
-    },
-    [refreshPeople],
-  );
-
-  const removePerson = useCallback(
-    async (id) => {
-      await calendarApi.removePerson(id);
-      await refreshPeople();
-      // Les événements qui lui étaient attribués basculent sur « tout le
-      // monde » côté serveur : l'agenda doit refléter ce changement.
-      await refresh({ silent: true });
-    },
-    [refreshPeople, refresh],
-  );
-
   return {
     events,
-    people,
     status,
     error,
     dismissError: () => setError(null),
+    refresh,
     saveEvent,
     removeEvent,
-    addPerson,
-    renamePerson,
-    removePerson,
   };
 }
