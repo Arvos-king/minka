@@ -4,6 +4,10 @@ dist/
 # Secrets de déploiement : jamais versionnés.
 .env
 
+# Outillage local : la configuration du serveur de développement dépend du
+# poste de travail, elle n'a pas sa place dans le dépôt.
+.claude/launch.json
+
 # Base SQLite et ses fichiers annexes du mode WAL.
 data/
 *.db
