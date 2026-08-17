@@ -48,9 +48,18 @@ services:
       MINKA_USER2_USERNAME: ${MINKA_USER2_USERNAME:-}
       MINKA_USER2_PASSWORD: ${MINKA_USER2_PASSWORD:-}
       MINKA_USER2_NAME: ${MINKA_USER2_NAME:-}
+
+      # Sauvegarde automatique de la base (voir .env.example).
+      BACKUP_ENABLED: ${BACKUP_ENABLED:-true}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
     volumes:
       # La base SQLite vit ici. Sur unRAID : /mnt/user/appdata/minka/data
       - ./data:/data
+      # Pour éloigner les sauvegardes du disque de la base, monter un autre
+      # share ici et pointer BACKUP_DIR dessus dans le .env :
+      # - /mnt/user/backups/minka:/backups
     expose:
       - "3000"
     # La sonde de santé est définie dans backend/Dockerfile, au plus près de

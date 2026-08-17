@@ -312,24 +312,55 @@ par défaut par NPM sont exactement ceux attendus.
 
 ## Sauvegarde
 
-La base tient dans un seul fichier, mais le mode WAL en produit deux annexes
-(`minka.db-wal`, `minka.db-shm`) : copier `minka.db` seul pendant que
-l'application tourne donnerait une sauvegarde incomplète.
+**L'application se sauvegarde toute seule**, chaque nuit à 3 h, et au démarrage
+s'il n'existe pas déjà une sauvegarde du jour — c'est justement après un
+déploiement qu'une image récente est la plus utile. Les 14 dernières sont
+conservées, les plus anciennes retirées automatiquement. Rien à installer.
 
-Méthode simple, à froid :
+Les fichiers atterrissent dans `data/backups/`, nommés `minka-AAAA-MM-JJ.db`.
+Réglages dans [`.env.example`](.env.example) : heure, nombre conservé,
+destination, ou désactivation.
+
+Vérifier l'état, ou déclencher une sauvegarde avant une manipulation risquée :
+
+```bash
+curl -s -b cookies.txt https://minka.<domaine>/api/backup
+```
+
+```bash
+docker compose logs minka-api | grep backup
+```
+
+### Ce que cela protège, et ce que cela ne protège pas
+
+Par défaut les sauvegardes vivent dans le même volume que la base : cela couvre
+les fausses manœuvres et les migrations ratées, **pas une panne de disque**.
+Pour les éloigner, monter un autre share dans le service `minka-api` (le
+`docker-compose.yml` contient la ligne à décommenter) et pointer `BACKUP_DIR`
+dessus.
+
+### Restaurer
 
 ```bash
 cd /mnt/user/appdata/minka
 docker compose stop minka-api
-cp -a data/minka.db /mnt/user/backups/minka-$(date +%F).db
+cp -a data/backups/minka-2026-08-17.db data/minka.db
+rm -f data/minka.db-wal data/minka.db-shm
 docker compose start minka-api
 ```
 
-Méthode à chaud, sans interruption de service :
+Les fichiers `-wal` et `-shm` sont retirés : ce sont les journaux de l'ancienne
+base, sans rapport avec celle qu'on vient de remettre en place. Une sauvegarde
+produite par `VACUUM INTO` est un fichier complet et autonome, qui n'en a pas
+besoin.
 
-```bash
-docker exec minka-api node -e "new (require('better-sqlite3'))('/data/minka.db').exec(\"VACUUM INTO '/data/backup.db'\")"
-```
+### Pourquoi `VACUUM INTO` et non une copie de fichier
+
+La base tourne en mode WAL : les écritures récentes vivent dans
+`minka.db-wal` tant qu'elles n'ont pas été consolidées. Copier `minka.db` seul
+donne une image tronquée — le piège s'est refermé pendant le développement, sur
+une base dont le fichier principal ne pesait que 4 Ko contre 288 Ko de journal.
+`VACUUM INTO` écrit une base complète et cohérente, sans interrompre le service.
 
 ---
 
@@ -479,6 +510,7 @@ charger créerait un cycle d'imports.
       et les tâches.
 - [x] **Module Tâches** : échéances, tâches récurrentes qui se replanifient,
       filtre par personne.
+- [x] **Sauvegarde automatique** : nocturne, avec rotation.
 
 Pistes pour la suite : budget, notes partagées — chacun suit le mode d'emploi
 ci-dessus. Côté liste de courses, les évolutions naturelles seraient les rayons,
