@@ -16,6 +16,11 @@ services:
     image: minka-api:latest
     container_name: minka-api
     restart: unless-stopped
+    # Identité du processus dans le conteneur. Par défaut nobody:users, la
+    # convention unRAID pour appdata : la base appartient ainsi au même
+    # utilisateur que le reste de tes partages, et reste lisible depuis SMB.
+    # Le dossier ./data doit appartenir à ce couple (voir README).
+    user: "${PUID:-99}:${PGID:-100}"
     environment:
       TZ: ${TZ:-Europe/Paris}
       NODE_ENV: production
@@ -48,17 +53,8 @@ services:
       - ./data:/data
     expose:
       - "3000"
-    healthcheck:
-      # node:24-slim n'embarque ni wget ni curl : on se sert du fetch natif.
-      test:
-        - CMD
-        - node
-        - -e
-        - fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    # La sonde de santé est définie dans backend/Dockerfile, au plus près de
+    # l'image : `depends_on: service_healthy` ci-dessous s'appuie dessus.
     networks:
       - minka
     logging:

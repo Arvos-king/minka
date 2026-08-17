@@ -74,6 +74,18 @@ cd /mnt/user/appdata/minka
 cp .env.example .env
 ```
 
+Préparer le dossier de données **avant** le premier démarrage. Le conteneur ne
+tourne pas en root : si Docker crée `data/` lui-même, le dossier appartient à
+`root` et l'API ne peut pas y écrire sa base.
+
+```bash
+mkdir -p data
+chown -R 99:100 data
+```
+
+(`99:100` = `nobody:users`, la convention unRAID pour `appdata` ; ajuster si
+`PUID`/`PGID` ont été changés dans `.env`.)
+
 Renseigner ensuite `.env` — au minimum `SESSION_SECRET` et les deux comptes.
 Le secret se génère avec :
 
