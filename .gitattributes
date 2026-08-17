@@ -1,0 +1,11 @@
+# Le dépôt stocke des fins de ligne LF, quelle que soit la machine qui commite.
+#
+# Ce projet est développé sous Windows mais s'exécute dans des conteneurs
+# Linux : les fichiers de configuration copiés dans les images (nginx.conf,
+# Dockerfile, migrations SQL) doivent y arriver en LF. Cela évite aussi les
+# diffs entiers causés par un simple changement de poste de travail.
+* text=auto eol=lf
+
+# Images : aucune conversion, ce sont des binaires.
+*.png binary
+*.ico binary

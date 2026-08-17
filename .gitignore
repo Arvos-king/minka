@@ -1,0 +1,15 @@
+node_modules/
+dist/
+
+# Secrets de déploiement : jamais versionnés.
+.env
+
+# Base SQLite et ses fichiers annexes du mode WAL.
+data/
+*.db
+*.db-wal
+*.db-shm
+
+*.log
+.DS_Store
+Thumbs.db

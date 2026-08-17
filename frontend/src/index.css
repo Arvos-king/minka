@@ -1,0 +1,75 @@
+@import 'tailwindcss';
+
+/*
+ * Thème Minka. En Tailwind v4 la configuration se fait ici, en CSS : chaque
+ * variable déclarée dans @theme génère les utilitaires correspondants
+ * (bg-brand-600, text-sand-500…).
+ */
+@theme {
+  /* Vert profond de la marque — également la theme_color de la PWA. */
+  --color-brand-50: #edfbf5;
+  --color-brand-100: #d3f5e7;
+  --color-brand-200: #a9ead2;
+  --color-brand-300: #74d9b7;
+  --color-brand-400: #40c098;
+  --color-brand-500: #1fa57e;
+  --color-brand-600: #0d7c66;
+  --color-brand-700: #0b6553;
+  --color-brand-800: #0b5043;
+  --color-brand-900: #0a4238;
+
+  /* Neutres légèrement chauds : moins clinique qu'un gris pur. */
+  --color-sand-50: #fdfdfc;
+  --color-sand-100: #f7f7f5;
+  --color-sand-200: #eeeeea;
+  --color-sand-300: #e0e0da;
+  --color-sand-400: #b8b8ae;
+  --color-sand-500: #8a8a7e;
+  --color-sand-600: #66665c;
+  --color-sand-700: #4a4a43;
+  --color-sand-800: #2f2f2a;
+  --color-sand-900: #1c1c19;
+}
+
+@layer base {
+  html {
+    /* Supprime le voile gris au tap sur mobile. */
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--color-sand-100);
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-sand-100);
+    color: var(--color-sand-900);
+    -webkit-font-smoothing: antialiased;
+    /* Évite le zoom involontaire lors d'une rotation sur iOS. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Sur iOS, une police inférieure à 16px déclenche un zoom automatique à la
+     mise au point d'un champ — très désagréable en pleine saisie. */
+  input,
+  textarea,
+  select {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/*
+ * Marges basses respectant la barre de gestes des téléphones récents. Servent
+ * aux éléments collés en bas d'écran (le champ d'ajout de la liste de courses).
+ */
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@utility mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* Réserve la hauteur de la barre d'état sur les téléphones à encoche, pour
+   l'en-tête collant de l'application. */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}

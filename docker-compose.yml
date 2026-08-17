@@ -1,0 +1,111 @@
+# Minka — plateforme familiale (API Node/SQLite + frontend React servi par nginx).
+#
+# Déploiement unRAID, depuis /mnt/user/appdata/minka :
+#   cp .env.example .env      # puis renseigner SESSION_SECRET et les deux comptes
+#   docker compose up -d --build
+#
+# Seul `minka-web` publie un port. L'API n'est joignable que par nginx, à
+# travers le réseau interne du stack : elle n'est jamais exposée sur le LAN.
+# Le reverse proxy (Nginx Proxy Manager) tape sur http://IP_UNRAID:${APP_PORT}.
+
+services:
+  minka-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: minka-api:latest
+    container_name: minka-api
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Paris}
+      NODE_ENV: production
+      PORT: 3000
+      DATA_DIR: /data
+
+      # Secret de signature des jetons de session. OBLIGATOIRE : le conteneur
+      # refuse de démarrer s'il est absent ou trop court (voir .env.example).
+      SESSION_SECRET: ${SESSION_SECRET}
+      # `true` = cookie `Secure`, donc transmis uniquement en HTTPS. À laisser à
+      # `true` puisque l'accès nominal passe par le sous-domaine TLS de NPM.
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      SESSION_LIFETIME_DAYS: ${SESSION_LIFETIME_DAYS:-30}
+
+      # Deux proxies se trouvent devant Express : Nginx Proxy Manager, puis le
+      # nginx de minka-web. Sans ce réglage, le rate-limit de la page de
+      # connexion verrait la même IP pour tout le monde et vous bloquerait
+      # tous les deux d'un coup.
+      TRUST_PROXY: ${TRUST_PROXY:-2}
+
+      # Comptes créés au premier démarrage s'ils n'existent pas encore.
+      MINKA_USER1_USERNAME: ${MINKA_USER1_USERNAME:-}
+      MINKA_USER1_PASSWORD: ${MINKA_USER1_PASSWORD:-}
+      MINKA_USER1_NAME: ${MINKA_USER1_NAME:-}
+      MINKA_USER2_USERNAME: ${MINKA_USER2_USERNAME:-}
+      MINKA_USER2_PASSWORD: ${MINKA_USER2_PASSWORD:-}
+      MINKA_USER2_NAME: ${MINKA_USER2_NAME:-}
+    volumes:
+      # La base SQLite vit ici. Sur unRAID : /mnt/user/appdata/minka/data
+      - ./data:/data
+    expose:
+      - "3000"
+    healthcheck:
+      # node:24-slim n'embarque ni wget ni curl : on se sert du fetch natif.
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - minka
+    logging:
+      # Sans plafond, le journal Docker grossit indéfiniment sur l'array.
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  minka-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: minka-web:latest
+    container_name: minka-web
+    restart: unless-stopped
+    depends_on:
+      minka-api:
+        # On attend que l'API soit réellement saine : nginx démarrerait sinon
+        # avec un upstream injoignable et renverrait des 502 au premier appel.
+        condition: service_healthy
+    ports:
+      # 8067 (hitsterhome), 8080 (scorio) et 8088 (pointage-bus) sont déjà pris.
+      - "${APP_PORT:-8090}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    labels:
+      # Métadonnées reconnues par l'interface Docker d'unRAID.
+      net.unraid.docker.managed: "composeman"
+      net.unraid.docker.webui: "http://[IP]:[PORT:8090]"
+      # Icône affichée dans l'UI Docker — libre à toi de la remplacer.
+      net.unraid.docker.icon: "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/grocy.png"
+    networks:
+      - minka
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  # Réseau dédié au stack : les deux conteneurs se voient par leur nom
+  # (`minka-api`, `minka-web`) sans être mêlés aux autres applications.
+  minka:
+    name: minka
+    driver: bridge
