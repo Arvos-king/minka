@@ -1,37 +1,17 @@
 /**
- * Calcul des échéances de péremption.
+ * Échéances de péremption.
  *
- * Tout se fait ici, côté client, et non sur le serveur : la date qui compte
- * est celle du téléphone de la personne qui ouvre le frigo. Cela évite aussi
- * d'avoir deux logiques de date, l'une pour l'affichage et l'autre pour le
- * classement.
+ * Le calcul se fait ici, côté client : la date qui compte est celle du
+ * téléphone de la personne qui ouvre le frigo.
  */
+
+import { aujourdhui, decalerJours, joursEntre } from '../../lib/dates.js';
 
 /** Nombre de jours en deçà duquel un produit est signalé comme urgent. */
 const SEUIL_BIENTOT = 3;
 
-/** Date du jour au format AAAA-MM-JJ, dans le fuseau local. */
-export function aujourdhui() {
-  const maintenant = new Date();
-  // On soustrait le décalage avant de sérialiser : `toISOString()` bascule en
-  // UTC et ferait changer de jour en soirée depuis la France.
-  const decalage = maintenant.getTimezoneOffset() * 60_000;
-  return new Date(maintenant.getTime() - decalage).toISOString().slice(0, 10);
-}
-
-/** Convertit AAAA-MM-JJ en instant UTC, pour comparer des jours entre eux. */
-function versJourUtc(date) {
-  const [annee, mois, jour] = date.split('-').map(Number);
-  return Date.UTC(annee, mois - 1, jour);
-}
-
-/**
- * Nombre de jours séparant aujourd'hui de la date donnée (négatif si passée).
- * Le passage par UTC évite qu'un changement d'heure fasse gagner ou perdre
- * une journée.
- */
 export function joursRestants(expiresOn) {
-  return Math.round((versJourUtc(expiresOn) - versJourUtc(aujourdhui())) / 86_400_000);
+  return joursEntre(aujourdhui(), expiresOn);
 }
 
 const formatCourt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
@@ -71,8 +51,7 @@ export const STYLES_BADGE = {
   aucun: '',
 };
 
-/** Décalage en jours par rapport à aujourd'hui, au format attendu par l'API. */
+/** Date située dans N jours, au format attendu par l'API. */
 export function dansNJours(n) {
-  const date = new Date(versJourUtc(aujourdhui()) + n * 86_400_000);
-  return date.toISOString().slice(0, 10);
+  return decalerJours(aujourdhui(), n);
 }

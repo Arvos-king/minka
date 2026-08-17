@@ -94,6 +94,38 @@ courses depuis les actions dépliées. Le bouton n'apparaît que si le module
 courses répond côté API, et le lien se limite à un appel HTTP — voir
 [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
 
+### Calendrier — `/calendrier`
+
+Agenda chronologique du foyer : les événements à venir, groupés par jour, avec
+en-tête de jour collant pendant le défilement.
+
+- chaque événement est attribué à l'un de vous ou à tout le monde, avec une
+  **bande de couleur** qui permet de voir qui est pris avant même d'avoir lu ;
+- les événements sur la journée entière remontent en tête de leur journée, les
+  autres suivent par heure ;
+- un **séjour sur plusieurs jours** apparaît dans chaque journée qu'il couvre,
+  avec son rang (« jour 2/4 ») ;
+- la saisie se fait dans un panneau glissé depuis le bas — un calendrier
+  demande trop de champs pour le champ unique des autres modules ;
+- toucher un événement rouvre ce panneau pour le modifier ou le supprimer.
+
+Les événements sont **ponctuels** : pas de récurrence, choix assumé pour
+l'instant. Seuls les événements à venir sont affichés ; le passé reste en base.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/calendar/events?from=&to=` | Événements **chevauchant** la période (défaut : un an à partir d'aujourd'hui) |
+| `GET /api/calendar/people` | Personnes du foyer, pour l'attribution |
+| `POST /api/calendar/events` | Création |
+| `PATCH /api/calendar/events/:id` | Modification |
+| `DELETE /api/calendar/events/:id` | Suppression |
+
+Date et heure sont stockées séparément : `startsAt` à `null` signifie « journée
+entière », ce qu'un horodatage à minuit ne saurait exprimer sans ambiguïté. Les
+règles de cohérence (fin après début, heure de fin sans heure de début) portent
+sur les champs pris ensemble : une modification partielle est donc fusionnée
+avec l'événement existant avant d'être validée.
+
 ---
 
 ## Déploiement sur unRAID
@@ -331,6 +363,15 @@ La route protégée et la tuile du tableau de bord apparaissent automatiquement.
 L'icône vit dans le dossier du module (voir `modules/fridge/FridgeIcon.jsx`) :
 ajouter une fonctionnalité n'oblige à modifier aucun fichier commun.
 
+### Ce que le socle met à disposition
+
+Côté API : `isoDate` et `isoTime` (`src/lib/schemas.js`), validateurs de date et
+d'heure qui vérifient l'existence réelle du jour, pas seulement le format.
+
+Côté interface : `lib/dates.js` (`aujourdhui`, `decalerJours`, `joursEntre`) —
+tous les calculs y passent par UTC, car comparer des jours en heure locale fait
+gagner ou perdre une journée aux changements d'heure.
+
 ### Deux aides fournies par le socle
 
 `useRefreshOnFocus(rafraichir)` — recharge les données au retour sur
@@ -372,10 +413,13 @@ charger créerait un cycle d'imports.
 
 - [x] **Module Frigo** : inventaire, dates de péremption, passerelle vers la
       liste de courses.
+- [x] **Module Calendrier** : agenda partagé, attribution par personne,
+      séjours sur plusieurs jours.
 
-Pistes pour la suite : calendrier partagé, budget, liste de tâches — chacune
-suit le mode d'emploi ci-dessus. Côté liste de courses, les évolutions
-naturelles seraient les rayons, les articles récurrents, et le temps réel
-(SSE) à la place du rafraîchissement au retour sur l'application. Côté frigo,
-une notification quand un produit approche de sa date supposerait d'ajouter le
-push web (VAPID), non configuré à ce jour.
+Pistes pour la suite : budget, liste de tâches — chacune suit le mode d'emploi
+ci-dessus. Côté liste de courses, les évolutions naturelles seraient les rayons,
+les articles récurrents, et le temps réel (SSE) à la place du rafraîchissement
+au retour sur l'application. Côté calendrier, les événements récurrents et un
+flux ICS en lecture seule, pour s'abonner depuis l'application native du
+téléphone. Une notification à l'approche d'une date de péremption ou d'un
+rendez-vous supposerait d'ajouter le push web (VAPID), non configuré à ce jour.
