@@ -30,15 +30,19 @@ export function useCalendar() {
     }
   }, []);
 
+  const refreshPeople = useCallback(
+    () =>
+      calendarApi
+        .listPeople()
+        .then((data) => setPeople(data.people))
+        .catch(() => setPeople([])),
+    [],
+  );
+
   useEffect(() => {
     refresh();
-    // La liste des personnes ne change quasiment jamais : un seul appel au
-    // montage suffit.
-    calendarApi
-      .listPeople()
-      .then((data) => setPeople(data.people))
-      .catch(() => setPeople([]));
-  }, [refresh]);
+    refreshPeople();
+  }, [refresh, refreshPeople]);
 
   const refreshSilently = useCallback(() => refresh({ silent: true }), [refresh]);
   useRefreshOnFocus(refreshSilently);
@@ -70,6 +74,33 @@ export function useCalendar() {
     [refresh],
   );
 
+  const addPerson = useCallback(
+    async (displayName) => {
+      await calendarApi.createPerson(displayName);
+      await refreshPeople();
+    },
+    [refreshPeople],
+  );
+
+  const renamePerson = useCallback(
+    async (id, displayName) => {
+      await calendarApi.renamePerson(id, displayName);
+      await refreshPeople();
+    },
+    [refreshPeople],
+  );
+
+  const removePerson = useCallback(
+    async (id) => {
+      await calendarApi.removePerson(id);
+      await refreshPeople();
+      // Les événements qui lui étaient attribués basculent sur « tout le
+      // monde » côté serveur : l'agenda doit refléter ce changement.
+      await refresh({ silent: true });
+    },
+    [refreshPeople, refresh],
+  );
+
   return {
     events,
     people,
@@ -78,5 +109,8 @@ export function useCalendar() {
     dismissError: () => setError(null),
     saveEvent,
     removeEvent,
+    addPerson,
+    renamePerson,
+    removePerson,
   };
 }

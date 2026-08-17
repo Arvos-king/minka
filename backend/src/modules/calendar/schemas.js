@@ -96,3 +96,11 @@ export const listQuerySchema = z.object({
 export const eventParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
+
+export const personSchema = z.object({
+  displayName: z
+    .string()
+    .trim()
+    .min(1, 'Le nom est requis.')
+    .max(60, 'Le nom est trop long.'),
+});

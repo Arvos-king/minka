@@ -9,6 +9,9 @@ export const calendarApi = {
     return api.get(`/calendar/events${requete ? `?${requete}` : ''}`);
   },
   listPeople: () => api.get('/calendar/people'),
+  createPerson: (displayName) => api.post('/calendar/people', { displayName }),
+  renamePerson: (id, displayName) => api.patch(`/calendar/people/${id}`, { displayName }),
+  removePerson: (id) => api.delete(`/calendar/people/${id}`),
   create: (event) => api.post('/calendar/events', event),
   update: (id, fields) => api.patch(`/calendar/events/${id}`, fields),
   remove: (id) => api.delete(`/calendar/events/${id}`),

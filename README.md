@@ -112,13 +112,27 @@ en-tête de jour collant pendant le défilement.
 Les événements sont **ponctuels** : pas de récurrence, choix assumé pour
 l'instant. Seuls les événements à venir sont affichés ; le passé reste en base.
 
+**Les participants ne sont pas les comptes.** Le foyer compte des membres qui
+n'ont pas à se connecter — enfants, animaux — mais à qui l'on rattache des
+rendez-vous. Leur créer un compte leur donnerait un mot de passe et un accès à
+l'application : ils vivent donc dans leur propre table. La liste se gère depuis
+le calendrier, en touchant la bande de couleurs en haut de l'agenda.
+
+Les titulaires d'un compte y apparaissent automatiquement, marqués « Compte »,
+et ne peuvent pas être retirés — ils reviendraient au démarrage suivant. Un
+compte créé plus tard est ajouté de lui-même. Retirer un participant ne
+supprime pas ses événements : ils passent sur « tout le monde ».
+
 | Route | Effet |
 | --- | --- |
 | `GET /api/calendar/events?from=&to=` | Événements **chevauchant** la période (défaut : un an à partir d'aujourd'hui) |
-| `GET /api/calendar/people` | Personnes du foyer, pour l'attribution |
 | `POST /api/calendar/events` | Création |
 | `PATCH /api/calendar/events/:id` | Modification |
 | `DELETE /api/calendar/events/:id` | Suppression |
+| `GET /api/calendar/people` | Participants |
+| `POST /api/calendar/people` | Ajout d'un participant sans compte |
+| `PATCH /api/calendar/people/:id` | Renommage |
+| `DELETE /api/calendar/people/:id` | Retrait (refusé pour un titulaire de compte) |
 
 Date et heure sont stockées séparément : `startsAt` à `null` signifie « journée
 entière », ce qu'un horodatage à minuit ne saurait exprimer sans ambiguïté. Les

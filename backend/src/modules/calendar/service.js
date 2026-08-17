@@ -86,18 +86,82 @@ export function deleteEvent(id) {
   return stmt('DELETE FROM calendar_events WHERE id = ?').run(id).changes;
 }
 
-/**
- * Personnes du foyer, pour l'attribution des événements.
+/*
+ * Participants du calendrier.
  *
- * La table `users` appartient au socle : la lire ici ne crée aucune dépendance
- * envers le module d'authentification, qui gère les sessions et non l'annuaire.
+ * Ils sont distincts des comptes : le foyer compte des membres qui n'ont pas à
+ * se connecter — enfants, animaux — mais à qui l'on rattache des rendez-vous.
+ * Ceux qui ont un compte sont repérés par `user_id` et protégés contre la
+ * suppression.
+ */
+
+function toPublicPerson(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    hasAccount: row.user_id !== null,
+  };
+}
+
+/**
+ * Participants, dans un ordre stable et prévisible : les titulaires d'un
+ * compte d'abord, dans leur ordre de création, puis les autres par ordre
+ * alphabétique — un participant ajouté ensuite trouve ainsi sa place tout seul.
  */
 export function listPeople() {
-  return stmt('SELECT id, display_name FROM users ORDER BY id')
+  return stmt(`
+    SELECT * FROM calendar_people
+    ORDER BY user_id IS NULL, sort_order, display_name COLLATE NOCASE
+  `)
     .all()
-    .map((row) => ({ id: row.id, displayName: row.display_name }));
+    .map(toPublicPerson);
+}
+
+export function getPerson(id) {
+  return toPublicPerson(stmt('SELECT * FROM calendar_people WHERE id = ?').get(id));
 }
 
 export function personExists(id) {
-  return stmt('SELECT 1 FROM users WHERE id = ?').get(id) !== undefined;
+  return stmt('SELECT 1 FROM calendar_people WHERE id = ?').get(id) !== undefined;
+}
+
+export function createPerson(displayName) {
+  // Placé en fin de liste : les comptes, créés en premier, gardent la tête.
+  const result = stmt(
+    'INSERT INTO calendar_people (display_name, sort_order) VALUES (?, 100)',
+  ).run(displayName);
+  return getPerson(result.lastInsertRowid);
+}
+
+export function updatePerson(id, displayName) {
+  stmt('UPDATE calendar_people SET display_name = ? WHERE id = ?').run(displayName, id);
+  return getPerson(id);
+}
+
+export function deletePerson(id) {
+  // Les événements qui lui étaient attribués basculent sur « tout le monde »,
+  // par le ON DELETE SET NULL de la contrainte : ils ne disparaissent pas.
+  return stmt('DELETE FROM calendar_people WHERE id = ?').run(id).changes;
+}
+
+/**
+ * Ajoute les comptes qui n'ont pas encore de participant associé.
+ *
+ * Appelée à chaque démarrage : un compte créé plus tard depuis l'environnement
+ * apparaît ainsi dans le calendrier sans intervention. Les noms déjà présents
+ * ne sont jamais réécrits — un participant peut avoir été renommé depuis
+ * l'application.
+ */
+export function syncAccountsAsPeople() {
+  const ajoutes = stmt(`
+    INSERT INTO calendar_people (display_name, user_id, sort_order)
+    SELECT u.display_name, u.id, u.id
+    FROM users u
+    WHERE NOT EXISTS (SELECT 1 FROM calendar_people p WHERE p.user_id = u.id)
+  `).run().changes;
+
+  if (ajoutes > 0) {
+    console.log(`[calendar] ${ajoutes} compte(s) ajouté(s) aux participants.`);
+  }
 }

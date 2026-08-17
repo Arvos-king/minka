@@ -5,13 +5,27 @@ import { grouperParJour } from './agenda.js';
 import { CalendarIcon } from './CalendarIcon.jsx';
 import { DayGroup } from './components/DayGroup.jsx';
 import { EventSheet } from './components/EventSheet.jsx';
+import { PeopleSheet } from './components/PeopleSheet.jsx';
+import { couleurPersonne } from './people.js';
 import { useCalendar } from './useCalendar.js';
 
 export function CalendarPage() {
-  const { events, people, status, error, dismissError, saveEvent, removeEvent } = useCalendar();
+  const {
+    events,
+    people,
+    status,
+    error,
+    dismissError,
+    saveEvent,
+    removeEvent,
+    addPerson,
+    renamePerson,
+    removePerson,
+  } = useCalendar();
 
   // null = panneau fermé ; un objet = panneau ouvert (vide pour une création).
   const [saisie, setSaisie] = useState(null);
+  const [gestionParticipants, setGestionParticipants] = useState(false);
 
   const jours = grouperParJour(events);
 
@@ -24,6 +38,27 @@ export function CalendarPage() {
             Fermer
           </button>
         </div>
+      )}
+
+      {/* Légende des couleurs, qui sert aussi d'accès à la gestion : deux
+          usages pour une seule ligne, précieuse sur un écran de téléphone. */}
+      {people.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setGestionParticipants(true)}
+          className="mb-4 flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-white px-3 py-2 text-left ring-1 ring-sand-200 active:bg-sand-50"
+        >
+          {people.map((personne) => (
+            <span key={personne.id} className="inline-flex items-center gap-1.5 text-sm text-sand-600">
+              <span
+                className={`size-2.5 rounded-full ${couleurPersonne(personne.id).pastille}`}
+                aria-hidden="true"
+              />
+              {personne.displayName}
+            </span>
+          ))}
+          <span className="ml-auto text-sm font-medium text-brand-700">Gérer</span>
+        </button>
       )}
 
       {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
@@ -70,6 +105,16 @@ export function CalendarPage() {
           onSave={saveEvent}
           onDelete={removeEvent}
           onClose={() => setSaisie(null)}
+        />
+      )}
+
+      {gestionParticipants && (
+        <PeopleSheet
+          people={people}
+          onAdd={addPerson}
+          onRename={renamePerson}
+          onRemove={removePerson}
+          onClose={() => setGestionParticipants(false)}
         />
       )}
     </div>
