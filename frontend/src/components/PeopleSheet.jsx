@@ -67,14 +67,14 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-sand-900/40" role="presentation">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Participants"
-        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
+        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">Membres du foyer</h2>
         <p className="mt-1 text-sm text-sand-500">
@@ -87,7 +87,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
             return (
               <li
                 key={personne.id}
-                className="flex items-center gap-2 rounded-xl bg-white p-2 ring-1 ring-sand-200"
+                className="flex items-center gap-2 rounded-xl bg-surface p-2 ring-1 ring-sand-200"
               >
                 <span className={`size-3 shrink-0 rounded-full ${couleur.pastille}`} aria-hidden="true" />
 
@@ -129,7 +129,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
             placeholder="Ajouter quelqu'un…"
             aria-label="Nom de la personne à ajouter"
             maxLength={60}
-            className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"
@@ -142,7 +142,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
         </form>
 
         {erreur && (
-          <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
             {erreur}
           </p>
         )}

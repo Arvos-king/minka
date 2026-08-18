@@ -77,14 +77,14 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-sand-900/40" role="presentation">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={enEdition ? 'Modifier la recette' : 'Nouvelle recette'}
-        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
+        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
           {enEdition ? 'Modifier la recette' : 'Nouvelle recette'}
@@ -99,10 +99,10 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
             aria-label="Nom de la recette"
             required
             maxLength={120}
-            className="min-h-12 w-full rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-white p-3 ring-1 ring-sand-200">
+          <label className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 ring-1 ring-sand-200">
             <span className="text-sm font-medium text-sand-700">
               Pour combien&nbsp;?
               <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
@@ -131,7 +131,7 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
                     placeholder="Courgettes"
                     aria-label="Nom de l'ingrédient"
                     maxLength={120}
-                    className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+                    className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
                   />
                   <input
                     value={ligne.quantity}
@@ -139,7 +139,7 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
                     placeholder="200 g"
                     aria-label="Quantité (texte libre)"
                     maxLength={60}
-                    className="min-h-12 w-24 rounded-xl bg-white px-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+                    className="min-h-12 w-24 rounded-xl bg-surface px-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
                   />
                   <button
                     type="button"
@@ -178,11 +178,11 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
             aria-label="Préparation"
             rows={4}
             maxLength={4000}
-            className="w-full rounded-xl bg-white px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
           {erreur && (
-            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
               {erreur}
             </p>
           )}
@@ -201,7 +201,7 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
               <div className="rounded-xl bg-red-50 px-4 py-3">
                 {/* Le nombre de repas concernés est annoncé : ils partiront
                     avec la recette. */}
-                <p className="text-sm text-red-800">
+                <p className="text-sm text-danger">
                   Supprimer «&nbsp;{recette.title}&nbsp;»&nbsp;? Elle disparaîtra aussi des repas
                   déjà prévus.
                 </p>
@@ -232,7 +232,7 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
                 type="button"
                 variant="ghost"
                 onClick={() => setConfirmationSuppression(true)}
-                className="w-full text-red-700"
+                className="w-full text-danger"
               >
                 Supprimer la recette
               </Button>

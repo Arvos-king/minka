@@ -37,8 +37,8 @@ export function AccountPage() {
 
   return (
     <div className="space-y-6">
-      <section className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-sand-200">
-        <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-700">
+      <section className="flex items-center gap-4 rounded-2xl bg-surface p-4 ring-1 ring-sand-200">
+        <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-accent">
           <UserIcon className="size-6" />
         </span>
         <span>
@@ -47,7 +47,7 @@ export function AccountPage() {
         </span>
       </section>
 
-      <section className="rounded-2xl bg-white p-4 ring-1 ring-sand-200">
+      <section className="rounded-2xl bg-surface p-4 ring-1 ring-sand-200">
         <h2 className="font-medium text-sand-900">Changer de mot de passe</h2>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -75,13 +75,13 @@ export function AccountPage() {
           />
 
           {state.status === 'error' && (
-            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
               {state.message}
             </p>
           )}
 
           {state.status === 'done' && (
-            <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">
+            <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
               Mot de passe mis à jour.
             </p>
           )}

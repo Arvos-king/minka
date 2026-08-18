@@ -36,7 +36,7 @@ const PALETTE = [
 const COMMUN = {
   pastille: 'bg-brand-600',
   fond: 'bg-brand-50',
-  texte: 'text-brand-800',
+  texte: 'text-accent',
   bordure: 'ring-brand-200',
 };
 

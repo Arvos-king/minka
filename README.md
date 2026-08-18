@@ -219,6 +219,55 @@ passant par février, puis y resterait.
 
 ---
 
+## Hors ligne
+
+L'application **s'ouvre et s'affiche sans réseau**. Le service worker garde en
+mémoire la dernière réponse de chaque lecture d'API et la ressert quand le
+serveur est injoignable : la liste de courses apparaît dans le rayon d'un
+magasin sans signal, là où l'on ne voyait qu'une erreur.
+
+Le réseau reste prioritaire — connecté, on voit ce que l'autre vient de
+modifier, pas une version d'hier. Le cache n'entre en jeu qu'au bout de quatre
+secondes d'attente, ou tout de suite si la requête échoue.
+
+Un bandeau sous l'en-tête annonce alors l'âge des données affichées et prévient
+que **les modifications ne passeront pas** : les écritures ne sont pas mises en
+file d'attente. Cocher un article hors ligne échouera, et l'affichage se
+corrigera de lui-même.
+
+La session survit à l'absence de réseau : elle n'est pas vérifiable hors ligne,
+et renvoyer à l'écran de connexion couperait l'accès aux données déjà en cache —
+exactement au moment où elles servent. Seule une réponse `401` du serveur, donc
+une session réellement terminée, ramène à la connexion. Le cookie reste exigé
+dès qu'un appel repart.
+
+Les routes `/api/auth/` ne sont jamais mises en cache : un jeton périmé resservi
+ferait croire à une connexion valide.
+
+---
+
+## Mode sombre
+
+L'interface suit le réglage du téléphone, sans bouton pour en changer.
+
+Aucun composant ne connaît le mode : seules les valeurs des variables de couleur
+changent, dans `src/index.css`. L'échelle des neutres s'inverse — `text-sand-900`
+reste « le texte le plus lisible », `bg-sand-200` reste « à peine détaché du
+fond ». Les surfaces, elles, ne s'inversent pas : elles s'éclaircissent avec
+l'élévation, comme le veut l'usage en sombre — une carte posée sur la page est
+plus claire qu'elle, un panneau glissé plus clair encore.
+
+Là où une échelle ne suffit pas, un **jeton de rôle** tranche : `bg-surface`,
+`bg-fond`, `bg-entete`, `text-accent`, `text-danger`, `bg-voile`. Ils existent
+parce qu'une clarté n'est pas une fonction — `brand-700` servait à la fois de
+fond de bouton et de couleur de lien, et en sombre l'un doit rester foncé quand
+l'autre doit s'éclaircir.
+
+**Un module n'a rien à faire pour en profiter**, à condition d'employer ces
+jetons plutôt que `bg-white` ou une couleur en dur.
+
+---
+
 ## Les membres du foyer
 
 Le foyer compte des personnes qui n'ont pas à se connecter — enfants, animaux —
@@ -671,11 +720,18 @@ charger créerait un cycle d'imports.
       du registre.
 - [x] **Module Menus** : planning de la semaine, recettes, et envoi des
       ingrédients dans la liste de courses.
+- [x] **Hors ligne en lecture** : l'application s'ouvre et affiche les dernières
+      données connues sans réseau.
+- [x] **Mode sombre**, suivant le réglage du téléphone.
 
 Pistes pour la suite : budget, notes partagées — chacun suit le mode d'emploi
-ci-dessus. Côté liste de courses, les évolutions naturelles seraient les rayons,
-les articles récurrents, et le temps réel (SSE) à la place du rafraîchissement
-au retour sur l'application. Côté calendrier, les événements récurrents et un
+ci-dessus. Côté hors ligne, l'étape suivante serait la **file d'écriture** :
+empiler les modifications faites sans réseau et les rejouer au retour. Elle n'a
+pas été faite parce que sa difficulté n'est pas la file, mais le conflit quand
+vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
+courses, les évolutions naturelles seraient les rayons, les articles récurrents,
+et le temps réel (SSE) à la place du rafraîchissement au retour sur
+l'application. Côté calendrier, les événements récurrents et un
 flux ICS en lecture seule, pour s'abonner depuis l'application native du
 téléphone. Une notification à l'approche d'une date de péremption ou d'un
 rendez-vous supposerait d'ajouter le push web (VAPID), non configuré à ce jour.

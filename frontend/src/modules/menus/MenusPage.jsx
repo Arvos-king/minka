@@ -61,8 +61,8 @@ export function MenusPage() {
     <div className="pb-4">
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
-          <p className="flex-1 text-sm text-red-800">{error}</p>
-          <button type="button" onClick={dismissError} className="text-sm font-medium text-red-700 underline">
+          <p className="flex-1 text-sm text-danger">{error}</p>
+          <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
             Fermer
           </button>
         </div>

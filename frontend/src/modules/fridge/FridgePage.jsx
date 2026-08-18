@@ -24,8 +24,8 @@ export function FridgePage() {
     <div className="pb-28">
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
-          <p className="flex-1 text-sm text-red-800">{error}</p>
-          <button type="button" onClick={dismissError} className="text-sm font-medium text-red-700 underline">
+          <p className="flex-1 text-sm text-danger">{error}</p>
+          <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
             Fermer
           </button>
         </div>
@@ -39,7 +39,7 @@ export function FridgePage() {
           {urgents.length > 0 && (
             <div
               className={`mb-4 rounded-xl px-4 py-3 text-sm ${
-                perimes.length > 0 ? 'bg-red-50 text-red-800' : 'bg-amber-50 text-amber-900'
+                perimes.length > 0 ? 'bg-red-50 text-danger' : 'bg-amber-50 text-amber-900'
               }`}
             >
               {perimes.length > 0 && (

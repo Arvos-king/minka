@@ -30,7 +30,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
   return (
     <li
       className={[
-        'rounded-2xl bg-white ring-1 transition',
+        'rounded-2xl bg-surface ring-1 transition',
         statut.niveau === 'perime' ? 'ring-red-200' : 'ring-sand-200',
         item.pending ? 'opacity-60' : '',
       ].join(' ')}
@@ -90,7 +90,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
             value={item.expiresOn ?? ''}
             onChange={(event) => onChangeExpiry(item, event.target.value || null)}
             aria-label={`Date de péremption de ${item.name}`}
-            className="min-h-10 rounded-lg bg-white px-3 text-sm text-sand-700 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+            className="min-h-10 rounded-lg bg-surface px-3 text-sm text-sand-700 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
           />
 
           {item.expiresOn && (
@@ -109,7 +109,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
               type="button"
               onClick={envoyerAuxCourses}
               disabled={envoyeAuxCourses}
-              className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand-50 px-3 text-sm font-medium text-brand-700 active:bg-brand-100"
+              className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand-50 px-3 text-sm font-medium text-accent active:bg-brand-100"
             >
               {envoyeAuxCourses ? (
                 <>

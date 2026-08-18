@@ -14,7 +14,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove }) {
   return (
     <li
       className={[
-        'flex items-center rounded-2xl bg-white ring-1 transition',
+        'flex items-center rounded-2xl bg-surface ring-1 transition',
         completed ? 'ring-sand-200/70' : 'ring-sand-200',
         // Un article en cours d'envoi s'affiche légèrement estompé : l'action
         // est prise en compte, mais pas encore confirmée par le serveur.

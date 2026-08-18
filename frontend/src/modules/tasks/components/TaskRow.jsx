@@ -16,7 +16,7 @@ export function TaskRow({ task, people, onToggle, onEdit }) {
   return (
     <li
       className={[
-        'flex items-center rounded-2xl bg-white ring-1 transition',
+        'flex items-center rounded-2xl bg-surface ring-1 transition',
         !task.done && echeance.niveau === 'retard' ? 'ring-red-200' : 'ring-sand-200',
       ].join(' ')}
     >

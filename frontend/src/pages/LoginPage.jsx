@@ -75,7 +75,7 @@ export function LoginPage() {
         />
 
         {error && (
-          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
             {error}
           </p>
         )}

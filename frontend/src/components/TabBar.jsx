@@ -30,7 +30,7 @@ export function TabBar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-sand-200 bg-sand-50/95 backdrop-blur"
+      className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-sand-200 bg-surface-haute/95 backdrop-blur"
     >
       <ul className="mx-auto flex max-w-2xl">
         {onglets.map((onglet) => {
@@ -47,7 +47,7 @@ export function TabBar() {
                 className={[
                   'flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 transition-colors',
                   'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600',
-                  estActif ? 'text-brand-700' : 'text-sand-500 active:text-sand-700',
+                  estActif ? 'text-accent' : 'text-sand-500 active:text-sand-700',
                 ].join(' ')}
               >
                 <Icone className="size-6 shrink-0" />

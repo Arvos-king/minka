@@ -9,7 +9,7 @@
 const VARIANTS = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
   secondary:
-    'bg-white text-sand-800 ring-1 ring-sand-300 hover:bg-sand-50 active:bg-sand-100 disabled:text-sand-400',
+    'bg-surface text-sand-800 ring-1 ring-sand-300 hover:bg-sand-50 active:bg-sand-100 disabled:text-sand-400',
   ghost: 'text-sand-700 hover:bg-sand-200/70 active:bg-sand-200 disabled:text-sand-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
 };

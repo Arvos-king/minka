@@ -29,6 +29,98 @@
   --color-sand-700: #4a4a43;
   --color-sand-800: #2f2f2a;
   --color-sand-900: #1c1c19;
+
+  /*
+   * Jetons de rôle, pour ce qu'une échelle ne sait pas exprimer.
+   *
+   * Une échelle dit une clarté, pas une fonction — et en mode sombre les deux
+   * divergent. `brand-700` sert de fond de bouton *et* de couleur de lien :
+   * l'un doit rester foncé, l'autre s'éclaircir. Les rôles ci-dessous tranchent,
+   * et laissent les échelles aux seuls arrière-plans.
+   */
+  --color-fond: #f7f7f5; /* fond de page */
+  --color-surface: #ffffff; /* cartes, lignes, champs */
+  --color-surface-haute: #fdfdfc; /* panneaux glissés, barre d'onglets */
+  --color-entete: #0b6553; /* en-tête de l'application */
+  --color-accent: #0b6553; /* liens, onglet actif */
+  --color-danger: #991b1b; /* messages d'erreur, actions destructrices */
+  --color-voile: rgb(28 28 25 / 0.4); /* fond assombri derrière un panneau */
+}
+
+/*
+ * Mode sombre, suivant le réglage du téléphone.
+ *
+ * Hors des cascades de Tailwind à dessein : une déclaration sans couche
+ * l'emporte sur une déclaration en couche, quel que soit l'ordre. Seules les
+ * valeurs changent — aucun composant ne connaît le mode.
+ *
+ * L'échelle des neutres s'inverse : `text-sand-900` reste « le texte le plus
+ * lisible », `bg-sand-200` reste « à peine détaché du fond ». Les surfaces, en
+ * revanche, ne s'inversent pas mais s'éclaircissent avec l'élévation, comme le
+ * veut l'usage en sombre — une carte posée sur la page est plus claire qu'elle,
+ * pas plus foncée.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-sand-50: #141412;
+    --color-sand-100: #1b1b18;
+    --color-sand-200: #262622;
+    --color-sand-300: #33332d;
+    --color-sand-400: #7a7a70;
+    --color-sand-500: #93938a;
+    --color-sand-600: #adada2;
+    --color-sand-700: #c9c9bf;
+    --color-sand-800: #e2e2da;
+    --color-sand-900: #f4f4f0;
+
+    --color-fond: #191916;
+    --color-surface: #232320;
+    --color-surface-haute: #2b2b27;
+    --color-entete: #0d2f28;
+    --color-accent: #58cfae;
+    --color-danger: #f5a3a3;
+    /* Le voile reste sombre : c'est un assombrissement, pas un neutre. */
+    --color-voile: rgb(0 0 0 / 0.55);
+
+    /* Teintes de marque : elles servent de fonds discrets, jamais de texte. */
+    --color-brand-50: #10312a;
+    --color-brand-100: #144136;
+    --color-brand-200: #1a5546;
+    --color-brand-300: #24705c;
+
+    /* Rouges : les tons clairs deviennent des fonds sombres ; 600 à 800
+       restent les fonds du bouton « danger », sous du texte blanc. */
+    --color-red-50: #2a1414;
+    --color-red-100: #3a1a1a;
+    --color-red-200: #4a2020;
+    --color-red-300: #7f3838;
+    --color-red-400: #a04a4a;
+    --color-red-500: #c05555;
+
+    --color-amber-50: #2c2210;
+    --color-amber-100: #3a2c14;
+    --color-amber-200: #4a3a1c;
+    --color-amber-800: #f0c274;
+    --color-amber-900: #f7dba8;
+
+    --color-orange-100: #3a2413;
+    --color-orange-800: #f0b27a;
+
+    /* Couleurs des membres du foyer : fond et bordure s'assombrissent, la
+       pastille garde sa saturation, le texte s'éclaircit. */
+    --color-sky-50: #12232e;
+    --color-sky-200: #1d3c50;
+    --color-sky-800: #7fc6ea;
+    --color-violet-50: #201a33;
+    --color-violet-200: #352a56;
+    --color-violet-800: #bfa6f5;
+    --color-rose-50: #2e1620;
+    --color-rose-200: #4d2437;
+    --color-rose-800: #f0a3b5;
+    --color-teal-50: #102624;
+    --color-teal-200: #1b4340;
+    --color-teal-800: #7fd3c8;
+  }
 }
 
 @layer base {
@@ -46,12 +138,15 @@
   html {
     /* Supprime le voile gris au tap sur mobile. */
     -webkit-tap-highlight-color: transparent;
-    background-color: var(--color-sand-100);
+    background-color: var(--color-fond);
+    /* Cases à cocher, sélecteurs de date, barres de défilement : le navigateur
+       les dessine lui-même, et il lui faut ce signal pour le faire en sombre. */
+    color-scheme: light dark;
   }
 
   body {
     min-height: 100dvh;
-    background-color: var(--color-sand-100);
+    background-color: var(--color-fond);
     color: var(--color-sand-900);
     -webkit-font-smoothing: antialiased;
     /* Évite le zoom involontaire lors d'une rotation sur iOS. */

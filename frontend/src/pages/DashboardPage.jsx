@@ -41,9 +41,9 @@ export function DashboardPage() {
               <li key={module.id}>
                 <Link
                   to={module.path}
-                  className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-sand-200 transition hover:ring-brand-300 active:bg-sand-50"
+                  className="flex items-center gap-4 rounded-2xl bg-surface p-4 ring-1 ring-sand-200 transition hover:ring-brand-300 active:bg-sand-50"
                 >
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-accent">
                     {Icon ? <Icon className="size-6" /> : <HouseIcon className="size-6" />}
                   </span>
                   <span className="min-w-0 flex-1">

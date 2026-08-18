@@ -18,7 +18,7 @@ export function ProtectedRoute() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-dvh items-center justify-center">
-        <HouseIcon className="size-10 animate-pulse text-brand-300" />
+        <HouseIcon className="size-10 animate-pulse text-accent" />
         <span className="sr-only">Chargement…</span>
       </div>
     );

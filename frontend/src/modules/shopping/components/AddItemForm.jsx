@@ -35,7 +35,7 @@ export function AddItemForm({ onAdd }) {
   return (
     // `bottom-onglets` : juste au-dessus de la barre de navigation, qui réserve
     // elle-même la marge de gestes du téléphone.
-    <div className="bottom-onglets fixed inset-x-0 z-20 border-t border-sand-200 bg-sand-100/95 px-4 py-3 backdrop-blur">
+    <div className="bottom-onglets fixed inset-x-0 z-20 border-t border-sand-200 bg-fond/95 px-4 py-3 backdrop-blur">
       <form onSubmit={handleSubmit} className="mx-auto flex max-w-2xl items-center gap-2">
         <input
           ref={inputRef}
@@ -46,7 +46,7 @@ export function AddItemForm({ onAdd }) {
           enterKeyHint="done"
           autoCapitalize="sentences"
           autoComplete="off"
-          className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+          className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
         />
         <button
           type="submit"

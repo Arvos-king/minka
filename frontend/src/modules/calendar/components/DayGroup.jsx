@@ -10,7 +10,7 @@ import { libelleHoraire, libelleJour } from '../agenda.js';
 export function DayGroup({ date, events, people, onSelect }) {
   return (
     <section>
-      <h2 className="sticky top-14 z-10 -mx-4 bg-sand-100/95 px-4 py-2 text-sm font-semibold text-sand-600 backdrop-blur">
+      <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-2 text-sm font-semibold text-sand-600 backdrop-blur">
         {libelleJour(date)}
       </h2>
 
@@ -22,7 +22,7 @@ export function DayGroup({ date, events, people, onSelect }) {
               <button
                 type="button"
                 onClick={() => onSelect(event)}
-                className="flex w-full items-stretch gap-3 rounded-2xl bg-white p-3 text-left ring-1 ring-sand-200 transition active:bg-sand-50"
+                className="flex w-full items-stretch gap-3 rounded-2xl bg-surface p-3 text-left ring-1 ring-sand-200 transition active:bg-sand-50"
               >
                 {/* Bande de couleur : on identifie la personne concernée avant
                     même d'avoir lu le texte. */}

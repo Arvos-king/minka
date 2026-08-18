@@ -12,14 +12,14 @@ export function DayRow({ date, estAujourdhui, repasDe, onOuvrir }) {
   return (
     <section
       className={[
-        'overflow-hidden rounded-2xl bg-white ring-1',
+        'overflow-hidden rounded-2xl bg-surface ring-1',
         estAujourdhui ? 'ring-brand-300' : 'ring-sand-200',
       ].join(' ')}
     >
       <h3
         className={[
           'flex items-baseline gap-2 px-4 py-2 text-sm font-semibold first-letter:uppercase',
-          estAujourdhui ? 'bg-brand-50 text-brand-800' : 'bg-sand-50 text-sand-700',
+          estAujourdhui ? 'bg-brand-50 text-accent' : 'bg-sand-50 text-sand-700',
         ].join(' ')}
       >
         {libelleJour(date)}

@@ -45,7 +45,7 @@ export function statutEcheance(dueOn) {
 }
 
 export const STYLES_ECHEANCE = {
-  retard: 'bg-red-100 text-red-800',
+  retard: 'bg-red-100 text-danger',
   aujourdhui: 'bg-orange-100 text-orange-800',
   bientot: 'bg-amber-100 text-amber-800',
   plusTard: 'bg-sand-200 text-sand-600',

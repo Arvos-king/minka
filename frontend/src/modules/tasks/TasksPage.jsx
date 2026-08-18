@@ -63,15 +63,15 @@ export function TasksPage() {
     <div className="pb-24">
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
-          <p className="flex-1 text-sm text-red-800">{error}</p>
-          <button type="button" onClick={dismissError} className="text-sm font-medium text-red-700 underline">
+          <p className="flex-1 text-sm text-danger">{error}</p>
+          <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
             Fermer
           </button>
         </div>
       )}
 
       {replanification && (
-        <p role="status" className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">
+        <p role="status" className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
           «&nbsp;{replanification.titre}&nbsp;» revient le {libelleDateLongue(replanification.dueOn)}.
         </p>
       )}
@@ -86,7 +86,7 @@ export function TasksPage() {
             aria-pressed={filtre === null}
             className={[
               'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-              filtre === null ? 'bg-sand-800 text-white' : 'bg-white text-sand-600 ring-1 ring-sand-300',
+              filtre === null ? 'bg-sand-900 text-fond' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
             ].join(' ')}
           >
             Tout
@@ -103,7 +103,7 @@ export function TasksPage() {
                 aria-pressed={actif}
                 className={[
                   'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                  actif ? `${couleur.fond} ${couleur.texte} ring-1 ${couleur.bordure}` : 'bg-white text-sand-600 ring-1 ring-sand-300',
+                  actif ? `${couleur.fond} ${couleur.texte} ring-1 ${couleur.bordure}` : 'bg-surface text-sand-600 ring-1 ring-sand-300',
                 ].join(' ')}
               >
                 <span className={`size-2 rounded-full ${couleur.pastille}`} aria-hidden="true" />
@@ -115,7 +115,7 @@ export function TasksPage() {
           <button
             type="button"
             onClick={() => setGestionMembres(true)}
-            className="ml-auto text-sm font-medium text-brand-700"
+            className="ml-auto text-sm font-medium text-accent"
           >
             Gérer
           </button>

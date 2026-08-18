@@ -44,7 +44,7 @@ export function statutPeremption(expiresOn) {
 
 /** Classes d'affichage du badge, par niveau. */
 export const STYLES_BADGE = {
-  perime: 'bg-red-100 text-red-800',
+  perime: 'bg-red-100 text-danger',
   aujourdhui: 'bg-orange-100 text-orange-800',
   bientot: 'bg-amber-100 text-amber-800',
   ok: 'bg-sand-200 text-sand-600',

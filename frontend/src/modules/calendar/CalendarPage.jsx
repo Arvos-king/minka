@@ -23,8 +23,8 @@ export function CalendarPage() {
     <div className="pb-24">
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
-          <p className="flex-1 text-sm text-red-800">{error}</p>
-          <button type="button" onClick={dismissError} className="text-sm font-medium text-red-700 underline">
+          <p className="flex-1 text-sm text-danger">{error}</p>
+          <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
             Fermer
           </button>
         </div>
@@ -36,7 +36,7 @@ export function CalendarPage() {
         <button
           type="button"
           onClick={() => setGestionParticipants(true)}
-          className="mb-4 flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-white px-3 py-2 text-left ring-1 ring-sand-200 active:bg-sand-50"
+          className="mb-4 flex w-full flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl bg-surface px-3 py-2 text-left ring-1 ring-sand-200 active:bg-sand-50"
         >
           {people.map((personne) => (
             <span key={personne.id} className="inline-flex items-center gap-1.5 text-sm text-sand-600">
@@ -47,7 +47,7 @@ export function CalendarPage() {
               {personne.displayName}
             </span>
           ))}
-          <span className="ml-auto text-sm font-medium text-brand-700">Gérer</span>
+          <span className="ml-auto text-sm font-medium text-accent">Gérer</span>
         </button>
       )}
 

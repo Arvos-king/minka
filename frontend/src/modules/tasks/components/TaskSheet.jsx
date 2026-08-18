@@ -76,14 +76,14 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
   const choixPersonnes = [{ id: null, displayName: 'Tout le monde' }, ...people];
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-sand-900/40" role="presentation">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={enEdition ? 'Modifier la tâche' : 'Nouvelle tâche'}
-        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
+        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
           {enEdition ? 'Modifier la tâche' : 'Nouvelle tâche'}
@@ -98,10 +98,10 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             aria-label="Intitulé"
             required
             maxLength={160}
-            className="min-h-12 w-full rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
-          <div className="rounded-xl bg-white p-3 ring-1 ring-sand-200">
+          <div className="rounded-xl bg-surface p-3 ring-1 ring-sand-200">
             <p className="text-sm font-medium text-sand-700">À faire pour</p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {RACCOURCIS_DATE.map(({ libelle, jours }) => {
@@ -179,7 +179,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                       'inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-medium ring-1 transition',
                       actif
                         ? `${couleur.fond} ${couleur.texte} ${couleur.bordure}`
-                        : 'bg-white text-sand-600 ring-sand-300',
+                        : 'bg-surface text-sand-600 ring-sand-300',
                     ].join(' ')}
                   >
                     <span className={`size-2.5 rounded-full ${couleur.pastille}`} aria-hidden="true" />
@@ -197,11 +197,11 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             aria-label="Note"
             rows={2}
             maxLength={500}
-            className="w-full rounded-xl bg-white px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
           {erreur && (
-            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
               {erreur}
             </p>
           )}
@@ -223,7 +223,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                 onDelete(task.id);
                 onClose();
               }}
-              className="w-full text-red-700"
+              className="w-full text-danger"
             >
               Supprimer la tâche
             </Button>

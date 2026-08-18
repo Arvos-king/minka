@@ -58,14 +58,14 @@ export function MealSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-sand-900/40" role="presentation">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`Repas du ${libelleJour(date)}, ${libelleCreneau}`}
-        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
+        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900 first-letter:uppercase">
           {libelleJour(date)} — {libelleCreneau}
@@ -82,7 +82,7 @@ export function MealSheet({
               onChange={(e) => setTexteLibre(e.target.value)}
               placeholder="Restes, resto…"
               maxLength={120}
-              className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
             <Button type="submit" disabled={texteLibre.trim() === ''}>
               Poser
@@ -96,7 +96,7 @@ export function MealSheet({
             <button
               type="button"
               onClick={onNouvelleRecette}
-              className="min-h-9 text-sm font-medium text-brand-700"
+              className="min-h-9 text-sm font-medium text-accent"
             >
               Nouvelle recette
             </button>
@@ -109,7 +109,7 @@ export function MealSheet({
               onChange={(e) => setRecherche(e.target.value)}
               placeholder="Chercher…"
               aria-label="Chercher une recette"
-              className="mt-2 min-h-11 w-full rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="mt-2 min-h-11 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
           )}
 
@@ -128,7 +128,7 @@ export function MealSheet({
                     key={recette.id}
                     className={[
                       'flex items-center rounded-xl ring-1 transition',
-                      posee ? 'bg-brand-50 ring-brand-300' : 'bg-white ring-sand-200',
+                      posee ? 'bg-brand-50 ring-brand-300' : 'bg-surface ring-sand-200',
                     ].join(' ')}
                   >
                     <button
@@ -143,7 +143,7 @@ export function MealSheet({
                       <span
                         className={[
                           'min-w-0 flex-1 break-words',
-                          posee ? 'text-brand-900' : 'text-sand-900',
+                          posee ? 'text-accent' : 'text-sand-900',
                         ].join(' ')}
                       >
                         {recette.title}
@@ -183,7 +183,7 @@ export function MealSheet({
                 onVider();
                 onClose();
               }}
-              className="flex-1 text-red-700"
+              className="flex-1 text-danger"
             >
               Vider la case
             </Button>

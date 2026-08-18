@@ -41,7 +41,7 @@ export function AddProductForm({ onAdd }) {
   return (
     // `bottom-onglets` : juste au-dessus de la barre de navigation, qui réserve
     // elle-même la marge de gestes du téléphone.
-    <div className="bottom-onglets fixed inset-x-0 z-20 border-t border-sand-200 bg-sand-100/95 px-4 py-3 backdrop-blur">
+    <div className="bottom-onglets fixed inset-x-0 z-20 border-t border-sand-200 bg-fond/95 px-4 py-3 backdrop-blur">
       <form onSubmit={handleSubmit} className="mx-auto max-w-2xl">
         {/* Les raccourcis n'apparaissent qu'une fois la saisie commencée : au
             repos, le bandeau reste discret. */}
@@ -57,7 +57,7 @@ export function AddProductForm({ onAdd }) {
                   onClick={() => setExpiresOn(valeur)}
                   className={[
                     'shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                    actif ? 'bg-brand-600 text-white' : 'bg-white text-sand-600 ring-1 ring-sand-300',
+                    actif ? 'bg-brand-600 text-white' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
                   ].join(' ')}
                 >
                   {libelle}
@@ -70,7 +70,7 @@ export function AddProductForm({ onAdd }) {
               value={expiresOn ?? ''}
               onChange={(event) => setExpiresOn(event.target.value || null)}
               aria-label="Date de péremption précise"
-              className="shrink-0 rounded-full bg-white px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="shrink-0 rounded-full bg-surface px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
         )}
@@ -85,7 +85,7 @@ export function AddProductForm({ onAdd }) {
             enterKeyHint="done"
             autoCapitalize="sentences"
             autoComplete="off"
-            className="min-h-12 flex-1 rounded-xl bg-white px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"

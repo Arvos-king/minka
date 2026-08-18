@@ -20,7 +20,7 @@ export function TextField({ label, hint, error, className = '', ...props }) {
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
         className={[
-          'mt-1.5 block w-full rounded-xl bg-white px-4 py-3',
+          'mt-1.5 block w-full rounded-xl bg-surface px-4 py-3',
           'ring-1 outline-none transition',
           'placeholder:text-sand-400',
           error
@@ -35,7 +35,7 @@ export function TextField({ label, hint, error, className = '', ...props }) {
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-sm text-red-700">
+        <p id={`${id}-error`} className="mt-1.5 text-sm text-danger">
           {error}
         </p>
       )}

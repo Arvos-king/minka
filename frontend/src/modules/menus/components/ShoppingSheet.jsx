@@ -76,20 +76,20 @@ export function ShoppingSheet({ from, to, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-sand-900/40" role="presentation">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Envoyer les ingrédients dans la liste de courses"
-        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-sand-50 px-4 pt-5"
+        className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">Ingrédients de la semaine</h2>
 
         {resultat !== null ? (
           <div className="py-6 text-center">
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-100 text-brand-700">
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-100 text-accent">
               <CheckIcon className="size-6" strokeWidth={2.5} />
             </span>
             <p className="mt-3 font-medium text-sand-900">
@@ -130,7 +130,7 @@ export function ShoppingSheet({ from, to, onClose }) {
                           aria-pressed={retenu}
                           className={[
                             'flex min-h-14 w-full items-center gap-3 rounded-xl px-3 text-left ring-1 transition',
-                            retenu ? 'bg-white ring-sand-200' : 'bg-sand-100 ring-sand-200/70',
+                            retenu ? 'bg-surface ring-sand-200' : 'bg-sand-100 ring-sand-200/70',
                           ].join(' ')}
                         >
                           <span
@@ -165,7 +165,7 @@ export function ShoppingSheet({ from, to, onClose }) {
             )}
 
             {erreur && (
-              <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+              <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
                 {erreur}
               </p>
             )}
