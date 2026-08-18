@@ -10,6 +10,7 @@ export default {
   label: 'Liste de courses',
   // Le libellé complet ne tient pas sous une icône d'onglet.
   shortLabel: 'Courses',
+  tabOrder: 1,
   description: "Ce qu'il faut acheter",
   path: '/courses',
   Icon: CartIcon,
