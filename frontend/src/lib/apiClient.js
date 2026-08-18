@@ -69,5 +69,9 @@ export const api = {
   get: (path, options) => request('GET', path, options),
   post: (path, body, options) => request('POST', path, { ...options, body }),
   patch: (path, body, options) => request('PATCH', path, { ...options, body }),
+  // `put` fixe le contenu d'une ressource adressable — la case « mardi soir »
+  // du planning des menus, par exemple. Refaire le même appel donne le même
+  // résultat, ce que `post` ne promet pas.
+  put: (path, body, options) => request('PUT', path, { ...options, body }),
   delete: (path, options) => request('DELETE', path, options),
 };
