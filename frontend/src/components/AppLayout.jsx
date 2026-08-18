@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { findModuleByPath, modules } from '../modules/registry.js';
 import { ArrowLeftIcon } from './icons.jsx';
+import { OfflineBanner } from './OfflineBanner.jsx';
 import { TabBar } from './TabBar.jsx';
 import { UpdateBanner } from './UpdateBanner.jsx';
 
@@ -39,7 +40,7 @@ export function AppLayout() {
       {/* En-tête collant : la navigation reste accessible au pouce même après
           avoir fait défiler une longue liste. `pt-safe` réserve la place de la
           barre d'état sur les téléphones à encoche. */}
-      <header className="pt-safe sticky top-0 z-20 bg-brand-700 text-white shadow-sm">
+      <header className="pt-safe sticky top-0 z-20 bg-entete text-white shadow-sm">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-1 px-2">
           {!surUnOnglet && (
             <button
@@ -64,6 +65,11 @@ export function AppLayout() {
             {initial}
           </Link>
         </div>
+
+        {/* Dans l'en-tête, donc collant avec lui : l'avertissement doit rester
+            sous les yeux tant que le réseau manque, pas disparaître au premier
+            défilement. */}
+        <OfflineBanner />
       </header>
 
       {/* `pb-onglets` réserve la place de la barre : le socle s'en charge une

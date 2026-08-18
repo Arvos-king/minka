@@ -36,12 +36,44 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // On ne met en cache que la coquille de l'application. Les appels API
-        // ne sont volontairement pas mis en cache : mieux vaut une erreur
-        // franche qu'une liste de courses périmée affichée comme à jour.
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+
+        runtimeCaching: [
+          {
+            /*
+             * Lectures de l'API : le réseau d'abord, le cache en secours.
+             *
+             * Et non « le cache d'abord » : connecté, on veut la liste que
+             * l'autre vient de modifier, pas une version d'hier suivie d'un
+             * clignotement. Le cache ne sert qu'au moment où il est vraiment
+             * utile — le rayon d'un magasin sans réseau, où une liste un peu
+             * datée vaut infiniment mieux qu'un écran d'erreur.
+             *
+             * L'application signale alors que les données peuvent avoir bougé
+             * (voir `lib/reseau.js`) : servir du périmé sans le dire serait
+             * pire que de ne rien servir.
+             */
+            urlPattern: ({ url, request, sameOrigin }) =>
+              sameOrigin &&
+              request.method === 'GET' &&
+              url.pathname.startsWith('/api/') &&
+              // Jamais la session : un jeton périmé servi depuis le cache
+              // ferait croire à une connexion valide.
+              !url.pathname.startsWith('/api/auth/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'minka-api',
+              // Au-delà, la connexion est trop mauvaise pour qu'on attende :
+              // mieux vaut la dernière version connue tout de suite.
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 64, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              // Ni les erreurs ni les redirections n'ont à être resservies.
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
       },
     }),
   ],
@@ -60,6 +92,19 @@ export default defineConfig({
         // requêtes mutantes.
         changeOrigin: false,
       },
+    },
+  },
+
+  /*
+   * `vite preview` sert le build, service worker compris — c'est le seul moyen
+   * de vérifier le cache hors ligne en local, celui-ci ne s'enregistrant pas
+   * pendant le développement. Le relais /api doit y être répété : `preview` ne
+   * reprend pas la configuration de `server`.
+   */
+  preview: {
+    port: 4173,
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:3000', changeOrigin: false },
     },
   },
 

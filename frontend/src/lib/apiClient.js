@@ -7,6 +7,8 @@
  * où l'application serait un jour servie depuis un autre domaine.
  */
 
+import { marquerSynchro } from './reseau.js';
+
 const BASE_URL = '/api';
 
 export class ApiError extends Error {
@@ -42,6 +44,13 @@ async function request(method, path, { body, allowAnonymous = false, signal } = 
     if (error.name === 'AbortError') throw error;
     throw new ApiError(0, 'NETWORK_ERROR', 'Connexion au serveur impossible.');
   }
+
+  /*
+   * Lecture réussie : on note l'heure, mais seulement si le navigateur se dit
+   * en ligne. Hors ligne, la réponse vient du cache du service worker et
+   * daterait à tort la synchronisation d'aujourd'hui.
+   */
+  if (response.ok && method === 'GET') marquerSynchro();
 
   if (response.status === 204) return null;
 
