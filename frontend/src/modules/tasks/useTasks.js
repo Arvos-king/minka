@@ -1,74 +1,55 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import { useRefreshOnFocus } from '../../lib/useRefreshOnFocus.js';
+import { useCollection } from '../../lib/useCollection.js';
 import { tasksApi } from './api.js';
 
 /**
  * État de la liste de tâches.
  *
- * Cocher une tâche est optimiste — c'est un geste rapide, souvent répété, et
- * l'attente d'une réponse s'y verrait. La création et la modification passent
- * en revanche par un formulaire et attendent la confirmation du serveur, comme
- * dans le calendrier.
+ * Le cycle commun vient de `useCollection`. Deux partis pris restent propres au
+ * module :
+ *
+ *   — cocher est optimiste, c'est un geste rapide et souvent répété ; créer et
+ *     modifier passent par un formulaire et attendent le serveur, comme dans le
+ *     calendrier ;
+ *   — cocher une tâche récurrente ne la termine pas, elle se replanifie. Sans
+ *     un mot pour l'annoncer, on croirait qu'il ne s'est rien passé.
  */
 export function useTasks() {
-  const [tasks, setTasks] = useState([]);
-  const [counts, setCounts] = useState({ pending: 0, done: 0 });
-  const [status, setStatus] = useState('loading'); // loading | ready | error
-  const [error, setError] = useState(null);
+  const charger = useCallback(async () => {
+    const data = await tasksApi.list();
+    return { elements: data.tasks, extra: data.counts };
+  }, []);
+
+  const {
+    elements: tasks,
+    extra: counts,
+    status,
+    error,
+    dismissError,
+    refresh,
+    modifier,
+    retirer,
+    retirerPlusieurs,
+  } = useCollection(charger);
+
   /** Message éphémère annonçant la replanification d'une tâche récurrente. */
   const [replanification, setReplanification] = useState(null);
 
-  const refresh = useCallback(async ({ silent = false } = {}) => {
-    try {
-      const data = await tasksApi.list();
-      setTasks(data.tasks);
-      setCounts(data.counts);
-      setStatus('ready');
-    } catch (apiError) {
-      if (silent) return;
-      setError(apiError.message);
-      setStatus('error');
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  const refreshSilently = useCallback(() => refresh({ silent: true }), [refresh]);
-  useRefreshOnFocus(refreshSilently);
-
   const toggleTask = useCallback(
     async (task) => {
-      const done = !task.done;
+      const reponse = await modifier(task, { done: !task.done }, async () => {
+        const data = await tasksApi.update(task.id, { done: !task.done });
+        return { element: data.task, extra: data.counts, rescheduled: data.rescheduled };
+      });
 
-      // Affichage immédiat. Une tâche récurrente ne se termine pas côté
-      // serveur : la réponse la remettra à faire, avec une nouvelle échéance.
-      setTasks((precedentes) =>
-        precedentes.map((t) => (t.id === task.id ? { ...t, done } : t)),
-      );
-
-      try {
-        const data = await tasksApi.update(task.id, { done });
-        setCounts(data.counts);
-
-        if (data.rescheduled) {
-          // Sans ce message, cocher une tâche récurrente donnerait l'impression
-          // qu'il ne s'est rien passé : elle réapparaît simplement plus loin.
-          setReplanification({ titre: data.task.title, dueOn: data.task.dueOn });
-          await refresh({ silent: true });
-        } else {
-          setTasks((precedentes) =>
-            precedentes.map((t) => (t.id === task.id ? data.task : t)),
-          );
-        }
-      } catch (apiError) {
-        setTasks((precedentes) => precedentes.map((t) => (t.id === task.id ? task : t)));
-        setError(apiError.message);
+      if (reponse?.rescheduled) {
+        setReplanification({ titre: reponse.element.title, dueOn: reponse.element.dueOn });
+        // La tâche repart avec une nouvelle échéance : elle change de rang.
+        await refresh({ silent: true });
       }
     },
-    [refresh],
+    [modifier, refresh],
   );
 
   const saveTask = useCallback(
@@ -84,41 +65,34 @@ export function useTasks() {
     [refresh],
   );
 
+  // Le panneau de saisie ne connaît que l'identifiant de la tâche qu'il édite.
   const removeTask = useCallback(
     async (id) => {
-      setTasks((precedentes) => precedentes.filter((t) => t.id !== id));
-      try {
-        const data = await tasksApi.remove(id);
-        setCounts(data.counts);
-      } catch (apiError) {
-        setError(apiError.message);
-        await refresh({ silent: true });
-      }
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return;
+
+      await retirer(task, async () => ({ extra: (await tasksApi.remove(id)).counts }));
     },
-    [refresh],
+    [tasks, retirer],
   );
 
-  const purgeCompleted = useCallback(async () => {
-    const retirees = tasks.filter((t) => t.done);
-    setTasks((precedentes) => precedentes.filter((t) => !t.done));
-
-    try {
-      const data = await tasksApi.purgeCompleted();
-      setCounts(data.counts);
-    } catch (apiError) {
-      setTasks((precedentes) => [...precedentes, ...retirees]);
-      setError(apiError.message);
-    }
-  }, [tasks]);
+  const purgeCompleted = useCallback(
+    () =>
+      retirerPlusieurs(
+        (task) => task.done,
+        async () => ({ extra: (await tasksApi.purgeCompleted()).counts }),
+      ),
+    [retirerPlusieurs],
+  );
 
   return {
     tasks,
-    counts,
+    counts: counts ?? { pending: 0, done: 0 },
     status,
     error,
-    dismissError: () => setError(null),
+    dismissError,
     replanification,
-    dismissReplanification: () => setReplanification(null),
+    dismissReplanification: useCallback(() => setReplanification(null), []),
     refresh,
     toggleTask,
     saveTask,
