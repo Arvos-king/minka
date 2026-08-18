@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
-import { findModuleByPath } from '../modules/registry.js';
+import { findModuleByPath, modules } from '../modules/registry.js';
 import { ArrowLeftIcon } from './icons.jsx';
+import { TabBar } from './TabBar.jsx';
 import { UpdateBanner } from './UpdateBanner.jsx';
 
 /**
@@ -25,6 +26,14 @@ export function AppLayout() {
   const isHome = location.pathname === '/';
   const initial = (user?.displayName ?? '?').trim().charAt(0).toUpperCase();
 
+  /*
+   * Une page atteinte par la barre d'onglets n'a pas de flèche de retour :
+   * revenir d'un onglet n'a pas de sens, et le geste est déjà dans la barre.
+   * Les pages ouvertes autrement — le compte, une sous-route de module — la
+   * gardent.
+   */
+  const surUnOnglet = isHome || modules.some((module) => module.path === location.pathname);
+
   return (
     <div className="min-h-dvh">
       {/* En-tête collant : la navigation reste accessible au pouce même après
@@ -32,7 +41,7 @@ export function AppLayout() {
           barre d'état sur les téléphones à encoche. */}
       <header className="pt-safe sticky top-0 z-20 bg-brand-700 text-white shadow-sm">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-1 px-2">
-          {!isHome && (
+          {!surUnOnglet && (
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -43,7 +52,9 @@ export function AppLayout() {
             </button>
           )}
 
-          <h1 className={`flex-1 truncate text-lg font-semibold ${isHome ? 'pl-3' : ''}`}>{title}</h1>
+          <h1 className={`flex-1 truncate text-lg font-semibold ${surUnOnglet ? 'pl-3' : ''}`}>
+            {title}
+          </h1>
 
           <Link
             to="/compte"
@@ -55,11 +66,14 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-5">
+      {/* `pb-onglets` réserve la place de la barre : le socle s'en charge une
+          fois pour toutes, aucune page n'a à la connaître. */}
+      <main className="pb-onglets mx-auto max-w-2xl px-4 pt-5">
         <Outlet />
       </main>
 
       <UpdateBanner />
+      <TabBar />
     </div>
   );
 }

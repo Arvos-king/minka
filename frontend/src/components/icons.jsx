@@ -24,6 +24,17 @@ export function ArrowLeftIcon(props) {
   );
 }
 
+/** Trois points : l'onglet « Plus », quand tous les modules ne tiennent pas. */
+export function MoreIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function UserIcon(props) {
   return (
     <svg {...base} {...props}>

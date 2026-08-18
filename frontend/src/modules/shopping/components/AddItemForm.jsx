@@ -33,7 +33,9 @@ export function AddItemForm({ onAdd }) {
   }
 
   return (
-    <div className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-sand-200 bg-sand-100/95 px-4 pt-3 backdrop-blur">
+    // `bottom-onglets` : juste au-dessus de la barre de navigation, qui réserve
+    // elle-même la marge de gestes du téléphone.
+    <div className="bottom-onglets fixed inset-x-0 z-20 border-t border-sand-200 bg-sand-100/95 px-4 py-3 backdrop-blur">
       <form onSubmit={handleSubmit} className="mx-auto flex max-w-2xl items-center gap-2">
         <input
           ref={inputRef}

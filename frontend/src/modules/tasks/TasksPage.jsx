@@ -221,7 +221,7 @@ export function TasksPage() {
         type="button"
         onClick={() => setSaisie({})}
         aria-label="Ajouter une tâche"
-        className="mb-safe fixed right-4 bottom-4 z-20 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
+        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />
       </button>

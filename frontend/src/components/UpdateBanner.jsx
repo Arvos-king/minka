@@ -21,7 +21,9 @@ export function UpdateBanner() {
   if (!visible) return null;
 
   return (
-    <div className="pb-safe fixed inset-x-0 bottom-0 z-30 px-3 pt-3">
+    // Au-dessus de la barre d'onglets, comme les champs d'ajout : le bandeau
+    // informe, il ne doit pas masquer la navigation.
+    <div className="bottom-onglets fixed inset-x-0 z-30 px-3 py-3">
       <div className="mx-auto flex max-w-2xl items-center gap-3 rounded-2xl bg-sand-900 px-4 py-3 text-white shadow-lg">
         <p className="flex-1 text-sm">Une nouvelle version de Minka est disponible.</p>
         <Button

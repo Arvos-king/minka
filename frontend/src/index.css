@@ -32,6 +32,17 @@
 }
 
 @layer base {
+  :root {
+    /* Hauteur de la rangée d'onglets, hors marge basse du téléphone. Les
+       utilitaires ci-dessous s'y réfèrent : la barre grandit, tout suit. */
+    --hauteur-onglets: 3.5rem;
+    /* Le filet qui sépare la barre du contenu. Compté à part parce qu'il
+       s'ajoute à la hauteur de la rangée : l'oublier fait chevaucher le champ
+       d'ajout d'un pixel — invisible à l'œil, mais il vole le premier pixel de
+       la zone tactile des onglets. */
+    --bordure-onglets: 1px;
+  }
+
   html {
     /* Supprime le voile gris au tap sur mobile. */
     -webkit-tap-highlight-color: transparent;
@@ -72,4 +83,26 @@
    l'en-tête collant de l'application. */
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
+}
+
+/*
+ * Encombrement total de la barre d'onglets : la rangée, plus la marge de gestes
+ * que la barre réserve elle-même avec `pb-safe`. Les deux utilitaires qui
+ * suivent partagent ce calcul, c'est ce qui les garde d'accord.
+ *
+ * Un module qui ancre quelque chose en bas de l'écran — champ d'ajout, bouton
+ * flottant — se pose sur `bottom-onglets` plutôt que sur `bottom-0`, et n'a
+ * ainsi aucune hauteur à connaître.
+ */
+@utility bottom-onglets {
+  bottom: calc(
+    var(--hauteur-onglets) + var(--bordure-onglets) + max(1rem, env(safe-area-inset-bottom))
+  );
+}
+
+/* Réserve la place de la barre au bas du contenu défilant. */
+@utility pb-onglets {
+  padding-bottom: calc(
+    var(--hauteur-onglets) + var(--bordure-onglets) + max(1rem, env(safe-area-inset-bottom))
+  );
 }
