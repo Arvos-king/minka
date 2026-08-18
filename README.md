@@ -42,9 +42,15 @@ du registre : déposer un dossier de module l'y fait apparaître.
 
 Cinq onglets tiennent côte à côte sur un téléphone. Tant que tout tient,
 l'accueil ouvre la marche ; au-delà, il cède sa place à un onglet « Plus » qui
-mène au tableau de bord, lequel les liste tous. Le champ `tabOrder` d'un module
-décide alors qui reste visible — sans lui, c'est l'ordre alphabétique qui
-tranche, et le module le plus utilisé peut se retrouver masqué.
+mène au tableau de bord, lequel les liste tous.
+
+Le champ `tabOrder` d'un module fixe son **rang d'affichage** — la même règle
+sert aux tuiles du tableau de bord et aux onglets, deux listes des mêmes modules
+dans deux ordres différents obligeant à réapprendre où regarder selon l'écran.
+Il décide aussi qui reste visible quand la barre déborde ; sans lui, c'est
+l'ordre alphabétique qui tranche, et le module le plus utilisé peut se retrouver
+masqué. Aujourd'hui : courses, tâches, menus, calendrier — le frigo se consulte
+depuis « Plus ».
 
 ### Liste de courses — `/courses`
 
@@ -541,7 +547,7 @@ export default {
   Component: BudgetPage,
   Icon: BudgetIcon,      // facultatif
   shortLabel: 'Budget',  // facultatif — libellé de l'onglet, si `label` est long
-  tabOrder: 3,           // facultatif — rang dans la barre d'onglets
+  tabOrder: 3,           // facultatif — rang d'affichage, tuile comme onglet
 };
 ```
 

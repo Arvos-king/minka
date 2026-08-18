@@ -9,13 +9,29 @@
 const CHAMPS_REQUIS = ['id', 'label', 'path', 'Component'];
 
 /**
+ * Ordre d'affichage des modules, partout : les tuiles du tableau de bord comme
+ * les onglets de navigation.
+ *
+ * `tabOrder` place les modules du quotidien en tête ; ceux qui n'en déclarent
+ * pas suivent, par ordre alphabétique. Une seule règle, appliquée aux deux
+ * endroits — deux listes des mêmes modules dans deux ordres différents
+ * obligeraient à réapprendre où regarder selon l'écran.
+ */
+export function comparerModules(a, b) {
+  return (
+    (a.tabOrder ?? Number.POSITIVE_INFINITY) - (b.tabOrder ?? Number.POSITIVE_INFINITY) ||
+    a.label.localeCompare(b.label, 'fr')
+  );
+}
+
+/**
  * @param {Record<string, { default?: object }>} charges
  *   Ce que renvoie `import.meta.glob` : le chemin du fichier, et son contenu.
  * @param {object} [options]
  * @param {(message: string) => void} [options.signaler]
  *   Où partent les modules écartés. Injectable pour que les tests les
  *   recueillent au lieu de les afficher.
- * @returns {Array<object>} les modules retenus, triés par libellé.
+ * @returns {Array<object>} les modules retenus, dans l'ordre d'affichage.
  *
  * Un module fautif est écarté, jamais fatal : l'application doit rester
  * utilisable même si l'un d'eux est mal déclaré. Mais l'écart est signalé
@@ -56,7 +72,7 @@ export function construireRegistre(charges, { signaler = console.error } = {}) {
     retenus.push(definition);
   }
 
-  return retenus.sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+  return retenus.sort(comparerModules);
 }
 
 /** Retrouve le module correspondant à une URL, pour le titre de l'en-tête. */
@@ -73,15 +89,6 @@ export function trouverModuleParChemin(modules, pathname) {
  * de quoi lire un libellé court sous l'icône.
  */
 const MAX_ONGLETS = 5;
-
-/** Ordre des onglets : `tabOrder` d'abord, puis l'alphabet. */
-function trierPourOnglets(modules) {
-  return [...modules].sort(
-    (a, b) =>
-      (a.tabOrder ?? Number.POSITIVE_INFINITY) - (b.tabOrder ?? Number.POSITIVE_INFINITY) ||
-      a.label.localeCompare(b.label, 'fr'),
-  );
-}
 
 const enOnglet = (module) => ({
   cle: module.id,
@@ -102,7 +109,9 @@ const enOnglet = (module) => ({
  * @returns {Array<{cle: string, label: string, path: string, Icon?: Function}>}
  */
 export function construireOnglets(modules, { maxOnglets = MAX_ONGLETS } = {}) {
-  const ordonnes = trierPourOnglets(modules);
+  // Le registre livre déjà les modules dans cet ordre ; on le réapplique pour
+  // que la fonction reste juste quelle que soit la liste qu'on lui passe.
+  const ordonnes = [...modules].sort(comparerModules);
 
   if (ordonnes.length + 1 <= maxOnglets) {
     return [{ cle: 'accueil', label: 'Accueil', path: '/' }, ...ordonnes.map(enOnglet)];

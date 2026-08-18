@@ -17,7 +17,7 @@
  *     Icon: ShoppingIcon,     // facultatif
  *     accent: 'brand',        // facultatif, teinte de la tuile
  *     shortLabel: 'Courses',  // facultatif, libellé de l'onglet
- *     tabOrder: 1,            // facultatif, rang dans la barre d'onglets
+ *     tabOrder: 1,            // facultatif, rang d'affichage (tuile et onglet)
  *   };
  *
  * La validation, la détection des collisions et le tri vivent dans

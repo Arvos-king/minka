@@ -37,7 +37,7 @@ describe('construireRegistre', () => {
     assert.deepEqual(registre, [definition]);
   });
 
-  it('trie par libellé, en français', () => {
+  it('trie par libellé, en français, à défaut de tabOrder', () => {
     const registre = construireRegistre({
       './tasks/index.js': { default: module({ id: 'tasks', label: 'Tâches', path: '/taches' }) },
       './calendar/index.js': {
@@ -51,6 +51,27 @@ describe('construireRegistre', () => {
     assert.deepEqual(
       registre.map((m) => m.label),
       ['Calendrier', 'Épicerie', 'Tâches'],
+    );
+  });
+
+  it('place les modules qui déclarent tabOrder en tête', () => {
+    // Le tableau de bord suit le même ordre que la barre d'onglets : deux
+    // listes des mêmes modules dans deux ordres différents obligeraient à
+    // réapprendre où regarder selon l'écran.
+    const registre = construireRegistre({
+      './calendar/index.js': {
+        default: module({ id: 'calendar', label: 'Calendrier', path: '/calendrier', tabOrder: 4 }),
+      },
+      './fridge/index.js': { default: module({ id: 'fridge', label: 'Frigo', path: '/frigo' }) },
+      './shopping/index.js': { default: module({ tabOrder: 1 }) },
+      './tasks/index.js': {
+        default: module({ id: 'tasks', label: 'Tâches', path: '/taches', tabOrder: 2 }),
+      },
+    });
+
+    assert.deepEqual(
+      registre.map((m) => m.id),
+      ['shopping', 'tasks', 'calendar', 'fridge'],
     );
   });
 
