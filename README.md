@@ -36,6 +36,16 @@ interface ; Node 24 + Express 5 + SQLite (better-sqlite3) côté API.
 
 ## Modules
 
+Une **barre d'onglets** en bas de l'écran mène à chacun d'un seul tap — passer
+des courses aux tâches ne repasse plus par le tableau de bord. Elle est déduite
+du registre : déposer un dossier de module l'y fait apparaître.
+
+Cinq onglets tiennent côte à côte sur un téléphone. Tant que tout tient,
+l'accueil ouvre la marche ; au-delà, il cède sa place à un onglet « Plus » qui
+mène au tableau de bord, lequel les liste tous. Le champ `tabOrder` d'un module
+décide alors qui reste visible — sans lui, c'est l'ordre alphabétique qui
+tranche, et le module le plus utilisé peut se retrouver masqué.
+
 ### Liste de courses — `/courses`
 
 Une seule liste, partagée par toute la maison. Pensée pour être utilisée d'une
@@ -127,6 +137,49 @@ entière », ce qu'un horodatage à minuit ne saurait exprimer sans ambiguïté.
 règles de cohérence (fin après début, heure de fin sans heure de début) portent
 sur les champs pris ensemble : une modification partielle est donc fusionnée
 avec l'événement existant avant d'être validée.
+
+### Menus — `/menus`
+
+Ce qu'on mange cette semaine, du lundi au dimanche, midi et soir. Le module
+ferme la boucle **frigo → menus → courses**.
+
+- une case porte **soit une recette, soit un texte libre** — « restes »,
+  « resto », « chez mes parents ». La moitié des dîners d'une vraie semaine ne
+  sont pas des recettes, et obliger à créer une fiche pour cela condamnerait le
+  planning à rester vide ;
+- les recettes vivent dans un répertoire réutilisable, avec leurs ingrédients ;
+- les **quantités sont du texte libre** — « 200 g », « 2 gousses », « un filet ».
+  Normaliser les unités demanderait une table de conversions et une saisie plus
+  lourde, pour un bénéfice nul : personne n'additionne deux cuillères à soupe ;
+- un bouton envoie les ingrédients de la semaine dans la liste de courses, après
+  les avoir montrés **tels qu'ils y arriveront** — on décoche l'huile d'olive
+  qu'on a déjà avant d'envoyer, pas après ;
+- supprimer une recette la retire des repas prévus, ce que l'interface annonce.
+
+Un ingrédient présent dans deux recettes n'est cité qu'une fois, ses quantités
+juxtaposées : « Crème (20 cl + un filet) ». Elles ne sont pas additionnées —
+c'est la conséquence assumée du texte libre, et de toute façon la somme de
+« 2 gousses » et « un peu » n'existe pas.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/menus/plan?from=&to=` | Repas prévus sur la période |
+| `PUT /api/menus/plan/:date/:slot` | Pose un repas (`recipeId` **ou** `freeText`) |
+| `DELETE /api/menus/plan/:date/:slot` | Vide la case |
+| `GET /api/menus/recipes` | Le répertoire, sans les ingrédients |
+| `GET /api/menus/recipes/:id` | Une recette et ses ingrédients |
+| `POST /api/menus/recipes` | Création |
+| `PATCH /api/menus/recipes/:id` | Modification — `ingredients` remplace la liste entière |
+| `DELETE /api/menus/recipes/:id` | Suppression, renvoie le nombre de repas retirés |
+| `GET /api/menus/ingredients?from=&to=` | Ingrédients de la période, regroupés par nom |
+
+`PUT` et non `POST` sur une case : c'est une ressource adressable dont on fixe
+le contenu, et poser deux fois le même repas au même endroit doit donner le même
+résultat.
+
+**Passerelle vers la liste de courses** : le bouton d'envoi n'apparaît que si le
+module courses répond côté API, et le lien se limite à un appel HTTP — même
+modèle que le frigo, voir [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
 
 ### Tâches — `/taches`
 
@@ -398,6 +451,36 @@ cd frontend
 node scripts/generate-icons.mjs
 ```
 
+### Tests
+
+Le calcul des dates est la seule logique du projet qu'une erreur rend à la fois
+silencieuse et coûteuse : une tâche mensuelle qui dérive, un séjour affiché au
+mauvais rang, un produit signalé périmé la veille. C'est donc ce qui est
+couvert, avec le lanceur intégré de Node — **aucune dépendance à installer**.
+
+```bash
+cd backend && npm test
+```
+
+```bash
+cd frontend && npm test
+```
+
+Côté API : la replanification des tâches récurrentes
+(`modules/tasks/recurrence.js`) et le contrat de module (`modules/loader.js`).
+Côté interface : `lib/dates.js`, `lib/collection.js` — les opérations de liste
+et le suivi des quantités sur lesquels repose `useCollection` — et la logique
+pure de chaque module : échéances du frigo, agenda du calendrier, échéances des
+tâches.
+
+Les fichiers testés sont volontairement séparés de tout accès à la base ou au
+DOM. C'est ce qui permet à `node --test` de les charger tels quels : un test qui
+importerait `service.js` ouvrirait une connexion SQLite, et donc créerait un
+fichier de base, pour vérifier une addition de dates.
+
+Un test vit à côté du code qu'il vérifie, dans le dossier de son module — un
+module reste ainsi entier dans son dossier, tests compris.
+
 ---
 
 ## Ajouter un module
@@ -436,10 +519,19 @@ L'authentification est appliquée **par défaut**. Un module public doit le
 demander explicitement avec `requiresAuth: false` : l'oubli ferme l'accès, il
 ne l'ouvre jamais.
 
+Le `basePath` doit être de la forme `/api/<nom>` — un seul segment, en
+minuscules. Deux modules ne peuvent partager ni leur `name` ni leur `basePath` :
+l'API refuse alors de démarrer en nommant les deux dossiers fautifs. Ces
+collisions ne provoquent aucune erreur d'elles-mêmes, et c'est précisément le
+problème — deux `basePath` identiques et Express sert le premier routeur monté,
+deux `name` identiques et les migrations du second passent pour appliquées, donc
+sa table n'est jamais créée.
+
 ### Côté interface — `frontend/src/modules/<nom>/index.js`
 
 ```js
 import BudgetPage from './BudgetPage.jsx';
+import { BudgetIcon } from './BudgetIcon.jsx';
 
 export default {
   id: 'budget',
@@ -447,12 +539,39 @@ export default {
   description: 'Les dépenses du mois',
   path: '/budget',
   Component: BudgetPage,
+  Icon: BudgetIcon,      // facultatif
+  shortLabel: 'Budget',  // facultatif — libellé de l'onglet, si `label` est long
+  tabOrder: 3,           // facultatif — rang dans la barre d'onglets
 };
 ```
 
-La route protégée et la tuile du tableau de bord apparaissent automatiquement.
-L'icône vit dans le dossier du module (voir `modules/fridge/FridgeIcon.jsx`) :
-ajouter une fonctionnalité n'oblige à modifier aucun fichier commun.
+La route protégée, la tuile du tableau de bord **et l'onglet de navigation**
+apparaissent automatiquement. L'icône vit dans le dossier du module (voir
+`modules/fridge/FridgeIcon.jsx`) : ajouter une fonctionnalité n'oblige à
+modifier aucun fichier commun.
+
+Là aussi, deux modules ne peuvent partager ni leur `id` ni leur `path`. Le
+second est écarté du registre avec un message en console, plutôt que de faire
+échouer toute l'interface : un module mal déclaré ne doit pas emporter le reste
+de l'application.
+
+### Ancrer un élément en bas de l'écran
+
+La barre d'onglets occupe le bas de l'écran. Un module qui y ancre quelque chose
+— champ d'ajout, bouton flottant — se pose sur **`bottom-onglets`** plutôt que
+sur `bottom-0`, et n'a ainsi aucune hauteur à connaître :
+
+```jsx
+<div className="bottom-onglets fixed inset-x-0 z-20 …">
+```
+
+Inutile d'y ajouter `pb-safe` : la barre réserve elle-même la marge de gestes du
+téléphone. Le socle pose déjà `pb-onglets` sur le contenu défilant, il n'y a donc
+rien à faire pour que la fin d'une liste reste atteignable.
+
+Les couches, du fond vers la surface : `z-20` pour ce qu'un module ancre en bas,
+`z-30` pour la barre, `z-40` pour les panneaux glissés — un panneau ouvert
+couvre la navigation, qui n'a alors plus lieu d'être visible.
 
 ### Ce que le socle met à disposition
 
@@ -463,12 +582,40 @@ Côté interface : `lib/dates.js` (`aujourdhui`, `decalerJours`, `joursEntre`) �
 tous les calculs y passent par UTC, car comparer des jours en heure locale fait
 gagner ou perdre une journée aux changements d'heure.
 
-### Deux aides fournies par le socle
+### Les aides fournies par le socle
+
+`useCollection(charger)` — **le point de départ d'un module qui tient une
+liste partagée.** Il apporte le chargement, l'état d'erreur, le rafraîchissement
+au retour sur l'application, et surtout les actions optimistes : `ajouter`,
+`modifier`, `retirer`, `retirerPlusieurs`, chacune restaurant l'état d'origine
+si le serveur refuse — un élément retiré revenant exactement à sa place.
+
+```js
+const charger = useCallback(async () => {
+  const data = await budgetApi.list();
+  return { elements: data.expenses, extra: data.total };
+}, []);
+
+const { elements, status, error, modifier } = useCollection(charger);
+```
+
+`charger` renvoie `{ elements, extra }` et doit passer par `useCallback`, sans
+quoi la liste se rechargerait à chaque rendu. `extra` accueille ce qui
+accompagne la liste sans en faire partie — les compteurs d'en-tête, un total.
+Les appels passés aux actions renvoient de même `{ element, extra }` : c'est le
+seul endroit où un module traduit la forme de son API vers celle du hook.
+
+L'option `appelQuantite` ajoute un pas de quantité résistant aux taps rapides et
+aux réponses arrivant dans le désordre (voir les courses et le frigo).
+
+Le socle le propose, il ne l'impose pas : un module dont les besoins diffèrent
+garde son propre état.
 
 `useRefreshOnFocus(rafraichir)` — recharge les données au retour sur
 l'application, ce qui suffit à voir ce que l'autre a saisi sans temps réel. À
 préférer à un `useEffect` maison : `visibilitychange` et `focus` ne couvrent pas
-les mêmes situations et le détail se rate facilement.
+les mêmes situations et le détail se rate facilement. Déjà inclus dans
+`useCollection`.
 
 `useServerModule('shopping')` — indique si un autre module est monté côté API.
 
@@ -511,6 +658,13 @@ charger créerait un cycle d'imports.
 - [x] **Module Tâches** : échéances, tâches récurrentes qui se replanifient,
       filtre par personne.
 - [x] **Sauvegarde automatique** : nocturne, avec rotation.
+- [x] **Tests** : logique de dates et contrat de module, avec `node --test`.
+- [x] **`useCollection`** : le cycle « liste partagée, actions optimistes »
+      remonté dans le socle, partagé par les courses, le frigo et les tâches.
+- [x] **Barre d'onglets** : un tap pour passer d'un module à l'autre, déduite
+      du registre.
+- [x] **Module Menus** : planning de la semaine, recettes, et envoi des
+      ingrédients dans la liste de courses.
 
 Pistes pour la suite : budget, notes partagées — chacun suit le mode d'emploi
 ci-dessus. Côté liste de courses, les évolutions naturelles seraient les rayons,
