@@ -14,29 +14,24 @@
  *     description: "Ce qu'il faut acheter",
  *     path: '/courses',
  *     Component: ShoppingPage,
- *     Icon: ShoppingIcon,   // facultatif
- *     accent: 'brand',      // facultatif, teinte de la tuile
+ *     Icon: ShoppingIcon,     // facultatif
+ *     accent: 'brand',        // facultatif, teinte de la tuile
+ *     shortLabel: 'Courses',  // facultatif, libellé de l'onglet
+ *     tabOrder: 1,            // facultatif, rang dans la barre d'onglets
  *   };
+ *
+ * La validation, la détection des collisions et le tri vivent dans
+ * `construireRegistre.js` : ce fichier-ci ne fait que la collecte, qui dépend
+ * de Vite.
  */
 
-const loaded = import.meta.glob('./*/index.js', { eager: true });
+import { construireRegistre, trouverModuleParChemin } from './construireRegistre.js';
 
-function validate(definition, path) {
-  const missing = ['id', 'label', 'path', 'Component'].filter((key) => !definition?.[key]);
-  if (missing.length > 0) {
-    console.error(`[modules] ${path} ignoré — champs manquants : ${missing.join(', ')}`);
-    return false;
-  }
-  return true;
-}
+const charges = import.meta.glob('./*/index.js', { eager: true });
 
-export const modules = Object.entries(loaded)
-  .map(([path, imported]) => ({ path, definition: imported.default }))
-  .filter(({ path, definition }) => validate(definition, path))
-  .map(({ definition }) => definition)
-  .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
+export const modules = construireRegistre(charges);
 
 /** Retrouve le module correspondant à une URL, pour le titre de l'en-tête. */
 export function findModuleByPath(pathname) {
-  return modules.find((module) => pathname === module.path || pathname.startsWith(`${module.path}/`));
+  return trouverModuleParChemin(modules, pathname);
 }

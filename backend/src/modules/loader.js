@@ -23,16 +23,42 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const modulesDir = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Un seul segment, en minuscules : `/api/budget`, pas `/api/` ni
+ * `/api/budget/depenses`.
+ *
+ * `/api/` seul passerait un simple test de préfixe et monterait le module à la
+ * racine de l'API, où il intercepterait les routes de tous les modules chargés
+ * après lui — dans l'ordre alphabétique des dossiers, donc sans rien de visible
+ * qui l'explique.
+ */
+const BASE_PATH_VALIDE = /^\/api\/[a-z0-9-]+$/;
+
+/**
+ * Chemins que le socle occupe déjà (voir `app.js`, qui les monte avant les
+ * modules). Un module qui s'y installerait ne recevrait jamais aucune requête.
+ */
+const CHEMINS_RESERVES = new Set(['/api/health']);
+
 /** Valide le contrat et applique les valeurs par défaut. */
-function normalize(definition, folder) {
+export function normalize(definition, folder) {
   if (!definition || typeof definition !== 'object') {
     throw new Error(`Le module « ${folder} » doit avoir un export par défaut (objet).`);
   }
 
   const { name = folder, basePath, router, migrationsDir, init } = definition;
 
-  if (typeof basePath !== 'string' || !basePath.startsWith('/api/')) {
-    throw new Error(`Le module « ${folder} » doit déclarer un basePath commençant par /api/.`);
+  if (typeof basePath !== 'string' || !BASE_PATH_VALIDE.test(basePath)) {
+    throw new Error(
+      `Le module « ${folder} » doit déclarer un basePath de la forme /api/<nom>, ` +
+        `en minuscules et sans sous-chemin (reçu : ${JSON.stringify(basePath)}).`,
+    );
+  }
+  if (CHEMINS_RESERVES.has(basePath)) {
+    throw new Error(
+      `Le module « ${folder} » réclame ${basePath}, déjà occupé par le socle : ` +
+        `ses routes ne seraient jamais atteintes.`,
+    );
   }
   if (typeof router !== 'function') {
     throw new Error(`Le module « ${folder} » doit exporter un router Express.`);
@@ -42,6 +68,7 @@ function normalize(definition, folder) {
   }
 
   return {
+    folder,
     name,
     basePath,
     router,
@@ -51,6 +78,48 @@ function normalize(definition, folder) {
     // L'inverse — une route ouverte par omission — serait une fuite silencieuse.
     requiresAuth: definition.requiresAuth !== false,
   };
+}
+
+/**
+ * Refuse deux modules qui se marcheraient dessus.
+ *
+ * Aucune de ces collisions ne provoque d'erreur d'elle-même, et c'est bien le
+ * problème :
+ *
+ *   — deux `basePath` identiques, et Express sert le premier routeur monté ;
+ *     les routes du second répondent 404 sans que rien ne le signale ;
+ *   — deux `name` identiques, et les migrations partagent leur espace de noms
+ *     (`nom:fichier`) : le `001_init.sql` du second module est considéré comme
+ *     déjà appliqué, donc sa table n'est jamais créée.
+ *
+ * Le second cas touche aux données : mieux vaut un démarrage refusé, avec un
+ * message qui nomme les deux dossiers fautifs.
+ */
+export function verifierCollisions(modules) {
+  const parNom = new Map();
+  const parChemin = new Map();
+
+  for (const module of modules) {
+    const nomOccupe = parNom.get(module.name);
+    if (nomOccupe) {
+      throw new Error(
+        `Les modules « ${nomOccupe} » et « ${module.folder} » portent le même nom ` +
+          `« ${module.name} » : leurs migrations se confondraient.`,
+      );
+    }
+    parNom.set(module.name, module.folder);
+
+    const cheminOccupe = parChemin.get(module.basePath);
+    if (cheminOccupe) {
+      throw new Error(
+        `Les modules « ${cheminOccupe} » et « ${module.folder} » réclament tous deux ` +
+          `${module.basePath} : les routes du second ne seraient jamais atteintes.`,
+      );
+    }
+    parChemin.set(module.basePath, module.folder);
+  }
+
+  return modules;
 }
 
 /** @returns {Promise<Array<object>>} les modules, triés par nom de dossier. */
@@ -76,5 +145,5 @@ export async function loadModules() {
     modules.push(normalize(imported.default, folder));
   }
 
-  return modules;
+  return verifierCollisions(modules);
 }
