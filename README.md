@@ -187,6 +187,43 @@ résultat.
 module courses répond côté API, et le lien se limite à un appel HTTP — même
 modèle que le frigo, voir [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
 
+### Notes — `/notes`
+
+Le filet qui rattrape ce que les modules structurés ne prennent pas : codes,
+mesures, idées de cadeaux, consignes pour la nounou.
+
+- le **titre est facultatif** — à défaut, la première ligne en tient lieu.
+  Personne ne pense à titrer trois lignes notées à la volée ;
+- pas de bouton « Enregistrer » : le texte part tout seul après une pause dans
+  la frappe, et un indicateur discret dit où en est l'envoi ;
+- une note épinglée reste en tête de liste ;
+- les autres suivent, de la plus récemment modifiée à la plus ancienne.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/notes/items` | Liste, épinglées d'abord |
+| `POST /api/notes/items` | Création |
+| `GET /api/notes/items/:id` | Une note — sert à retrouver la version courante après un conflit |
+| `PATCH /api/notes/items/:id` | Modification — voir ci-dessous |
+| `DELETE /api/notes/items/:id` | Suppression |
+
+**Écrire à deux sur la même note.** C'est le seul endroit de l'application où
+l'on peut se marcher dessus : ailleurs, chacun coche sa ligne. Une note porte
+donc un numéro de `version`, que l'éditeur renvoie à chaque enregistrement. Si
+la note a bougé depuis, le serveur refuse d'écrire (`409`) et l'interface pose
+la question — garder son texte, ou reprendre celui de l'autre. Perdre trois
+lignes sans le savoir serait pire que devoir choisir.
+
+Un numéro plutôt qu'un horodatage : `datetime('now')` a la seconde pour
+résolution, et une sauvegarde automatique va plus vite que cela — deux
+écritures rapprochées porteraient la même heure et le conflit passerait
+inaperçu.
+
+**La version ne garde que le texte.** Épingler n'est pas modifier : compter ce
+geste ferait échouer la sauvegarde de celui qui écrit au même moment, et
+afficherait « modifiée à l'instant » sur une note qu'on vient seulement de
+ranger.
+
 ### Tâches — `/taches`
 
 Une liste unique, triée par échéance la plus proche, avec un filtre par
@@ -723,9 +760,11 @@ charger créerait un cycle d'imports.
 - [x] **Hors ligne en lecture** : l'application s'ouvre et affiche les dernières
       données connues sans réseau.
 - [x] **Mode sombre**, suivant le réglage du téléphone.
+- [x] **Module Notes** : sauvegarde automatique, épinglage, et détection de
+      l'édition simultanée.
 
-Pistes pour la suite : budget, notes partagées — chacun suit le mode d'emploi
-ci-dessus. Côté hors ligne, l'étape suivante serait la **file d'écriture** :
+Pistes pour la suite : le budget, qui suit le mode d'emploi ci-dessus. Côté
+hors ligne, l'étape suivante serait la **file d'écriture** :
 empiler les modifications faites sans réseau et les rejouer au retour. Elle n'a
 pas été faite parce que sa difficulté n'est pas la file, mais le conflit quand
 vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
