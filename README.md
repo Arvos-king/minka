@@ -144,6 +144,49 @@ règles de cohérence (fin après début, heure de fin sans heure de début) por
 sur les champs pris ensemble : une modification partielle est donc fusionnée
 avec l'événement existant avant d'être validée.
 
+### Budget — `/budget`
+
+Où part l'argent du mois. Un total en haut, la répartition par catégorie, puis
+le détail.
+
+- la saisie ne demande que **le montant et deux mots** — la date vaut
+  aujourd'hui, la catégorie et la personne se précisent plus tard en touchant la
+  ligne. Noter une dépense doit tenir en trois secondes, au moment où l'on range
+  le ticket ;
+- une dépense saisie en consultant un mois passé s'y range : c'est qu'on
+  rattrape un oubli, pas qu'on dépense aujourd'hui ;
+- le **plafond mensuel d'une catégorie est facultatif** : on veut souvent savoir
+  ce qu'on met dans les restaurants sans se fixer de limite. Sans plafond, la
+  catégorie compte sans juger ; avec, une jauge se remplit et vire au rouge une
+  fois dépassée ;
+- `person_id` dit qui a payé, et rien de plus. **Aucun calcul de dettes** — pour
+  un foyer aux finances communes, « qui doit combien à qui » est du bruit.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/budget/expenses?from=&to=` | Dépenses de la période, et totaux |
+| `POST /api/budget/expenses` | Création |
+| `PATCH /api/budget/expenses/:id` | Modification |
+| `DELETE /api/budget/expenses/:id` | Suppression |
+| `GET /api/budget/categories` | Les catégories |
+| `POST /api/budget/categories` | Création — refuse un nom déjà pris |
+| `PATCH /api/budget/categories/:id` | Renommage, plafond |
+| `DELETE /api/budget/categories/:id` | Suppression, renvoie le nombre de dépenses désétiquetées |
+
+**Les montants sont des entiers de centimes**, de la base au navigateur. SQLite
+n'a pas de type décimal et les flottants finissent toujours par se voir : un
+total de fin de mois faux d'un centime est un total faux. La lecture de « 12,50 »
+se fait sur les chiffres eux-mêmes, jamais par un `parseFloat` — `Math.round`
+sur `12.345 * 100` donne 1234, et personne ne s'en aperçoit avant de faire la
+somme.
+
+Les totaux sont calculés par SQLite, pas dans le navigateur : refaire la somme
+de son côté finirait par diverger de celle faite en base, et deux écrans
+donneraient deux chiffres.
+
+Supprimer une catégorie ne supprime pas ses dépenses : elles restent comptées et
+passent en « Sans catégorie ». L'interface l'annonce avant de confirmer.
+
 ### Menus — `/menus`
 
 Ce qu'on mange cette semaine, du lundi au dimanche, midi et soir. Le module
@@ -762,9 +805,11 @@ charger créerait un cycle d'imports.
 - [x] **Mode sombre**, suivant le réglage du téléphone.
 - [x] **Module Notes** : sauvegarde automatique, épinglage, et détection de
       l'édition simultanée.
+- [x] **Module Budget** : dépenses du mois, catégories à plafond, saisie en
+      trois secondes.
 
-Pistes pour la suite : le budget, qui suit le mode d'emploi ci-dessus. Côté
-hors ligne, l'étape suivante serait la **file d'écriture** :
+Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
+Côté hors ligne, l'étape suivante serait la **file d'écriture** :
 empiler les modifications faites sans réseau et les rejouer au retour. Elle n'a
 pas été faite parce que sa difficulté n'est pas la file, mais le conflit quand
 vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
