@@ -3,7 +3,7 @@
  */
 
 import { stmt } from '../../db/index.js';
-import { prochaineEcheance } from './recurrence.js';
+import { prochaineEcheance } from '../../lib/recurrence.js';
 
 function toPublicTask(row) {
   if (!row) return null;

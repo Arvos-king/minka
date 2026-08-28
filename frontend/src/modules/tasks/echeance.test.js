@@ -61,6 +61,8 @@ describe('libelleRythme', () => {
     assert.equal(libelleRythme('daily'), 'Chaque jour');
     assert.equal(libelleRythme('weekly'), 'Chaque semaine');
     assert.equal(libelleRythme('monthly'), 'Chaque mois');
+    assert.equal(libelleRythme('quarterly'), 'Tous les trois mois');
+    assert.equal(libelleRythme('biannual'), 'Tous les six mois');
     assert.equal(libelleRythme('yearly'), 'Chaque année');
   });
 

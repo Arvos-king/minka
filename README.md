@@ -187,6 +187,48 @@ donneraient deux chiffres.
 Supprimer une catégorie ne supprime pas ses dépenses : elles restent comptées et
 passent en « Sans catégorie ». L'interface l'annonce avant de confirmer.
 
+### Entretien — `/entretien`
+
+Le planning de la maison : ce qui se détartre, se change, se vérifie et se
+range, pièce par pièce. **59 interventions sont posées au premier démarrage**,
+d'après l'inventaire du foyer — à retirer, compléter et re-rythmer ensuite.
+
+- l'écran s'ouvre sur l'urgence — *En retard*, *Cette semaine*, *Plus tard* —
+  parce que c'est la question qu'on se pose en l'ouvrant ;
+- un filtre par pièce sert l'autre façon de s'y prendre : « aujourd'hui je fais
+  la salle de bain » ;
+- le retard se dit en jours, puis en semaines, puis en mois. « En retard de
+  87 j » ne parle à personne ; « en retard de 3 mois » se comprend ;
+- « Pas maintenant » repousse d'une semaine ou d'un mois **sans déclarer le
+  geste fait**. Sans cette porte de sortie, on finit par cocher pour faire taire
+  la ligne, et le planning ne veut plus rien dire.
+
+**La règle qui distingue l'entretien d'une tâche** : une tâche se replanifie
+depuis son échéance, une intervention depuis **le jour où on l'a faite**.
+« Sortir les poubelles » vise le mardi — cocher avec trois jours de retard ne
+déplace pas le mardi suivant. « Détartrer la machine tous les mois » vise un
+intervalle depuis le dernier détartrage : le faire avec six semaines de retard
+décale d'autant la fois suivante, sinon la ligne ressortirait en retard le jour
+même.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/entretien/tasks` | Le planning et les pièces |
+| `POST /api/entretien/tasks` | Ajout |
+| `PATCH /api/entretien/tasks/:id` | Réglage (pièce, rythme, échéance, personne) |
+| `POST /api/entretien/tasks/:id/done` | C'est fait — replanifie depuis ce jour |
+| `POST /api/entretien/tasks/:id/snooze` | Repousse sans déclarer fait |
+| `DELETE /api/entretien/tasks/:id` | Retrait du planning |
+| `GET`/`POST`/`PATCH`/`DELETE` `/api/entretien/zones[/:id]` | Les pièces |
+
+Les premières échéances sont **étalées** sur la période de chaque rythme : rien
+n'est dû le premier jour, et la maison se met en route à raison d'environ une
+intervention par jour le premier mois. Tout poser à la même date afficherait
+cinquante-neuf retards d'entrée de jeu, de quoi refermer le module pour de bon.
+
+Supprimer une pièce ne supprime pas ses interventions : elles restent, sans
+rattachement.
+
 ### Menus — `/menus`
 
 Ce qu'on mange cette semaine, du lundi au dimanche, midi et soir. Le module
@@ -603,6 +645,12 @@ cd frontend && npm test
 
 Côté API : la replanification des tâches récurrentes
 (`modules/tasks/recurrence.js`) et le contrat de module (`modules/loader.js`).
+Côté API : `lib/recurrence.js`, l'arithmétique des rythmes récurrents —
+hebdomadaire à annuel, trimestriel et semestriel compris — avec sa protection
+contre la dérive du 31. Elle appartient au socle parce que deux modules s'en
+servent : les tâches, qui replanifient depuis l'échéance, et l'entretien, qui
+repart du jour du geste.
+
 Côté interface : `lib/dates.js`, `lib/collection.js` — les opérations de liste
 et le suivi des quantités sur lesquels repose `useCollection` — et la logique
 pure de chaque module : échéances du frigo, agenda du calendrier, échéances des
@@ -807,6 +855,8 @@ charger créerait un cycle d'imports.
       l'édition simultanée.
 - [x] **Module Budget** : dépenses du mois, catégories à plafond, saisie en
       trois secondes.
+- [x] **Module Entretien** : planning de la maison par pièce, replanifié depuis
+      le jour du geste, et moteur de récurrence remonté au socle.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :

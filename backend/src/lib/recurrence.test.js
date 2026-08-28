@@ -56,6 +56,25 @@ describe('avancerDe', () => {
     assert.equal(avancerDe('2024-02-29', 'yearly', 1), '2025-02-28');
   });
 
+  it('compte le trimestre en trois mois', () => {
+    assert.equal(avancerDe('2026-01-31', 'quarterly', 1), '2026-04-30');
+    assert.equal(avancerDe('2026-08-17', 'quarterly', 2), '2027-02-17');
+  });
+
+  it('compte le semestre en six mois', () => {
+    assert.equal(avancerDe('2026-08-17', 'biannual', 1), '2027-02-17');
+    assert.equal(avancerDe('2026-08-31', 'biannual', 1), '2027-02-28');
+  });
+
+  it('protège les nouveaux rythmes de la dérive du 31', () => {
+    // Ils passent par `ajouterMois`, donc héritent de sa garde : un trimestriel
+    // du 31 août tombe au 30 novembre, puis retrouve le 31 en février… qui
+    // n'existe pas non plus, d'où le 28.
+    assert.equal(avancerDe('2026-08-31', 'quarterly', 1), '2026-11-30');
+    assert.equal(avancerDe('2026-08-31', 'quarterly', 2), '2027-02-28');
+    assert.equal(avancerDe('2026-08-31', 'quarterly', 4), '2027-08-31');
+  });
+
   it('renvoie null pour un rythme inconnu', () => {
     assert.equal(avancerDe('2026-08-17', 'hourly', 1), null);
     assert.equal(avancerDe('2026-08-17', null, 1), null);

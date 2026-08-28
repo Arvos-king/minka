@@ -58,6 +58,8 @@ export const RYTHMES = [
   { valeur: 'daily', libelle: 'Chaque jour' },
   { valeur: 'weekly', libelle: 'Chaque semaine' },
   { valeur: 'monthly', libelle: 'Chaque mois' },
+  { valeur: 'quarterly', libelle: 'Tous les trois mois' },
+  { valeur: 'biannual', libelle: 'Tous les six mois' },
   { valeur: 'yearly', libelle: 'Chaque année' },
 ];
 

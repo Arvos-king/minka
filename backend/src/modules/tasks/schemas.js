@@ -9,7 +9,7 @@ const title = z
   .max(160, "L'intitulé est trop long.");
 
 /** Rythmes proposés. `null` = tâche à faire une seule fois. */
-export const RECURRENCES = ['daily', 'weekly', 'monthly', 'yearly'];
+export const RECURRENCES = ['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly'];
 
 const recurrence = z
   .enum(RECURRENCES, { message: 'Rythme de répétition inconnu.' })

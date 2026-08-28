@@ -1,11 +1,13 @@
 /**
- * Calcul des occurrences d'une tâche récurrente.
+ * Arithmétique des rythmes récurrents.
  *
- * Séparé de `service.js` parce que ce calcul est purement arithmétique : il ne
- * touche jamais à la base. Or importer `service.js` ouvre une connexion SQLite
- * — donc crée un fichier de base — et il serait absurde de payer cela pour
- * vérifier une addition de dates. C'est ce qui rend ces fonctions testables
- * telles quelles, avec le seul `node --test`.
+ * Appartient au socle parce que deux modules s'en servent — les tâches, qui
+ * replanifient depuis l'échéance d'origine, et l'entretien, qui repart du jour
+ * où le geste a été fait. Le même chemin que `people` : dès qu'une brique sert
+ * à deux modules, elle monte ici plutôt que d'être recopiée.
+ *
+ * Purement arithmétique : ne touche jamais à la base, et se vérifie donc avec
+ * le seul `node --test`.
  */
 
 function versJourUtc(date) {
@@ -43,6 +45,12 @@ export function avancerDe(date, recurrence, n) {
       return enDate(versJourUtc(date) + n * 7 * 86_400_000);
     case 'monthly':
       return ajouterMois(date, n);
+    // Trimestriel et semestriel passent par le même calcul de mois, donc par la
+    // même protection contre la dérive du 31.
+    case 'quarterly':
+      return ajouterMois(date, n * 3);
+    case 'biannual':
+      return ajouterMois(date, n * 6);
     case 'yearly':
       return ajouterMois(date, n * 12);
     default:
