@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useCollection } from '../../lib/useCollection.js';
 import { shoppingApi } from './api.js';
@@ -13,8 +13,17 @@ import { shoppingApi } from './api.js';
  * décompte suive le geste.
  */
 export function useShoppingList() {
+  /*
+   * Les rayons arrivent avec les articles, mais ne passent volontairement pas
+   * par `extra` : `toggleItem` et `removeItem` reconstruisent `extra` de zéro
+   * pour ajuster les compteurs, et les effaceraient au premier tap sur une
+   * case, sans erreur ni trace. `extra`, ici, c'est exactement les compteurs.
+   */
+  const [rayons, setRayons] = useState([]);
+
   const charger = useCallback(async () => {
     const data = await shoppingApi.list();
+    setRayons(data.rayons ?? []);
     return { elements: data.items, extra: data.counts };
   }, []);
 
@@ -30,6 +39,7 @@ export function useShoppingList() {
     error,
     dismissError,
     refresh,
+    setElements,
     setExtra,
     ajouter,
     modifier,
@@ -97,6 +107,31 @@ export function useShoppingList() {
     [retirer, setExtra],
   );
 
+  const rangerItem = useCallback(
+    async (item, rayon) => {
+      const reponse = await modifier(item, { rayon }, async () => {
+        const data = await shoppingApi.update(item.id, { rayon });
+        return { element: data.item, extra: data.counts, autresRanges: data.autresRanges };
+      });
+
+      /*
+       * Le serveur range d'un coup tous les articles du même produit, et retient
+       * la correction. On suit son verdict, sinon deux lignes portant le même
+       * nom resteraient dans deux rayons différents jusqu'au prochain
+       * rafraîchissement.
+       */
+      const ranges = new Set(reponse?.autresRanges ?? []);
+      if (ranges.size > 0) {
+        setElements((precedents) =>
+          precedents.map((element) =>
+            ranges.has(element.id) ? { ...element, rayon } : element,
+          ),
+        );
+      }
+    },
+    [modifier, setElements],
+  );
+
   const purgeCompleted = useCallback(async () => {
     const avant = counts;
     setExtra((precedent) => ({ ...precedent, completed: 0 }));
@@ -110,6 +145,7 @@ export function useShoppingList() {
 
   return {
     items,
+    rayons,
     counts: counts ?? { pending: 0, completed: 0 },
     status,
     error,
@@ -119,6 +155,7 @@ export function useShoppingList() {
     toggleItem,
     changeQuantity: changerQuantite,
     removeItem,
+    rangerItem,
     purgeCompleted,
   };
 }

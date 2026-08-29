@@ -3,6 +3,7 @@
  */
 
 import { db, stmt } from '../../db/index.js';
+import { choisirRayon, cleDeNom, RAYON_PAR_DEFAUT } from './rayons.js';
 
 /**
  * Traduit une ligne SQLite en objet destiné au client : camelCase, et
@@ -18,7 +19,28 @@ function toPublicItem(row) {
     createdAt: row.created_at,
     completedAt: row.completed_at,
     createdBy: row.created_by,
+    // NULL n'existe que le temps du rattrapage de démarrage, qui s'exécute
+    // avant que le serveur n'écoute. Le repli est là pour que le client n'ait
+    // jamais à connaître ce cas.
+    rayon: row.rayon ?? RAYON_PAR_DEFAUT,
   };
+}
+
+/**
+ * Le rayon d'un nom d'article : la correction du foyer d'abord, le dictionnaire
+ * ensuite.
+ *
+ * La règle elle-même vit dans `rayons.js`, où elle se teste sans base ; il ne
+ * reste ici que la lecture de la ligne apprise.
+ */
+function rayonPour(name) {
+  const cle = cleDeNom(name);
+  const appris =
+    cle === ''
+      ? null
+      : stmt('SELECT rayon FROM shopping_rayons_appris WHERE nom_normalise = ?').get(cle);
+
+  return choisirRayon(name, appris?.rayon);
 }
 
 /**
@@ -56,10 +78,15 @@ export function getItem(id) {
   return toPublicItem(stmt('SELECT * FROM shopping_items WHERE id = ?').get(id));
 }
 
+/**
+ * Le rayon est posé ici, à l'insertion, et nulle part ailleurs : c'est ce qui
+ * fait arriver rangés les articles poussés par le frigo et par les menus, qui
+ * n'envoient qu'un nom.
+ */
 export function createItem({ name, quantity, userId }) {
   const result = stmt(
-    'INSERT INTO shopping_items (name, quantity, created_by) VALUES (?, ?, ?)',
-  ).run(name, quantity, userId);
+    'INSERT INTO shopping_items (name, quantity, created_by, rayon) VALUES (?, ?, ?, ?)',
+  ).run(name, quantity, userId, rayonPour(name));
   return getItem(result.lastInsertRowid);
 }
 
@@ -85,6 +112,10 @@ export function updateItem(id, fields) {
   if (fields.completed !== undefined) {
     assignments.push('completed = ?', `completed_at = ${fields.completed ? "datetime('now')" : 'NULL'}`);
     values.push(fields.completed ? 1 : 0);
+  }
+  if (fields.rayon !== undefined) {
+    assignments.push('rayon = ?');
+    values.push(fields.rayon);
   }
 
   values.push(id);
@@ -113,4 +144,79 @@ export function countItems() {
     )
     .get();
   return { pending: row.pending ?? 0, completed: row.completed ?? 0 };
+}
+
+/**
+ * Retient une correction de rayon, et l'applique aux articles du même produit.
+ *
+ * N'est appelée que lorsque la modification portait un `rayon` : un renommage
+ * (« Lat » → « Lait ») corrige une faute de frappe, il ne dit rien d'un rayon,
+ * et il ne doit donc ni enseigner ni reclasser. Cocher un article ou changer sa
+ * quantité, de même.
+ *
+ * La mémoire est écrite même quand le dictionnaire disait déjà la même chose :
+ * le geste est une décision, et « le dictionnaire est d'accord aujourd'hui »
+ * n'engage pas demain. Vérifier cet accord obligerait par ailleurs à rejouer le
+ * classement pour décider si l'on stocke — du couplage contre une ligne de
+ * trois champs.
+ *
+ * L'appariement des autres articles se fait en JavaScript et non en SQL : la
+ * clé est le résultat de `cleDeNom`, que SQLite ne sait pas calculer. La
+ * stocker dans une colonne aurait permis un WHERE, au prix d'une donnée que la
+ * moindre évolution de la normalisation rendrait périmée sans le dire. Sur une
+ * liste de foyer — quelques dizaines de lignes — le balayage ne se mesure pas.
+ *
+ * Les articles déjà cochés sont rangés eux aussi : rien ne bouge à l'écran,
+ * mais décocher l'un d'eux ne doit pas le faire réapparaître au mauvais rayon.
+ *
+ * @returns {number[]} les identifiants des **autres** articles rangés.
+ */
+export function apprendreRayon(item, rayon) {
+  const cle = cleDeNom(item.name);
+  // Un nom sans aucun mot (« 500 g ») n'a pas de clé exploitable : on range la
+  // ligne, on n'apprend rien.
+  if (cle === '') return [];
+
+  const autres = stmt('SELECT id, name FROM shopping_items WHERE id <> ?')
+    .all(item.id)
+    .filter((ligne) => cleDeNom(ligne.name) === cle)
+    .map((ligne) => ligne.id);
+
+  const retenir = stmt(`
+    INSERT INTO shopping_rayons_appris (nom_normalise, rayon) VALUES (?, ?)
+    ON CONFLICT(nom_normalise) DO UPDATE SET rayon = excluded.rayon,
+                                             updated_at = datetime('now')
+  `);
+  const ranger = stmt('UPDATE shopping_items SET rayon = ? WHERE id = ?');
+
+  db.transaction(() => {
+    retenir.run(cle, rayon);
+    for (const id of autres) ranger.run(rayon, id);
+  })();
+
+  return autres;
+}
+
+/**
+ * Range les articles arrivés avant les rayons.
+ *
+ * Une migration `.sql` ne sait pas appeler `classer()` : la colonne naît donc
+ * vide, et c'est ce démarrage-ci qui la remplit. Idempotent par construction —
+ * la clause `rayon IS NULL` est la garde, il n'y a rien à retenir ailleurs :
+ * aux redémarrages suivants la requête ne ramène rien et la fonction s'arrête.
+ *
+ * Le classement passe par `rayonPour`, comme un ajout : si le foyer a déjà
+ * corrigé ce nom, le rattrapage respecte sa correction plutôt que le
+ * dictionnaire.
+ */
+export function classerArticlesSansRayon() {
+  const aRanger = stmt('SELECT id, name FROM shopping_items WHERE rayon IS NULL').all();
+  if (aRanger.length === 0) return;
+
+  const ranger = stmt('UPDATE shopping_items SET rayon = ? WHERE id = ?');
+  db.transaction(() => {
+    for (const { id, name } of aRanger) ranger.run(rayonPour(name), id);
+  })();
+
+  console.log(`[shopping] ${aRanger.length} article(s) rangés au rayon.`);
 }
