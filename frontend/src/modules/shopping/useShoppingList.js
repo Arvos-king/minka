@@ -39,6 +39,7 @@ export function useShoppingList() {
     error,
     dismissError,
     refresh,
+    setElements,
     setExtra,
     ajouter,
     modifier,
@@ -106,6 +107,31 @@ export function useShoppingList() {
     [retirer, setExtra],
   );
 
+  const rangerItem = useCallback(
+    async (item, rayon) => {
+      const reponse = await modifier(item, { rayon }, async () => {
+        const data = await shoppingApi.update(item.id, { rayon });
+        return { element: data.item, extra: data.counts, autresRanges: data.autresRanges };
+      });
+
+      /*
+       * Le serveur range d'un coup tous les articles du même produit, et retient
+       * la correction. On suit son verdict, sinon deux lignes portant le même
+       * nom resteraient dans deux rayons différents jusqu'au prochain
+       * rafraîchissement.
+       */
+      const ranges = new Set(reponse?.autresRanges ?? []);
+      if (ranges.size > 0) {
+        setElements((precedents) =>
+          precedents.map((element) =>
+            ranges.has(element.id) ? { ...element, rayon } : element,
+          ),
+        );
+      }
+    },
+    [modifier, setElements],
+  );
+
   const purgeCompleted = useCallback(async () => {
     const avant = counts;
     setExtra((precedent) => ({ ...precedent, completed: 0 }));
@@ -129,6 +155,7 @@ export function useShoppingList() {
     toggleItem,
     changeQuantity: changerQuantite,
     removeItem,
+    rangerItem,
     purgeCompleted,
   };
 }

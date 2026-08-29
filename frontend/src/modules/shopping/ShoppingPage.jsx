@@ -4,6 +4,7 @@ import { CartIcon, ChevronDownIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { AddItemForm } from './components/AddItemForm.jsx';
 import { ItemRow } from './components/ItemRow.jsx';
+import { RayonSheet } from './components/RayonSheet.jsx';
 import { grouperParRayon } from './rayons.js';
 import { useShoppingList } from './useShoppingList.js';
 
@@ -19,6 +20,7 @@ export function ShoppingPage() {
     toggleItem,
     changeQuantity,
     removeItem,
+    rangerItem,
     purgeCompleted,
   } = useShoppingList();
 
@@ -26,6 +28,7 @@ export function ShoppingPage() {
   // Confirmation en deux temps sur le même bouton : moins intrusif qu'une
   // fenêtre modale, et sans risque de purger la liste d'un tap malheureux.
   const [confirmingPurge, setConfirmingPurge] = useState(false);
+  const [aRanger, setARanger] = useState(null);
 
   const pending = items.filter((item) => !item.completed);
   const completed = items.filter((item) => item.completed);
@@ -87,11 +90,20 @@ export function ShoppingPage() {
                   )}
                   <ul className="mt-1 space-y-2">
                     {section.articles.map((item) => (
-                      <ItemRow key={item.id} item={item} {...rowProps} />
+                      <ItemRow key={item.id} item={item} {...rowProps} onRanger={setARanger} />
                     ))}
                   </ul>
                 </section>
               ))}
+
+              {/*
+                En bas, et non en tête : c'est en parcourant la liste qu'on
+                remarque un article égaré, et le haut de l'écran appartient au
+                décompte.
+              */}
+              <p className="mb-6 text-xs text-sand-500">
+                Mal rangé&nbsp;? Appuie longuement sur l'article pour changer son rayon.
+              </p>
             </>
           )}
 
@@ -151,6 +163,15 @@ export function ShoppingPage() {
       )}
 
       <AddItemForm onAdd={addItem} />
+
+      {aRanger && (
+        <RayonSheet
+          item={aRanger}
+          rayons={rayons}
+          onRanger={(rayon) => rangerItem(aRanger, rayon)}
+          onClose={() => setARanger(null)}
+        />
+      )}
     </div>
   );
 }
