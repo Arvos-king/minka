@@ -147,6 +147,57 @@ export function countItems() {
 }
 
 /**
+ * Retient une correction de rayon, et l'applique aux articles du même produit.
+ *
+ * N'est appelée que lorsque la modification portait un `rayon` : un renommage
+ * (« Lat » → « Lait ») corrige une faute de frappe, il ne dit rien d'un rayon,
+ * et il ne doit donc ni enseigner ni reclasser. Cocher un article ou changer sa
+ * quantité, de même.
+ *
+ * La mémoire est écrite même quand le dictionnaire disait déjà la même chose :
+ * le geste est une décision, et « le dictionnaire est d'accord aujourd'hui »
+ * n'engage pas demain. Vérifier cet accord obligerait par ailleurs à rejouer le
+ * classement pour décider si l'on stocke — du couplage contre une ligne de
+ * trois champs.
+ *
+ * L'appariement des autres articles se fait en JavaScript et non en SQL : la
+ * clé est le résultat de `cleDeNom`, que SQLite ne sait pas calculer. La
+ * stocker dans une colonne aurait permis un WHERE, au prix d'une donnée que la
+ * moindre évolution de la normalisation rendrait périmée sans le dire. Sur une
+ * liste de foyer — quelques dizaines de lignes — le balayage ne se mesure pas.
+ *
+ * Les articles déjà cochés sont rangés eux aussi : rien ne bouge à l'écran,
+ * mais décocher l'un d'eux ne doit pas le faire réapparaître au mauvais rayon.
+ *
+ * @returns {number[]} les identifiants des **autres** articles rangés.
+ */
+export function apprendreRayon(item, rayon) {
+  const cle = cleDeNom(item.name);
+  // Un nom sans aucun mot (« 500 g ») n'a pas de clé exploitable : on range la
+  // ligne, on n'apprend rien.
+  if (cle === '') return [];
+
+  const autres = stmt('SELECT id, name FROM shopping_items WHERE id <> ?')
+    .all(item.id)
+    .filter((ligne) => cleDeNom(ligne.name) === cle)
+    .map((ligne) => ligne.id);
+
+  const retenir = stmt(`
+    INSERT INTO shopping_rayons_appris (nom_normalise, rayon) VALUES (?, ?)
+    ON CONFLICT(nom_normalise) DO UPDATE SET rayon = excluded.rayon,
+                                             updated_at = datetime('now')
+  `);
+  const ranger = stmt('UPDATE shopping_items SET rayon = ? WHERE id = ?');
+
+  db.transaction(() => {
+    retenir.run(cle, rayon);
+    for (const id of autres) ranger.run(rayon, id);
+  })();
+
+  return autres;
+}
+
+/**
  * Range les articles arrivés avant les rayons.
  *
  * Une migration `.sql` ne sait pas appeler `classer()` : la colonne naît donc
