@@ -287,6 +287,10 @@ L'import se fait en une requête et une transaction : sept allers-retours pour
 sept jours laisseraient un planning à moitié rempli si la connexion lâchait au
 milieu.
 
+Le pré-prompt du projet Claude qui rédige ces semaines vit dans
+[`docs/prompt-menus.md`](docs/prompt-menus.md) : il décrit ce format à la
+lettre, et c'est là qu'il faut répercuter toute évolution de l'analyseur.
+
 | Route | Effet |
 | --- | --- |
 | `GET /api/menus/plan?from=&to=` | Repas prévus sur la période |
