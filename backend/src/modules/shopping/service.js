@@ -3,6 +3,7 @@
  */
 
 import { db, stmt } from '../../db/index.js';
+import { choisirRayon, cleDeNom, RAYON_PAR_DEFAUT } from './rayons.js';
 
 /**
  * Traduit une ligne SQLite en objet destiné au client : camelCase, et
@@ -18,7 +19,28 @@ function toPublicItem(row) {
     createdAt: row.created_at,
     completedAt: row.completed_at,
     createdBy: row.created_by,
+    // NULL n'existe que le temps du rattrapage de démarrage, qui s'exécute
+    // avant que le serveur n'écoute. Le repli est là pour que le client n'ait
+    // jamais à connaître ce cas.
+    rayon: row.rayon ?? RAYON_PAR_DEFAUT,
   };
+}
+
+/**
+ * Le rayon d'un nom d'article : la correction du foyer d'abord, le dictionnaire
+ * ensuite.
+ *
+ * La règle elle-même vit dans `rayons.js`, où elle se teste sans base ; il ne
+ * reste ici que la lecture de la ligne apprise.
+ */
+function rayonPour(name) {
+  const cle = cleDeNom(name);
+  const appris =
+    cle === ''
+      ? null
+      : stmt('SELECT rayon FROM shopping_rayons_appris WHERE nom_normalise = ?').get(cle);
+
+  return choisirRayon(name, appris?.rayon);
 }
 
 /**
@@ -56,10 +78,15 @@ export function getItem(id) {
   return toPublicItem(stmt('SELECT * FROM shopping_items WHERE id = ?').get(id));
 }
 
+/**
+ * Le rayon est posé ici, à l'insertion, et nulle part ailleurs : c'est ce qui
+ * fait arriver rangés les articles poussés par le frigo et par les menus, qui
+ * n'envoient qu'un nom.
+ */
 export function createItem({ name, quantity, userId }) {
   const result = stmt(
-    'INSERT INTO shopping_items (name, quantity, created_by) VALUES (?, ?, ?)',
-  ).run(name, quantity, userId);
+    'INSERT INTO shopping_items (name, quantity, created_by, rayon) VALUES (?, ?, ?, ?)',
+  ).run(name, quantity, userId, rayonPour(name));
   return getItem(result.lastInsertRowid);
 }
 
@@ -85,6 +112,10 @@ export function updateItem(id, fields) {
   if (fields.completed !== undefined) {
     assignments.push('completed = ?', `completed_at = ${fields.completed ? "datetime('now')" : 'NULL'}`);
     values.push(fields.completed ? 1 : 0);
+  }
+  if (fields.rayon !== undefined) {
+    assignments.push('rayon = ?');
+    values.push(fields.rayon);
   }
 
   values.push(id);
@@ -113,4 +144,28 @@ export function countItems() {
     )
     .get();
   return { pending: row.pending ?? 0, completed: row.completed ?? 0 };
+}
+
+/**
+ * Range les articles arrivés avant les rayons.
+ *
+ * Une migration `.sql` ne sait pas appeler `classer()` : la colonne naît donc
+ * vide, et c'est ce démarrage-ci qui la remplit. Idempotent par construction —
+ * la clause `rayon IS NULL` est la garde, il n'y a rien à retenir ailleurs :
+ * aux redémarrages suivants la requête ne ramène rien et la fonction s'arrête.
+ *
+ * Le classement passe par `rayonPour`, comme un ajout : si le foyer a déjà
+ * corrigé ce nom, le rattrapage respecte sa correction plutôt que le
+ * dictionnaire.
+ */
+export function classerArticlesSansRayon() {
+  const aRanger = stmt('SELECT id, name FROM shopping_items WHERE rayon IS NULL').all();
+  if (aRanger.length === 0) return;
+
+  const ranger = stmt('UPDATE shopping_items SET rayon = ? WHERE id = ?');
+  db.transaction(() => {
+    for (const { id, name } of aRanger) ranger.run(rayonPour(name), id);
+  })();
+
+  console.log(`[shopping] ${aRanger.length} article(s) rangés au rayon.`);
 }
