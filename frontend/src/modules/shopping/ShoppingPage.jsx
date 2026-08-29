@@ -4,11 +4,13 @@ import { CartIcon, ChevronDownIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { AddItemForm } from './components/AddItemForm.jsx';
 import { ItemRow } from './components/ItemRow.jsx';
+import { grouperParRayon } from './rayons.js';
 import { useShoppingList } from './useShoppingList.js';
 
 export function ShoppingPage() {
   const {
     items,
+    rayons,
     counts,
     status,
     error,
@@ -27,6 +29,9 @@ export function ShoppingPage() {
 
   const pending = items.filter((item) => !item.completed);
   const completed = items.filter((item) => item.completed);
+  // Recalculé à chaque rendu, jamais mémorisé : une trentaine d'articles et une
+  // passe de Map, contre un tableau de dépendances de plus à tenir juste.
+  const sections = grouperParRayon(pending, rayons);
 
   const rowProps = {
     onToggle: toggleItem,
@@ -69,11 +74,25 @@ export function ShoppingPage() {
               </p>
             </div>
           ) : (
-            <ul className="space-y-2">
-              {pending.map((item) => (
-                <ItemRow key={item.id} item={item} {...rowProps} />
+            <>
+              {sections.map((section) => (
+                <section key={section.cle ?? 'tous'} className="mb-5">
+                  {section.libelle && (
+                    // `top-14` : sous l'en-tête de l'application, qui fait cette
+                    // hauteur. `-mx-4` annule la marge du contenu, pour que le
+                    // titre collant occupe toute la largeur.
+                    <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-1.5 text-sm font-semibold text-sand-600 backdrop-blur">
+                      {section.libelle}
+                    </h2>
+                  )}
+                  <ul className="mt-1 space-y-2">
+                    {section.articles.map((item) => (
+                      <ItemRow key={item.id} item={item} {...rowProps} />
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </>
           )}
 
           {completed.length > 0 && (

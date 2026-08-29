@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useCollection } from '../../lib/useCollection.js';
 import { shoppingApi } from './api.js';
@@ -13,8 +13,17 @@ import { shoppingApi } from './api.js';
  * décompte suive le geste.
  */
 export function useShoppingList() {
+  /*
+   * Les rayons arrivent avec les articles, mais ne passent volontairement pas
+   * par `extra` : `toggleItem` et `removeItem` reconstruisent `extra` de zéro
+   * pour ajuster les compteurs, et les effaceraient au premier tap sur une
+   * case, sans erreur ni trace. `extra`, ici, c'est exactement les compteurs.
+   */
+  const [rayons, setRayons] = useState([]);
+
   const charger = useCallback(async () => {
     const data = await shoppingApi.list();
+    setRayons(data.rayons ?? []);
     return { elements: data.items, extra: data.counts };
   }, []);
 
@@ -110,6 +119,7 @@ export function useShoppingList() {
 
   return {
     items,
+    rayons,
     counts: counts ?? { pending: 0, completed: 0 },
     status,
     error,
