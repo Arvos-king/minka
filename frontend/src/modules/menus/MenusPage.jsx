@@ -6,6 +6,7 @@ import { aujourdhui } from '../../lib/dates.js';
 import { useServerModule } from '../../lib/serverModules.js';
 import { menusApi } from './api.js';
 import { DayRow } from './components/DayRow.jsx';
+import { ImportSheet } from './components/ImportSheet.jsx';
 import { MealSheet } from './components/MealSheet.jsx';
 import { RecipeForm } from './components/RecipeForm.jsx';
 import { ShoppingSheet } from './components/ShoppingSheet.jsx';
@@ -22,6 +23,7 @@ export function MenusPage() {
     revenirALaSemaineCourante,
     entries,
     repasDe,
+    rafraichir,
     recipes,
     status,
     error,
@@ -39,6 +41,7 @@ export function MenusPage() {
   const [saisie, setSaisie] = useState(null); // { date, creneau }
   const [recetteEnEdition, setRecetteEnEdition] = useState(null); // {} = création
   const [coursesOuvertes, setCoursesOuvertes] = useState(false);
+  const [importOuvert, setImportOuvert] = useState(false);
 
   const jours = joursDeLaSemaine(debut);
   const ceJour = aujourdhui();
@@ -81,6 +84,14 @@ export function MenusPage() {
         </button>
 
         <p className="flex-1 text-center font-semibold text-sand-900">{libelleSemaine(debut)}</p>
+
+        <button
+          type="button"
+          onClick={() => setImportOuvert(true)}
+          className="min-h-11 shrink-0 px-2 text-sm font-medium text-accent"
+        >
+          Importer
+        </button>
 
         <button
           type="button"
@@ -181,6 +192,14 @@ export function MenusPage() {
 
       {coursesOuvertes && (
         <ShoppingSheet from={debut} to={fin} onClose={() => setCoursesOuvertes(false)} />
+      )}
+
+      {importOuvert && (
+        <ImportSheet
+          debut={debut}
+          onImporte={rafraichir}
+          onClose={() => setImportOuvert(false)}
+        />
       )}
     </div>
   );

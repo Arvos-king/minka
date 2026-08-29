@@ -10,12 +10,14 @@ import {
   getRecipe,
   listPlan,
   listRecipes,
+  importerSemaine,
   listShoppingIngredients,
   setEntry,
   updateRecipe,
 } from './service.js';
 import {
   createRecipeSchema,
+  importSchema,
   planParamsSchema,
   planQuerySchema,
   recipeParamsSchema,
@@ -106,4 +108,15 @@ router.delete('/plan/:date/:slot', validate({ params: planParamsSchema }), (req,
  */
 router.get('/ingredients', validate({ query: planQuerySchema }), (req, res) => {
   res.json({ ingredients: listShoppingIngredients(req.valid.query) });
+});
+
+/**
+ * Pose une semaine entière depuis une proposition rédigée ailleurs.
+ *
+ * Une seule requête, une seule transaction : sept allers-retours pour sept
+ * jours laisseraient un planning à moitié rempli si la connexion lâchait au
+ * milieu.
+ */
+router.post('/import', validate({ body: importSchema }), (req, res) => {
+  res.json({ bilan: importerSemaine(req.valid.body.entries, req.user.id) });
 });

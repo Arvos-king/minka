@@ -15,6 +15,9 @@ export const menusApi = {
   updateRecipe: (id, fields) => api.patch(`/menus/recipes/${id}`, fields),
   removeRecipe: (id) => api.delete(`/menus/recipes/${id}`),
 
+  /** Pose une semaine entière d'un coup, en une transaction côté serveur. */
+  importer: (entries) => api.post('/menus/import', { entries }),
+
   /** Ingrédients de la semaine, regroupés par nom. */
   ingredients: (from, to) => api.get(`/menus/ingredients${periode(from, to)}`),
 

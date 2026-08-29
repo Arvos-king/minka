@@ -89,3 +89,32 @@ export const planQuerySchema = z.object({
   from: isoDate,
   to: isoDate,
 });
+
+/**
+ * Une semaine importée d'un coup.
+ *
+ * `title` sert aussi bien de nom de recette que de texte libre : c'est le
+ * service qui tranche, selon la présence d'ingrédients et le répertoire
+ * existant.
+ */
+export const importSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        onDate: isoDate,
+        slot,
+        title: z.string().trim().min(1).max(120, 'Cet intitulé est trop long.'),
+        ingredients: z
+          .array(
+            z.object({
+              name: z.string().trim().min(1).max(120),
+              quantity: z.string().trim().max(60).nullable().default(null),
+            }),
+          )
+          .max(60)
+          .default([]),
+      }),
+    )
+    .min(1, 'Aucun repas à importer.')
+    .max(14, 'Une semaine compte au plus quatorze repas.'),
+});

@@ -252,6 +252,41 @@ juxtaposées : « Crème (20 cl + un filet) ». Elles ne sont pas additionnées 
 c'est la conséquence assumée du texte libre, et de toute façon la somme de
 « 2 gousses » et « un peu » n'existe pas.
 
+**Importer une semaine**, enfin : le bouton « Importer » de l'en-tête accepte un
+menu écrit en texte, l'analyse à la frappe et montre **ce qui sera posé**, jour
+par jour, avant d'appliquer. Le format reste lisible tel quel — c'est d'abord un
+menu qu'on lit, accessoirement un texte qu'une machine analyse :
+
+```
+Lundi
+Midi : Restes
+Soir : Gratin de courgettes
+
+Mardi
+Soir : Chili sin carne
+  - Haricots rouges : 400 g
+  - Tomates concassées : 800 g
+  - Cumin
+```
+
+Les jours s'écrivent en toutes lettres ou abrégés, avec ou sans quantième
+(`Lundi`, `lun.`, `Lundi 31 août`) ; les créneaux acceptent `Midi`/`Déjeuner` et
+`Soir`/`Dîner` ; la décoration Markdown d'une réponse copiée est ignorée.
+
+Le sort de chaque plat suit une seule règle :
+
+- **des ingrédients listés → une recette**, créée ou mise à jour. C'est ce qui
+  alimente ensuite la liste de courses ;
+- **pas d'ingrédients, mais une recette du même nom existe → elle est
+  réutilisée**, ce qui permet d'écrire « Gratin de courgettes » sans recopier sa
+  liste chaque semaine ;
+- **pas d'ingrédients, aucune recette connue → un texte libre**, comme
+  « restes » ou « chez mes parents ».
+
+L'import se fait en une requête et une transaction : sept allers-retours pour
+sept jours laisseraient un planning à moitié rempli si la connexion lâchait au
+milieu.
+
 | Route | Effet |
 | --- | --- |
 | `GET /api/menus/plan?from=&to=` | Repas prévus sur la période |
@@ -263,6 +298,7 @@ c'est la conséquence assumée du texte libre, et de toute façon la somme de
 | `PATCH /api/menus/recipes/:id` | Modification — `ingredients` remplace la liste entière |
 | `DELETE /api/menus/recipes/:id` | Suppression, renvoie le nombre de repas retirés |
 | `GET /api/menus/ingredients?from=&to=` | Ingrédients de la période, regroupés par nom |
+| `POST /api/menus/import` | Pose une semaine entière, en une transaction |
 
 `PUT` et non `POST` sur une case : c'est une ressource adressable dont on fixe
 le contenu, et poser deux fois le même repas au même endroit doit donner le même
@@ -857,6 +893,8 @@ charger créerait un cycle d'imports.
       trois secondes.
 - [x] **Module Entretien** : planning de la maison par pièce, replanifié depuis
       le jour du geste, et moteur de récurrence remonté au socle.
+- [x] **Import d'une semaine de menus** écrite en texte, avec aperçu avant
+      application et création des recettes au passage.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :

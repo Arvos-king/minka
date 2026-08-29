@@ -129,6 +129,8 @@ export function useMenus() {
 
     entries,
     repasDe,
+    /** Après un import, le planning entier a changé. */
+    rafraichir: () => refresh({ silent: true }),
     recipes,
     status,
     error,

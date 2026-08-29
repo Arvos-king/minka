@@ -214,3 +214,60 @@ export function listShoppingIngredients({ from, to }) {
 
   return [...parNom.values()];
 }
+
+// --- Import d'une semaine ----------------------------------------------------
+
+/** Retrouve une recette par son titre, insensiblement à la casse. */
+function trouverRecetteParTitre(title) {
+  return toPublicRecipe(
+    stmt('SELECT * FROM recipes WHERE title = ? COLLATE NOCASE').get(title),
+  );
+}
+
+/**
+ * Pose une semaine entière d'un coup, depuis une proposition rédigée ailleurs.
+ *
+ * La règle qui décide du sort de chaque plat :
+ *
+ *   — des ingrédients listés → une recette, créée ou mise à jour. C'est ce qui
+ *     alimente ensuite la liste de courses, sans quoi l'import ne servirait
+ *     qu'à écrire sept intitulés ;
+ *   — pas d'ingrédients, mais une recette du même nom existe → on la
+ *     réutilise, ce qui permet d'écrire « Gratin de courgettes » sans recopier
+ *     sa liste chaque semaine ;
+ *   — pas d'ingrédients, aucune recette connue → un texte libre, comme
+ *     « restes » ou « chez mes parents ».
+ *
+ * Le tout dans une transaction : une semaine à moitié posée serait pire qu'une
+ * semaine vide, puisqu'on ne saurait pas ce qui manque.
+ */
+export function importerSemaine(entries, userId) {
+  const bilan = { posees: 0, recettesCreees: [], recettesMisesAJour: [], texteLibre: [] };
+
+  const appliquer = db.transaction(() => {
+    for (const { onDate, slot, title, ingredients } of entries) {
+      const existante = trouverRecetteParTitre(title);
+      let recipeId = existante?.id ?? null;
+      let freeText = null;
+
+      if (ingredients.length > 0) {
+        if (existante) {
+          remplacerIngredients(existante.id, ingredients);
+          bilan.recettesMisesAJour.push(existante.title);
+        } else {
+          recipeId = createRecipe({ title, ingredients }, userId).id;
+          bilan.recettesCreees.push(title);
+        }
+      } else if (!existante) {
+        freeText = title;
+        bilan.texteLibre.push(title);
+      }
+
+      setEntry({ onDate, slot, recipeId: freeText === null ? recipeId : null, freeText });
+      bilan.posees += 1;
+    }
+  });
+
+  appliquer();
+  return bilan;
+}
