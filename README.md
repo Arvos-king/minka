@@ -62,6 +62,21 @@ main, en marchant dans les rayons :
 - toucher une ligne coche l'article — la zone tactile occupe toute la largeur ;
 - les commandes `−` / `+` ajustent la quantité ; à 1, le `−` devient une
   corbeille, ce qui évite un bouton de plus sur la ligne ;
+- les articles à acheter sont **regroupés par rayon**, dans l'ordre du parcours
+  en magasin ; les rayons vides ne s'affichent pas, et l'ordre d'ajout est
+  conservé à l'intérieur d'un rayon ;
+- le classement se fait **côté serveur, à l'ajout**, d'après un dictionnaire
+  d'environ quatre cents produits courants livré avec le code
+  (`modules/shopping/rayons.js`) : les articles poussés par le frigo et par les
+  menus arrivent donc rangés eux aussi, sans rien savoir des rayons ;
+- un **appui long** sur une ligne — ou un clic droit — ouvre « Ranger dans… ».
+  La correction **est retenue** sous une forme normalisée du nom (« Lait de
+  coco », « 2 laits de coco » et « lait de coco (400 ml) » n'en font qu'une), et
+  elle range du même coup les autres articles du même produit déjà en liste ;
+- les rayons sont **figés dans le code**, une douzaine : pas de table, pas
+  d'écran de gestion. C'est le pari inverse des catégories de budget, et pour
+  une raison précise — ajouter « vétérinaire » à un budget est propre à chaque
+  foyer, les rayons d'un supermarché ne le sont pas ;
 - les articles cochés basculent dans une section **Déjà pris** repliable, avec
   un bouton de purge à confirmation en deux temps ;
 - toutes les actions sont **optimistes** : l'affichage réagit immédiatement et
@@ -72,9 +87,9 @@ main, en marchant dans les rayons :
 
 | Route | Effet |
 | --- | --- |
-| `GET /api/shopping/items?status=pending\|completed\|all` | Liste et compteurs |
-| `POST /api/shopping/items` | Ajout (`name`, `quantity` facultatif) |
-| `PATCH /api/shopping/items/:id` | Modification (`name`, `quantity`, `completed`) |
+| `GET /api/shopping/items?status=pending\|completed\|all` | Liste, compteurs et rayons |
+| `POST /api/shopping/items` | Ajout (`name`, `quantity` facultatif) — le rayon est déduit |
+| `PATCH /api/shopping/items/:id` | Modification (`name`, `quantity`, `completed`, `rayon`) |
 | `DELETE /api/shopping/items/completed` | Purge des articles cochés |
 | `DELETE /api/shopping/items/:id` | Suppression d'un article |
 
@@ -689,12 +704,17 @@ Côté API : `lib/recurrence.js`, l'arithmétique des rythmes récurrents —
 hebdomadaire à annuel, trimestriel et semestriel compris — avec sa protection
 contre la dérive du 31. Elle appartient au socle parce que deux modules s'en
 servent : les tâches, qui replanifient depuis l'échéance, et l'entretien, qui
-repart du jour du geste.
+repart du jour du geste. Également `modules/shopping/rayons.js`, le classement
+d'un nom d'article en rayon : la normalisation qui réunit « Œufs », « oeufs » et
+« 2 œufs », les pièges du français que le dictionnaire doit tenir — le lait de
+coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson — et
+l'invariant qui vérifie que chacun de ses quatre cents termes se range là où il
+est déclaré.
 
 Côté interface : `lib/dates.js`, `lib/collection.js` — les opérations de liste
 et le suivi des quantités sur lesquels repose `useCollection` — et la logique
 pure de chaque module : échéances du frigo, agenda du calendrier, échéances des
-tâches.
+tâches, regroupement de la liste de courses par rayon.
 
 Les fichiers testés sont volontairement séparés de tout accès à la base ou au
 DOM. C'est ce qui permet à `node --test` de les charger tels quels : un test qui
@@ -899,14 +919,17 @@ charger créerait un cycle d'imports.
       le jour du geste, et moteur de récurrence remonté au socle.
 - [x] **Import d'une semaine de menus** écrite en texte, avec aperçu avant
       application et création des recettes au passage.
+- [x] **Rayons de la liste de courses** : classement automatique à l'ajout
+      d'après un dictionnaire livré avec le code, et correction par appui long
+      qui s'apprend pour les fois suivantes.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
 empiler les modifications faites sans réseau et les rejouer au retour. Elle n'a
 pas été faite parce que sa difficulté n'est pas la file, mais le conflit quand
 vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
-courses, les évolutions naturelles seraient les rayons, les articles récurrents,
-et le temps réel (SSE) à la place du rafraîchissement au retour sur
+courses, les rayons étant faits, les évolutions naturelles seraient les articles
+récurrents et le temps réel (SSE) à la place du rafraîchissement au retour sur
 l'application. Côté calendrier, les événements récurrents et un
 flux ICS en lecture seule, pour s'abonner depuis l'application native du
 téléphone. Une notification à l'approche d'une date de péremption ou d'un
