@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { aujourdhui } from '../../lib/dates.js';
 import { useServerModule } from '../../lib/serverModules.js';
-import { menusApi } from './api.js';
 import { DayRow } from './components/DayRow.jsx';
 import { ImportSheet } from './components/ImportSheet.jsx';
 import { MealSheet } from './components/MealSheet.jsx';
-import { RecipeForm } from './components/RecipeForm.jsx';
 import { ShoppingSheet } from './components/ShoppingSheet.jsx';
 import { MenusIcon } from './MenusIcon.jsx';
 import { joursDeLaSemaine, libelleSemaine } from './semaine.js';
@@ -23,23 +21,23 @@ export function MenusPage() {
     revenirALaSemaineCourante,
     entries,
     repasDe,
+    intituleDe,
     rafraichir,
     recipes,
+    recettesDisponibles,
     status,
     error,
     dismissError,
     definirRepas,
     viderRepas,
-    enregistrerRecette,
-    supprimerRecette,
+    creerEtPoser,
   } = useMenus();
 
-  // Le module courses est-il monté côté API ? Le lien entre les deux modules se
+  // Le module courses est-il monté côté API ? Le lien entre les modules se
   // limite à ce test et à un appel HTTP : aucun code partagé.
   const coursesDisponibles = useServerModule('shopping');
 
   const [saisie, setSaisie] = useState(null); // { date, creneau }
-  const [recetteEnEdition, setRecetteEnEdition] = useState(null); // {} = création
   const [coursesOuvertes, setCoursesOuvertes] = useState(false);
   const [importOuvert, setImportOuvert] = useState(false);
 
@@ -48,17 +46,26 @@ export function MenusPage() {
   const semaineCourante = ceJour >= debut && ceJour <= fin;
   const repasPrevus = entries.length;
 
-  /** Le sélecteur ne connaît pas les ingrédients : il faut la recette entière. */
-  async function ouvrirRecette(id) {
-    try {
-      const { recipe } = await menusApi.recipe(id);
-      setSaisie(null);
-      setRecetteEnEdition(recipe);
-    } catch {
-      // Recette disparue entre-temps : le sélecteur se rechargera au retour.
-      setSaisie(null);
-    }
-  }
+  /*
+   * Les recettes posées cette semaine, dans l'ordre des jours — c'est ce que
+   * le module recettes attend pour regrouper leurs ingrédients.
+   *
+   * La dépendance est la clé textuelle, pas `entries` : celui-ci change
+   * d'identité à chaque rafraîchissement, même quand rien n'a bougé, et le
+   * tableau part en dépendance d'un effet dans le panneau des courses — un
+   * simple retour sur l'application le relancerait.
+   */
+  const clePosees = entries
+    .filter((entry) => entry.recipeId)
+    .map((entry) => entry.recipeId)
+    .join(',');
+
+  const recettesDeLaSemaine = useMemo(
+    () => (clePosees === '' ? [] : clePosees.split(',').map(Number)),
+    [clePosees],
+  );
+
+  const envoiPossible = coursesDisponibles && recettesDisponibles;
 
   return (
     <div className="pb-4">
@@ -122,6 +129,7 @@ export function MenusPage() {
                   date={date}
                   estAujourdhui={date === ceJour}
                   repasDe={repasDe}
+                  intituleDe={intituleDe}
                   onOuvrir={(jour, creneau) => setSaisie({ date: jour, creneau })}
                 />
               </li>
@@ -130,20 +138,22 @@ export function MenusPage() {
 
           {/* La boucle du module : ce qui est prévu devient ce qu'il faut
               acheter. Le bouton se place après la semaine, dans l'ordre où l'on
-              s'en sert : on planifie, puis on envoie. */}
-          {coursesDisponibles && (
+              s'en sert : on planifie, puis on envoie. Il demande les deux
+              modules — celui qui tient les ingrédients, et celui qui les
+              reçoit. */}
+          {envoiPossible && (
             <div className="mt-6">
               <Button
                 type="button"
                 onClick={() => setCoursesOuvertes(true)}
-                disabled={repasPrevus === 0}
+                disabled={recettesDeLaSemaine.length === 0}
                 className="w-full"
               >
                 Envoyer les ingrédients dans les courses
               </Button>
-              {repasPrevus === 0 && (
+              {recettesDeLaSemaine.length === 0 && (
                 <p className="mt-2 text-center text-sm text-sand-500">
-                  Rien de prévu cette semaine pour l'instant.
+                  Aucune recette posée cette semaine pour l'instant.
                 </p>
               )}
             </div>
@@ -166,37 +176,30 @@ export function MenusPage() {
           date={saisie.date}
           creneau={saisie.creneau}
           repas={repasDe(saisie.date, saisie.creneau)}
+          intitule={intituleDe(repasDe(saisie.date, saisie.creneau))}
           recipes={recipes}
+          recettesDisponibles={recettesDisponibles}
           onChoisir={(contenu) => definirRepas(saisie.date, saisie.creneau, contenu)}
+          onCreerRecette={(title) => creerEtPoser(saisie.date, saisie.creneau, title)}
           onVider={() => {
             const repas = repasDe(saisie.date, saisie.creneau);
             if (repas) viderRepas(repas);
           }}
-          onNouvelleRecette={() => {
-            setSaisie(null);
-            setRecetteEnEdition({});
-          }}
-          onModifierRecette={ouvrirRecette}
           onClose={() => setSaisie(null)}
         />
       )}
 
-      {recetteEnEdition && (
-        <RecipeForm
-          recette={recetteEnEdition.id ? recetteEnEdition : null}
-          onSave={enregistrerRecette}
-          onDelete={supprimerRecette}
-          onClose={() => setRecetteEnEdition(null)}
-        />
-      )}
-
       {coursesOuvertes && (
-        <ShoppingSheet from={debut} to={fin} onClose={() => setCoursesOuvertes(false)} />
+        <ShoppingSheet
+          recipeIds={recettesDeLaSemaine}
+          onClose={() => setCoursesOuvertes(false)}
+        />
       )}
 
       {importOuvert && (
         <ImportSheet
           debut={debut}
+          recettesDisponibles={recettesDisponibles}
           onImporte={rafraichir}
           onClose={() => setImportOuvert(false)}
         />

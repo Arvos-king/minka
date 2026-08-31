@@ -2,23 +2,33 @@ import { useEffect, useRef, useState } from 'react';
 
 import { TrashIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { decouperEtapes, recoudreEtapes } from '../etapes.js';
+import { normaliser } from '../recherche.js';
 
 /** Une ligne vide de plus, pour enchaîner la saisie sans y penser. */
 const ligneVide = () => ({ cle: crypto.randomUUID(), name: '', quantity: '' });
 
 /**
- * Création ou modification d'une recette, avec ses ingrédients.
+ * Création ou modification d'une recette : ses ingrédients, sa préparation.
  *
  * Les quantités sont saisies en texte libre : « 200 g », « 2 gousses », « un
  * filet ». Imposer un nombre et une unité alourdirait la saisie sans rien
  * apporter — personne n'additionne deux cuillères à soupe.
+ *
+ * La préparation, elle, se tape d'un bloc — **une ligne, une étape** — et
+ * ressort en étapes numérotées, cochables pendant la cuisine. Voir
+ * `etapes.js` : un champ par étape aurait demandé un mécanisme de
+ * réordonnancement pour un geste qui n'a lieu qu'à la rédaction.
  */
-export function RecipeForm({ recette, onSave, onDelete, onClose }) {
+export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, onClose }) {
   const enEdition = Boolean(recette?.id);
 
   const [title, setTitle] = useState(recette?.title ?? '');
   const [servings, setServings] = useState(recette?.servings ? String(recette.servings) : '');
   const [notes, setNotes] = useState(recette?.notes ?? '');
+  const [preparation, setPreparation] = useState(() => recoudreEtapes(recette?.steps));
+  const [tags, setTags] = useState(() => recette?.tags ?? []);
+  const [saisieTag, setSaisieTag] = useState('');
   const [ingredients, setIngredients] = useState(() =>
     recette?.ingredients?.length
       ? recette.ingredients.map((i) => ({
@@ -34,6 +44,17 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
   const [confirmationSuppression, setConfirmationSuppression] = useState(false);
   const champTitre = useRef(null);
 
+  /*
+   * Une recette d'avant les étapes : sa préparation est dans les remarques,
+   * d'un seul bloc. La proposition ne vaut que là — pas sur une recette qu'on
+   * est en train d'écrire, où les remarques sont vraiment des remarques.
+   */
+  const aConvertir =
+    enEdition &&
+    recette.steps.length === 0 &&
+    notes.trim() !== '' &&
+    preparation.trim() === '';
+
   useEffect(() => {
     champTitre.current?.focus();
   }, []);
@@ -45,6 +66,42 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
     window.addEventListener('keydown', surTouche);
     return () => window.removeEventListener('keydown', surTouche);
   }, [onClose]);
+
+  /**
+   * Ajoute une étiquette, en écartant les doublons à la casse et aux accents
+   * près. Le serveur aligne ensuite l'orthographe sur celle déjà en usage —
+   * ici, il s'agit seulement de ne pas la proposer deux fois à l'écran.
+   */
+  function ajouterTag(valeur) {
+    const propre = valeur.trim().replace(/\s+/g, ' ');
+    if (propre === '') return;
+
+    setTags((precedents) =>
+      precedents.some((tag) => normaliser(tag) === normaliser(propre))
+        ? precedents
+        : [...precedents, propre],
+    );
+    setSaisieTag('');
+  }
+
+  function surToucheTag(evenement) {
+    // La virgule autant que la touche Entrée : on écrit « végétarien, rapide »
+    // sans y penser. Entrée est interceptée pour ne pas soumettre le
+    // formulaire depuis un champ qui n'en est pas le dernier mot.
+    if (evenement.key === 'Enter' || evenement.key === ',') {
+      evenement.preventDefault();
+      ajouterTag(saisieTag);
+    } else if (evenement.key === 'Backspace' && saisieTag === '') {
+      setTags((precedents) => precedents.slice(0, -1));
+    }
+  }
+
+  const cleSaisie = normaliser(saisieTag);
+  const suggestions = etiquettesConnues.filter(
+    (connue) =>
+      !tags.some((tag) => normaliser(tag) === normaliser(connue)) &&
+      (cleSaisie === '' || normaliser(connue).includes(cleSaisie)),
+  );
 
   function modifierLigne(cle, champ, valeur) {
     setIngredients((precedents) =>
@@ -68,6 +125,10 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
         ingredients: ingredients
           .filter((ligne) => ligne.name.trim() !== '')
           .map((ligne) => ({ name: ligne.name.trim(), quantity: ligne.quantity.trim() || null })),
+        steps: decouperEtapes(preparation),
+        // Ce qui reste dans le champ compte : une étiquette tapée sans avoir
+        // appuyé sur Entrée serait sinon perdue sans un mot.
+        tags: saisieTag.trim() === '' ? tags : [...tags, saisieTag.trim()],
       });
       onClose();
     } catch (apiError) {
@@ -120,6 +181,63 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
             />
           </label>
 
+          {/* Étiquettes : du texte libre, sans nomenclature ni écran de
+              gestion. Les suggestions viennent de ce que le foyer emploie
+              déjà — c'est ce qui garde le vocabulaire cohérent sans jamais
+              l'imposer. */}
+          <div>
+            <label htmlFor="recette-etiquette" className="text-sm font-medium text-sand-700">
+              Étiquettes
+              <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
+            </label>
+
+            {tags.length > 0 && (
+              <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <li key={tag}>
+                    <button
+                      type="button"
+                      onClick={() => setTags((precedents) => precedents.filter((t) => t !== tag))}
+                      aria-label={`Retirer l'étiquette ${tag}`}
+                      className="flex min-h-9 items-center gap-1.5 rounded-full bg-brand-50 pr-2.5 pl-3 text-sm text-accent ring-1 ring-brand-300"
+                    >
+                      {tag}
+                      <span aria-hidden="true" className="text-base leading-none">
+                        ×
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <input
+              id="recette-etiquette"
+              value={saisieTag}
+              onChange={(e) => setSaisieTag(e.target.value)}
+              onKeyDown={surToucheTag}
+              placeholder="végétarien, rapide…"
+              maxLength={30}
+              className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            />
+
+            {suggestions.length > 0 && (
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {suggestions.map((connue) => (
+                  <li key={connue}>
+                    <button
+                      type="button"
+                      onClick={() => ajouterTag(connue)}
+                      className="min-h-9 rounded-full bg-surface px-3 text-sm text-sand-600 ring-1 ring-sand-300 active:bg-sand-100"
+                    >
+                      + {connue}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           <div>
             <p className="mb-2 text-sm font-medium text-sand-700">Ingrédients</p>
             <ul className="space-y-2">
@@ -171,15 +289,62 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
             </Button>
           </div>
 
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Préparation (facultative)"
-            aria-label="Préparation"
-            rows={4}
-            maxLength={4000}
-            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
-          />
+          <div>
+            <label htmlFor="recette-preparation" className="text-sm font-medium text-sand-700">
+              Préparation
+              <span className="ml-1 font-normal text-sand-500">— une ligne, une étape</span>
+            </label>
+
+            {/* Le champ « préparation » d'avant les étapes : un tap le recopie
+                ici, et l'on relit avant d'enregistrer. Découper le texte à la
+                migration aurait fait d'un paragraphe de trois phrases trois
+                étapes, et d'une consigne coupée en deux lignes deux étapes. */}
+            {aConvertir && (
+              <div className="mt-1.5 rounded-xl bg-amber-100 px-4 py-3">
+                <p className="text-sm text-amber-900">
+                  Cette recette a une préparation écrite d'un bloc. Elle peut devenir des étapes à
+                  cocher pendant la cuisine.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setPreparation(notes);
+                    setNotes('');
+                  }}
+                  className="mt-2"
+                >
+                  La découper en étapes
+                </Button>
+              </div>
+            )}
+
+            <textarea
+              id="recette-preparation"
+              value={preparation}
+              onChange={(e) => setPreparation(e.target.value)}
+              placeholder={"Préchauffer le four à 180 °C\nÉmincer les oignons\nFaire revenir 5 min"}
+              rows={6}
+              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="recette-remarques" className="text-sm font-medium text-sand-700">
+              Remarques
+              <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
+            </label>
+            <textarea
+              id="recette-remarques"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Se congèle très bien. Recette de ma mère."
+              rows={3}
+              maxLength={4000}
+              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
 
           {erreur && (
             <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
@@ -199,11 +364,12 @@ export function RecipeForm({ recette, onSave, onDelete, onClose }) {
           {enEdition &&
             (confirmationSuppression ? (
               <div className="rounded-xl bg-red-50 px-4 py-3">
-                {/* Le nombre de repas concernés est annoncé : ils partiront
-                    avec la recette. */}
+                {/* Les repas déjà prévus ne partent plus avec elle : ils
+                    gardent son intitulé et perdent seulement leur fiche.
+                    Ranger le répertoire ne doit pas trouer la semaine. */}
                 <p className="text-sm text-danger">
-                  Supprimer «&nbsp;{recette.title}&nbsp;»&nbsp;? Elle disparaîtra aussi des repas
-                  déjà prévus.
+                  Supprimer «&nbsp;{recette.title}&nbsp;»&nbsp;? Les repas déjà prévus la garderont
+                  comme intitulé, sans sa fiche.
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Button

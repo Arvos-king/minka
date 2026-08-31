@@ -8,7 +8,7 @@ import { CRENEAUX, libelleJour } from '../semaine.js';
  * couperaient « Gratin de courgettes » en deux, et la cible tactile tomberait
  * sous ce qu'on vise confortablement au pouce.
  */
-export function DayRow({ date, estAujourdhui, repasDe, onOuvrir }) {
+export function DayRow({ date, estAujourdhui, repasDe, intituleDe, onOuvrir }) {
   return (
     <section
       className={[
@@ -31,7 +31,7 @@ export function DayRow({ date, estAujourdhui, repasDe, onOuvrir }) {
 
       {CRENEAUX.map((creneau, index) => {
         const repas = repasDe(date, creneau.valeur);
-        const intitule = repas?.recipeTitle ?? repas?.freeText ?? null;
+        const intitule = intituleDe(repas);
 
         return (
           <button

@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { CheckIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
 import { menusApi } from '../api.js';
-import { libelleCourse } from '../courses.js';
 
 /**
  * Envoi des ingrédients de la semaine dans la liste de courses.
@@ -12,8 +11,14 @@ import { libelleCourse } from '../courses.js';
  * est montré **tel qu'il arrivera** dans la liste, décoché ligne à ligne — on a
  * toujours déjà l'huile d'olive, et découvrir après coup vingt articles à
  * retirer découragerait de s'en servir une seconde fois.
+ *
+ * Trois modules sont en jeu et aucun ne connaît le code des deux autres : le
+ * planning sait quelles recettes sont posées, le module recettes sait
+ * regrouper leurs ingrédients et en écrire le libellé, celui des courses sait
+ * les ranger par rayon. Chacun reçoit ce qu'il lui faut par HTTP, et rien de
+ * plus.
  */
-export function ShoppingSheet({ from, to, onClose }) {
+export function ShoppingSheet({ recipeIds, onClose }) {
   const [ingredients, setIngredients] = useState(null);
   const [ecartes, setEcartes] = useState(() => new Set());
   const [envoi, setEnvoi] = useState(false);
@@ -24,7 +29,7 @@ export function ShoppingSheet({ from, to, onClose }) {
     let annule = false;
 
     menusApi
-      .ingredients(from, to)
+      .ingredientsDeRecettes(recipeIds)
       .then((data) => {
         if (!annule) setIngredients(data.ingredients);
       })
@@ -35,7 +40,7 @@ export function ShoppingSheet({ from, to, onClose }) {
     return () => {
       annule = true;
     };
-  }, [from, to]);
+  }, [recipeIds]);
 
   useEffect(() => {
     const surTouche = (evenement) => {
@@ -66,7 +71,7 @@ export function ShoppingSheet({ from, to, onClose }) {
        * d'ajout, et vingt requêtes simultanées y arriveraient dans le désordre.
        */
       for (const ingredient of retenus) {
-        await menusApi.ajouterAuxCourses(libelleCourse(ingredient));
+        await menusApi.ajouterAuxCourses(ingredient.label);
       }
       setResultat(retenus.length);
     } catch (apiError) {
@@ -150,7 +155,7 @@ export function ShoppingSheet({ from, to, onClose }) {
                                 retenu ? 'text-sand-900' : 'text-sand-400 line-through',
                               ].join(' ')}
                             >
-                              {libelleCourse(ingredient)}
+                              {ingredient.label}
                             </span>
                             <span className="block truncate text-xs text-sand-500">
                               {ingredient.recipes.join(', ')}
