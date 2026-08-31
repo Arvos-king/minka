@@ -21,8 +21,17 @@ Soir : Gratin de courgettes`;
  * posé**, jour par jour : un format libre ne vaut que si l'on voit ce qu'il a
  * compris avant de valider, sans quoi on découvrirait la semaine de travers
  * une fois appliquée.
+ *
+ * L'application se fait en **deux requêtes, deux transactions** : les plats
+ * partent d'abord au module recettes, qui les retrouve ou les crée et rend
+ * leurs identifiants ; le planning se pose ensuite, d'un bloc. L'ordre compte —
+ * si la première échoue, le planning n'a pas encore bougé, et l'on sait
+ * exactement où l'on en est.
+ *
+ * Sans le module recettes, la semaine entière se pose en texte libre : les
+ * ingrédients lus sont perdus, mais le menu, lui, est là.
  */
-export function ImportSheet({ debut, onImporte, onClose }) {
+export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) {
   const [texte, setTexte] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState(null);
@@ -43,11 +52,33 @@ export function ImportSheet({ debut, onImporte, onClose }) {
   async function appliquer() {
     setErreur(null);
     setEnvoi(true);
+
     try {
-      const data = await menusApi.importer(
-        repas.map(({ onDate, slot, title, ingredients }) => ({ onDate, slot, title, ingredients })),
+      // Sans module recettes, tout reste au titre lu : `recipeId` nul, et la
+      // case devient un texte libre.
+      let resolus = repas.map(({ title }) => ({ title, recipeId: null }));
+      let recettes = null;
+
+      if (recettesDisponibles) {
+        // Les plats reviennent dans l'ordre envoyé : c'est le contrat de la
+        // route, et c'est ce qui permet de les recoudre par position.
+        const reponse = await menusApi.resoudreRecettes(
+          repas.map(({ title, ingredients }) => ({ title, ingredients })),
+        );
+        resolus = reponse.plats;
+        recettes = reponse.bilan;
+      }
+
+      const { bilan: pose } = await menusApi.importer(
+        repas.map(({ onDate, slot }, rang) => ({
+          onDate,
+          slot,
+          recipeId: resolus[rang].recipeId,
+          title: resolus[rang].title,
+        })),
       );
-      setBilan(data.bilan);
+
+      setBilan({ ...pose, recettes });
       onImporte();
     } catch (apiError) {
       setErreur(apiError.details?.[0]?.message ?? apiError.message);
@@ -69,18 +100,22 @@ export function ImportSheet({ debut, onImporte, onClose }) {
 
         {bilan ? (
           <div className="py-6">
-            <p className="text-center font-medium text-sand-900">
-              {bilan.posees} repas posés
-            </p>
+            <p className="text-center font-medium text-sand-900">{bilan.posees} repas posés</p>
             <ul className="mx-auto mt-3 max-w-sm space-y-1 text-sm text-sand-500">
-              {bilan.recettesCreees.length > 0 && (
-                <li>{bilan.recettesCreees.length} recette(s) créée(s) : {bilan.recettesCreees.join(', ')}</li>
+              {bilan.recettes?.creees.length > 0 && (
+                <li>
+                  {bilan.recettes.creees.length} recette(s) créée(s) :{' '}
+                  {bilan.recettes.creees.join(', ')}
+                </li>
               )}
-              {bilan.recettesMisesAJour.length > 0 && (
-                <li>{bilan.recettesMisesAJour.length} recette(s) mise(s) à jour : {bilan.recettesMisesAJour.join(', ')}</li>
+              {bilan.recettes?.misesAJour.length > 0 && (
+                <li>
+                  {bilan.recettes.misesAJour.length} recette(s) mise(s) à jour :{' '}
+                  {bilan.recettes.misesAJour.join(', ')}
+                </li>
               )}
-              {bilan.texteLibre.length > 0 && (
-                <li>Posés en texte libre : {bilan.texteLibre.join(', ')}</li>
+              {bilan.recettes?.inconnues.length > 0 && (
+                <li>Posés en texte libre : {bilan.recettes.inconnues.join(', ')}</li>
               )}
             </ul>
             <Button type="button" onClick={onClose} className="mt-5 w-full">
@@ -90,8 +125,9 @@ export function ImportSheet({ debut, onImporte, onClose }) {
         ) : (
           <>
             <p className="mt-1 text-sm text-sand-500">
-              Colle la semaine proposée. Un plat dont les ingrédients sont listés devient une
-              recette&nbsp;; sinon, une recette du même nom est réutilisée si elle existe.
+              {recettesDisponibles
+                ? 'Colle la semaine proposée. Un plat dont les ingrédients sont listés devient une recette ; sinon, une recette du même nom est réutilisée si elle existe.'
+                : 'Colle la semaine proposée. Les plats seront posés tels quels, en texte : le module recettes ne répond pas.'}
             </p>
 
             <textarea

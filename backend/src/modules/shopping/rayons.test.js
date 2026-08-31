@@ -34,7 +34,7 @@ describe('cleDeNom', () => {
   });
 
   it('lit le libellé que produisent les menus', () => {
-    // Format réel de `libelleCourse` côté interface, pas un cas d'école.
+    // Format réel de `libelleCourse` (module recettes), pas un cas d'école.
     assert.equal(cleDeNom('Courgettes (200 g + 2)'), 'courgette');
     assert.equal(cleDeNom('Ail (2 gousses + un peu)'), 'ail');
   });

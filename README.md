@@ -49,8 +49,8 @@ sert aux tuiles du tableau de bord et aux onglets, deux listes des mêmes module
 dans deux ordres différents obligeant à réapprendre où regarder selon l'écran.
 Il décide aussi qui reste visible quand la barre déborde ; sans lui, c'est
 l'ordre alphabétique qui tranche, et le module le plus utilisé peut se retrouver
-masqué. Aujourd'hui : courses, tâches, menus, calendrier — le frigo se consulte
-depuis « Plus ».
+masqué. Aujourd'hui : courses, tâches, menus, calendrier — le frigo et les
+recettes se consultent depuis « Plus ».
 
 ### Liste de courses — `/courses`
 
@@ -247,25 +247,36 @@ rattachement.
 ### Menus — `/menus`
 
 Ce qu'on mange cette semaine, du lundi au dimanche, midi et soir. Le module
-ferme la boucle **frigo → menus → courses**.
+ferme la boucle **frigo → menus → courses**, en s'appuyant sur le répertoire du
+[module Recettes](#recettes--recettes).
 
 - une case porte **soit une recette, soit un texte libre** — « restes »,
   « resto », « chez mes parents ». La moitié des dîners d'une vraie semaine ne
   sont pas des recettes, et obliger à créer une fiche pour cela condamnerait le
   planning à rester vide ;
-- les recettes vivent dans un répertoire réutilisable, avec leurs ingrédients ;
-- les **quantités sont du texte libre** — « 200 g », « 2 gousses », « un filet ».
-  Normaliser les unités demanderait une table de conversions et une saisie plus
-  lourde, pour un bénéfice nul : personne n'additionne deux cuillères à soupe ;
+- **un seul champ** remplit une case, et trois façons de s'en servir : on tape
+  et la liste des recettes se filtre, on en touche une ; on pose le texte tel
+  quel ; ou l'on en fait une recette d'un tap — créée avec son seul intitulé,
+  parce que planifier la semaine n'est pas le moment de dresser une liste
+  d'ingrédients. Un champ et non deux, parce que la frontière entre chercher et
+  écrire ne se décide qu'après avoir tapé : on ne sait pas toujours en
+  commençant si « poulet basquaise » est déjà au répertoire ;
 - un bouton envoie les ingrédients de la semaine dans la liste de courses, après
   les avoir montrés **tels qu'ils y arriveront** — on décoche l'huile d'olive
   qu'on a déjà avant d'envoyer, pas après ;
-- supprimer une recette la retire des repas prévus, ce que l'interface annonce.
+- supprimer une recette **ne vide plus les repas prévus** : ils gardent son
+  intitulé et perdent seulement leur fiche. Ranger le répertoire ne doit pas
+  trouer la semaine en cours.
 
-Un ingrédient présent dans deux recettes n'est cité qu'une fois, ses quantités
-juxtaposées : « Crème (20 cl + un filet) ». Elles ne sont pas additionnées —
-c'est la conséquence assumée du texte libre, et de toute façon la somme de
-« 2 gousses » et « un peu » n'existe pas.
+**Une case porte l'intitulé recopié** au moment de la pose, et un `recipe_id`
+qui n'est qu'un pointeur souple — sans clé étrangère, les deux tables
+appartenant à deux modules. C'est ce qui rend l'extraction viable : le planning
+s'affiche entier sans jamais interroger le module recettes, et survit à son
+retrait. Quand le répertoire répond, c'est **son** titre qui l'emporte —
+renommer une recette se voit dans les semaines déjà posées.
+
+Sans le module recettes, le planning reste un agenda de repas écrits à la main.
+C'est déjà la moitié d'une vraie semaine.
 
 **Importer une semaine**, enfin : le bouton « Importer » de l'en-tête accepte un
 menu écrit en texte, l'analyse à la frappe et montre **ce qui sera posé**, jour
@@ -298,9 +309,16 @@ Le sort de chaque plat suit une seule règle :
 - **pas d'ingrédients, aucune recette connue → un texte libre**, comme
   « restes » ou « chez mes parents ».
 
-L'import se fait en une requête et une transaction : sept allers-retours pour
-sept jours laisseraient un planning à moitié rempli si la connexion lâchait au
-milieu.
+L'import se fait en **deux requêtes, deux transactions**. Les plats partent
+d'abord au module recettes, qui les retrouve ou les crée et rend leurs
+identifiants ; le planning se pose ensuite, d'un bloc. L'ordre compte : si la
+première échoue, le planning n'a pas encore bougé, et l'on sait exactement où
+l'on en est. Sept allers-retours pour sept jours, eux, laisseraient un planning
+à moitié rempli si la connexion lâchait au milieu.
+
+Sans le module recettes, la semaine entière se pose en texte libre : les
+ingrédients lus sont perdus, mais le menu est là — et le panneau le dit avant
+d'appliquer.
 
 Le pré-prompt du projet Claude qui rédige ces semaines vit dans
 [`docs/prompt-menus.md`](docs/prompt-menus.md) : il décrit ce format à la
@@ -309,23 +327,183 @@ lettre, et c'est là qu'il faut répercuter toute évolution de l'analyseur.
 | Route | Effet |
 | --- | --- |
 | `GET /api/menus/plan?from=&to=` | Repas prévus sur la période |
-| `PUT /api/menus/plan/:date/:slot` | Pose un repas (`recipeId` **ou** `freeText`) |
+| `PUT /api/menus/plan/:date/:slot` | Pose un repas (`title`, plus `recipeId` facultatif) |
 | `DELETE /api/menus/plan/:date/:slot` | Vide la case |
-| `GET /api/menus/recipes` | Le répertoire, sans les ingrédients |
-| `GET /api/menus/recipes/:id` | Une recette et ses ingrédients |
-| `POST /api/menus/recipes` | Création |
-| `PATCH /api/menus/recipes/:id` | Modification — `ingredients` remplace la liste entière |
-| `DELETE /api/menus/recipes/:id` | Suppression, renvoie le nombre de repas retirés |
-| `GET /api/menus/ingredients?from=&to=` | Ingrédients de la période, regroupés par nom |
 | `POST /api/menus/import` | Pose une semaine entière, en une transaction |
 
 `PUT` et non `POST` sur une case : c'est une ressource adressable dont on fixe
 le contenu, et poser deux fois le même repas au même endroit doit donner le même
 résultat.
 
-**Passerelle vers la liste de courses** : le bouton d'envoi n'apparaît que si le
-module courses répond côté API, et le lien se limite à un appel HTTP — même
-modèle que le frigo, voir [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
+L'existence de la recette **n'est pas vérifiée** à la pose, et ne peut pas
+l'être : ses tables appartiennent à un autre module. Un identifiant devenu caduc
+ne casse rien, il fait retomber la case sur son intitulé.
+
+**Passerelles** : le bouton d'envoi aux courses demande les deux modules — celui
+qui tient les ingrédients, celui qui les reçoit —, et le sélecteur de recettes
+demande le premier. Chaque lien se limite à un appel HTTP, même modèle que le
+frigo, voir [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
+
+### Recettes — `/recettes`
+
+Le répertoire de ce qu'on sait cuisiner. Il vivait dans le module menus ; il en
+est sorti parce qu'une recette a une vie propre — on la lit, on la corrige, on
+la cuisine — que le planning de la semaine n'avait pas à porter.
+
+- la liste dit ce qu'il faut pour choisir : le titre, les parts, le nombre
+  d'ingrédients ;
+- la **recherche fouille les titres et les ingrédients**. « Qu'est-ce que je
+  fais avec des courgettes ? » est la question qu'on pose à un répertoire, et
+  elle n'a de réponse que si l'on cherche dedans. Quand c'est un ingrédient qui
+  a répondu, c'est lui qu'affiche la ligne — sinon la recette paraîtrait là par
+  erreur ;
+- des **étiquettes libres** — « végétarien », « rapide », « les enfants
+  aiment » — filtrent d'un tap. Pas de table d'étiquettes, pas d'écran de
+  gestion : une étiquette n'est rien d'autre que son texte, et le vocabulaire
+  d'un foyer se construit en écrivant. C'est le pari inverse des rayons de la
+  liste de courses, et pour la raison inverse — les rayons d'un supermarché sont
+  les mêmes pour tout le monde, « les enfants aiment » n'est vrai que chez soi ;
+- toucher une recette ouvre sa **fiche, en lecture**. On ouvre une recette pour
+  la lire bien plus souvent que pour la modifier, et un formulaire met tout le
+  texte dans des champs de saisie — où il se lit moins bien et se modifie par
+  mégarde ;
+- les **quantités sont du texte libre** — « 200 g », « 2 gousses », « un filet ».
+  Normaliser les unités demanderait une table de conversions et une saisie plus
+  lourde, pour un bénéfice nul : personne n'additionne deux cuillères à soupe ;
+- supprimer une recette ne touche pas aux repas déjà prévus.
+
+Un ingrédient présent dans deux recettes n'est cité qu'une fois, ses quantités
+juxtaposées : « Crème (20 cl + un filet) ». Elles ne sont pas additionnées —
+c'est la conséquence assumée du texte libre, et de toute façon la somme de
+« 2 gousses » et « un peu » n'existe pas.
+
+#### Le mode cuisine
+
+*Cuisiner* ouvre la recette **en pleine page**, seul écran de l'application à
+sortir du gabarit commun — barre d'onglets comprise. Ce n'est pas un formulaire
+qu'on remplit avant de revenir à sa liste : c'est là qu'on reste vingt minutes,
+les mains occupées.
+
+- **on coche les étapes à mesure**, la ligne entière servant de cible : on vise
+  mal avec le dos d'un doigt fariné. Un compteur et une barre disent où l'on en
+  est, lisibles du plan de travail ;
+- **le texte est plus grand qu'ailleurs.** On lit son téléphone posé à un bras
+  de distance, pas à trente centimètres ;
+- **les ingrédients sont là, repliés.** On y revient sans cesse — « c'était
+  combien de crème ? » — et repartir vers la fiche perdrait la place ;
+- **l'écran reste allumé** (`navigator.wakeLock`), et se rendort tout seul en
+  quittant. Le verrou étant rendu par le système dès que la page passe en
+  arrière-plan, il est redemandé au retour : répondre à un message en pleine
+  préparation ne doit pas rendormir l'écran. Là où l'API manque — Safari ancien,
+  connexion non chiffrée —, la page le dit plutôt que de promettre en silence.
+
+**La progression vit dans le navigateur**, et nulle part ailleurs. Une séance de
+cuisine appartient à qui tient le téléphone : la mettre en base demanderait une
+notion de session, une règle pour la clore, et ferait apparaître chez l'autre
+des cases cochées qui ne le concernent pas. Le prix est connu et assumé — elle
+ne suit pas d'un appareil à l'autre.
+
+Elle survit en revanche à la fermeture de l'application, et **s'oublie au bout
+de douze heures** : assez pour une préparation entamée le matin et reprise le
+soir, trop peu pour qu'une recette rouverte la semaine suivante s'ouvre à moitié
+cochée — ce qui ferait sauter des étapes sans qu'on s'en aperçoive. Elle s'oublie
+aussi dès que la recette est réenregistrée : les identifiants d'étapes changent,
+et la marche à suivre ayant changé, repartir de zéro est le comportement voulu.
+
+#### Écrire une recette
+
+Les étapes se **saisissent en texte — une ligne, une étape** — et se stockent en
+lignes de table. Ce n'est pas une inconséquence : les cocher demande qu'elles
+existent séparément et qu'on puisse les désigner ; les écrire demande de pouvoir
+en glisser une au milieu sans rien réordonner. Un champ par étape aurait imposé
+un mécanisme de déplacement pour un geste qui n'a lieu qu'à la rédaction. La
+numérotation collée au texte (« 1. », « - ») est retirée à l'enregistrement,
+l'affichage numérotant lui-même.
+
+Le champ `notes` d'avant les étapes est devenu **Remarques** — « se congèle très
+bien », « recette de ma mère ». Les préparations déjà saisies n'ont **pas** été
+converties par la migration : découper un texte libre au jugé aurait fait d'un
+paragraphe de trois phrases trois étapes, et d'une consigne coupée en deux
+lignes deux étapes. Le formulaire propose le découpage d'un tap, sur les seules
+recettes concernées, et laisse relire avant d'enregistrer.
+
+**Les orthographes d'étiquettes se rejoignent toutes seules.** « vegetarien »
+tapé un soir reprend l'orthographe de « Végétarien » écrit le mois dernier —
+même règle qu'un titre de recette retrouvé, qui rend celui du répertoire. Sans
+elle, deux orthographes feraient deux filtres pour une seule idée et le
+répertoire se couperait en morceaux sans que rien ne le signale. Une étiquette
+encore inconnue est gardée telle qu'écrite, à ceci près qu'une étiquette **tout
+en majuscules** est rendue à sa minuscule : c'est la touche majuscule restée
+enfoncée, et elle hurlerait ensuite dans tous les filtres.
+
+#### Importer une recette
+
+Le bouton *Importer* accepte une recette écrite en texte, l'analyse à la frappe
+et montre **ce qui sera enregistré** avant de créer quoi que ce soit — une
+quantité mal découpée doit se voir là, pas dans la liste de courses la semaine
+suivante. Même modèle que l'import d'une semaine de menus, et pour la même
+raison.
+
+```
+Gratin de courgettes
+Pour 4 personnes
+Étiquettes : végétarien, four
+
+Ingrédients
+- 600 g de courgettes
+- Crème fraîche : 20 cl
+- 2 gousses d'ail
+
+Préparation
+1. Préchauffer le four à 180 °C
+2. Émincer les courgettes
+```
+
+Le format n'a pas été inventé pour l'occasion : c'est celui sous lequel les
+recettes s'écrivent déjà partout. Les **en-têtes de section sont facultatifs** —
+sans eux, une ligne à puce est un ingrédient et une ligne numérotée une étape,
+ce qui permet de coller ce qu'on a trouvé sans le remettre en forme d'abord.
+
+Les quantités se lisent dans les deux sens : « Crème fraîche : 20 cl », le
+format propre à Minka, qui ne laisse rien à deviner et passe en premier ; et
+« 20 cl de crème fraîche », celui de tous les livres, reconnu par une liste
+d'unités courantes. « 3 œufs » garde « 3 » pour quantité ; « Sel » n'en a pas.
+Un nombre de parts ne se lit qu'en tête, avant les sections : « 2 gousses
+d'ail » au milieu des ingrédients n'annonce pas une recette pour deux.
+
+Ce qui n'a pas été compris est dit avant d'enregistrer, ligne par ligne, plutôt
+que de laisser découvrir ce qui manque.
+
+| Route | Effet |
+| --- | --- |
+| `GET /api/recipes/items` | Le répertoire, avec le **nom** des ingrédients et les étiquettes |
+| `GET /api/recipes/items/:id` | Une recette entière |
+| `POST /api/recipes/items` | Création |
+| `PATCH /api/recipes/items/:id` | Modification — `ingredients`, `steps` et `tags` remplacent la liste entière |
+| `DELETE /api/recipes/items/:id` | Suppression |
+| `GET /api/recipes/ingredients?ids=1,2,5` | Ingrédients de plusieurs recettes, regroupés par nom |
+| `POST /api/recipes/resolve` | Des intitulés → des identifiants, en créant ce qui manque |
+
+Le répertoire porte le **nom** des ingrédients — pas leurs quantités, pas les
+étapes. C'est ce qu'il faut pour choisir, et surtout pour chercher : le tri et
+le filtre se font ensuite dans le navigateur, sans aller-retour à chaque lettre
+tapée, et hors ligne comme en ligne.
+
+Les deux dernières routes existent **pour les autres modules**. `/ingredients` livre le
+libellé tout fait — « Crème (20 cl + un filet) » — de sorte que celui qui
+l'envoie dans les courses n'a qu'une chaîne à recopier, sans rien savoir de la
+forme d'un ingrédient. `/resolve` reçoit des plats lus dans un texte et rend de
+quoi les désigner : c'est par là que passe l'import d'une semaine de menus, sans
+que le planning écrive jamais dans les tables des recettes. Les plats en
+reviennent **dans l'ordre où ils sont partis**, ce qui permet de les recoudre par
+position.
+
+**Les tables ont changé de propriétaire, pas de forme.** `recipes` et
+`recipe_ingredients` avaient été créées par la première migration du module
+menus ; celle du module recettes les déclare en `CREATE TABLE IF NOT EXISTS` —
+rien sur une base en service, tout sur une base neuve ou sur une installation où
+le dossier `menus` n'est pas déposé. Réécrire l'histoire pour les retirer de
+`menus:001` aurait fait diverger les deux cas.
 
 ### Notes — `/notes`
 
@@ -880,6 +1058,28 @@ bouton s'éteint de lui-même et rien ne casse. La présence est vérifiée aupr
 va appeler, et interroger le registre depuis un module qu'il vient lui-même de
 charger créerait un cycle d'imports.
 
+**Quand la dépendance porte sur des données**, et plus seulement sur un bouton,
+le même contrat tient — mais il faut y mettre trois choses de plus. Menus et
+recettes en sont le cas d'école, eux qui ne formaient qu'un module :
+
+- **une copie de ce qu'on affiche.** Une case du planning porte l'intitulé
+  recopié le jour de la pose. C'est ce qui lui permet de s'afficher sans
+  interroger l'autre module — et donc de rester lisible quand il ne répond pas ;
+- **un pointeur sans clé étrangère.** `meal_plan.recipe_id` n'est garanti par
+  rien : SQLite ne peut pas veiller sur une table qui appartient à un autre
+  module, et un identifiant devenu caduc doit être un cas normal, pas une
+  erreur. Ici, il fait retomber la case sur sa copie ;
+- **une route taillée pour l'appelant.** `/api/recipes/ingredients?ids=` et
+  `/api/recipes/resolve` n'existent que pour lui, et lui livrent du prêt à
+  l'emploi — un libellé de course tout fait, des identifiants résolus. Sans
+  elles, il faudrait vingt allers-retours et une part de la logique de l'un
+  réécrite chez l'autre.
+
+Le prix à payer est réel, et il vaut d'être dit : ce qui était une jointure SQL
+devient deux requêtes et une couture par position, et ce qu'une transaction
+garantissait d'un bloc se garantit désormais par l'ordre des appels — le module
+qui écrit en premier étant celui dont l'échec ne laisse rien à moitié fait.
+
 ---
 
 ## Avancement
@@ -922,6 +1122,14 @@ charger créerait un cycle d'imports.
 - [x] **Rayons de la liste de courses** : classement automatique à l'ajout
       d'après un dictionnaire livré avec le code, et correction par appui long
       qui s'apprend pour les fois suivantes.
+- [x] **Module Recettes** : le répertoire extrait du module menus, avec sa
+      fiche en lecture ; le planning n'en garde qu'un pointeur souple et
+      l'intitulé recopié, et les deux modules ne dialoguent plus que par HTTP.
+- [x] **Mode cuisine** : les étapes cochées à mesure, en pleine page, l'écran
+      maintenu allumé, la progression gardée dans le navigateur.
+- [x] **Chercher dans les recettes** : par titre et par ingrédient, filtre par
+      étiquettes libres dont les orthographes se rejoignent, et import d'une
+      recette collée en texte avec aperçu avant création.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
@@ -930,7 +1138,11 @@ pas été faite parce que sa difficulté n'est pas la file, mais le conflit quan
 vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
 courses, les rayons étant faits, les évolutions naturelles seraient les articles
 récurrents et le temps réel (SSE) à la place du rafraîchissement au retour sur
-l'application. Côté calendrier, les événements récurrents et un
+l'application. Côté recettes, l'import d'une semaine de menus ne sait pas encore
+porter les étapes ni les étiquettes — une recette qu'il crée naît avec ses seuls
+ingrédients, et sa préparation s'écrit après coup ; l'analyseur d'une recette
+collée sait pourtant déjà les lire, et
+[`docs/prompt-menus.md`](docs/prompt-menus.md) devrait alors le dire. Côté calendrier, les événements récurrents et un
 flux ICS en lecture seule, pour s'abonner depuis l'application native du
 téléphone. Une notification à l'approche d'une date de péremption ou d'un
 rendez-vous supposerait d'ajouter le push web (VAPID), non configuré à ce jour.

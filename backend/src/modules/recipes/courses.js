@@ -1,13 +1,23 @@
 /**
- * Traduction d'un ingrédient en article de liste de courses.
+ * Traduction d'un ingrédient en libellé d'article de liste de courses.
  *
  * Les deux modules ne partagent aucun modèle : la liste de courses connaît un
  * nom et une quantité entière, les recettes une quantité en texte libre
  * (« 200 g », « un filet »). La conversion se fait donc ici, dans le seul sens
  * qui a du sens en magasin — la quantité rejoint le nom, où elle reste lisible.
+ *
+ * Elle vit côté serveur depuis que les recettes ont leur propre module : c'est
+ * l'API des recettes qui livre le libellé tout fait, et le module qui l'envoie
+ * dans les courses n'a plus qu'une chaîne à recopier. Sans quoi il faudrait
+ * qu'il importe ce fichier — précisément ce que l'architecture interdit.
  */
 
-/** Limite du champ `name` de la liste de courses. */
+/**
+ * Limite du champ `name` de la liste de courses.
+ *
+ * Seule chose que ce module suppose d'un autre, et elle est vérifiée à
+ * l'arrivée : dépasser ferait refuser l'article, pas planter la liste.
+ */
 const LONGUEUR_MAX = 120;
 
 /**
