@@ -90,7 +90,14 @@ services:
       # 8088 (pointage-bus), 8090 (Immich).
       - "${APP_PORT:-8070}:80"
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      # 127.0.0.1 et non localhost : dans le conteneur, localhost désigne
+      # d'abord ::1, et le wget de busybox (Alpine) ne tente pas l'adresse
+      # suivante. Or nginx n'écoute qu'en IPv4 (`listen 80;`, voir
+      # frontend/nginx.conf) : la sonde échouait sur « Connection refused »
+      # pendant que le site répondait normalement. Ajouter `listen [::]:80;`
+      # réglerait aussi la sonde, mais lierait le démarrage de nginx à la
+      # présence d'IPv6 sur l'hôte.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
       interval: 30s
       timeout: 5s
       retries: 3
