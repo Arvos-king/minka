@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
@@ -21,6 +21,7 @@ export function MenusPage() {
     revenirALaSemaineCourante,
     entries,
     repasDe,
+    recetteDe,
     intituleDe,
     rafraichir,
     recipes,
@@ -45,6 +46,28 @@ export function MenusPage() {
   const ceJour = aujourdhui();
   const semaineCourante = ceJour >= debut && ceJour <= fin;
   const repasPrevus = entries.length;
+
+  /*
+   * La page s'ouvre sur aujourd'hui : c'est la question qu'on vient lui poser
+   * — qu'y a-t-il à préparer ? —, et du jeudi au dimanche la réponse tombait
+   * hors de l'écran.
+   *
+   * `center` plutôt que `start` : la carte n'a ainsi à connaître ni la hauteur
+   * de l'en-tête collant (encoche, bandeau hors ligne) ni celle de la barre
+   * d'onglets. En début de semaine, la page ne bouge pas ou à peine — une carte
+   * proche du haut ne peut pas être centrée.
+   *
+   * L'effet suit le chargement et la semaine affichée, pas les repas : le
+   * rafraîchissement silencieux du retour sur l'application ne doit pas
+   * déplacer la page sous le doigt de qui la fait défiler.
+   */
+  const carteDuJour = useRef(null);
+
+  useEffect(() => {
+    if (status === 'ready' && semaineCourante) {
+      carteDuJour.current?.scrollIntoView({ block: 'center' });
+    }
+  }, [status, debut, semaineCourante]);
 
   /*
    * Les recettes posées cette semaine, dans l'ordre des jours — c'est ce que
@@ -124,11 +147,12 @@ export function MenusPage() {
         <>
           <ul className="space-y-3">
             {jours.map((date) => (
-              <li key={date}>
+              <li key={date} ref={date === ceJour ? carteDuJour : undefined}>
                 <DayRow
                   date={date}
                   estAujourdhui={date === ceJour}
                   repasDe={repasDe}
+                  recetteDe={recetteDe}
                   intituleDe={intituleDe}
                   onOuvrir={(jour, creneau) => setSaisie({ date: jour, creneau })}
                 />

@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PlusIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
@@ -22,7 +23,11 @@ function resume({ servings, ingredients }) {
 }
 
 export function RecipesPage() {
-  const { recettes, status, error, dismissError, enregistrer, supprimer } = useRecipes();
+  const { recettes, status, error, dismissError, signalerErreur, enregistrer, supprimer } =
+    useRecipes();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [parametres, setParametres] = useSearchParams();
 
   const [fiche, setFiche] = useState(null); // la recette entière, en lecture
   const [enEdition, setEnEdition] = useState(null); // {} = création
@@ -43,20 +48,71 @@ export function RecipesPage() {
     [recettes, terme, etiquette],
   );
 
+  /*
+   * Vrai quand la fiche affichée est arrivée par un lien d'une autre page de
+   * l'application — la casserole d'un repas, dans les menus. La refermer doit
+   * alors y ramener : on était venu lire cette recette-là, pas parcourir le
+   * répertoire.
+   */
+  const retourApresFiche = useRef(false);
+
   /** Le répertoire ne porte pas les quantités ni les étapes : il faut la recette entière. */
-  async function ouvrir(id) {
+  async function ouvrir(id, { depuisUnLien = false } = {}) {
     // On ouvre toujours sur la fiche : une recette relue après un
     // enregistrement ne doit pas renvoyer en pleine cuisine.
     setCuisine(false);
     setOuverture(id);
     try {
       setFiche((await recipesApi.get(id)).recipe);
-    } catch {
+    } catch (apiError) {
       // Recette disparue entre-temps : on referme, sans rien annoncer. La
       // liste se rechargera au retour sur l'application.
       setFiche(null);
+      retourApresFiche.current = false;
+      // Sauf si l'on a été envoyé ici pour elle : un répertoire affiché sans
+      // un mot laisserait croire que le lien ne mène nulle part.
+      if (depuisUnLien) signalerErreur(apiError.message);
     } finally {
       setOuverture(null);
+    }
+  }
+
+  /*
+   * L'adresse publique d'une fiche : `/recettes?recette=12`. C'est par elle que
+   * le planning des menus ouvre la recette d'un repas, sans rien importer de ce
+   * module.
+   *
+   * Le paramètre est retiré aussitôt lu : c'est une consigne, pas un état.
+   * Resté dans l'adresse, il rouvrirait au rechargement une fiche qu'on vient
+   * de fermer.
+   */
+  const recetteDemandee = parametres.get('recette');
+
+  useEffect(() => {
+    if (recetteDemandee === null) return;
+
+    const restants = new URLSearchParams(parametres);
+    restants.delete('recette');
+    setParametres(restants, { replace: true });
+
+    const id = Number(recetteDemandee);
+    if (!Number.isInteger(id) || id <= 0) return;
+
+    // React Router donne la clé « default » à l'entrée qui a ouvert la
+    // session : toute autre dit qu'on arrive d'une page de l'application, et
+    // qu'il y a donc un endroit où revenir.
+    retourApresFiche.current = location.key !== 'default';
+    ouvrir(id, { depuisUnLien: true });
+    // La demande seule déclenche l'ouverture, et non chaque rendu : `ouvrir`
+    // change d'identité à chacun.
+  }, [recetteDemandee]);
+
+  /** Referme la fiche — et ramène à la page qui l'avait ouverte, s'il y en a une. */
+  function fermerFiche() {
+    setFiche(null);
+    if (retourApresFiche.current) {
+      retourApresFiche.current = false;
+      navigate(-1);
     }
   }
 
@@ -209,7 +265,7 @@ export function RecipesPage() {
           recette={fiche}
           onCuisiner={() => setCuisine(true)}
           onModifier={() => setEnEdition(fiche)}
-          onClose={() => setFiche(null)}
+          onClose={fermerFiche}
         />
       )}
 

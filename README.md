@@ -261,6 +261,16 @@ ferme la boucle **frigo → menus → courses**, en s'appuyant sur le répertoir
   d'ingrédients. Un champ et non deux, parce que la frontière entre chercher et
   écrire ne se décide qu'après avoir tapé : on ne sait pas toujours en
   commençant si « poulet basquaise » est déjà au répertoire ;
+- une case qui porte une recette **mène à sa fiche d'un tap**, par la casserole
+  au bout de sa ligne, et la refermer ramène au planning — plutôt que de
+  retenir l'intitulé, passer par « Plus » et le chercher dans le répertoire.
+  La ligne, elle, sert toujours à changer le repas : on planifie une fois par
+  semaine, mais on vient chaque jour voir ce qu'il y a à préparer, et le geste
+  courant a sa propre cible, comme le bouton « fait » de l'entretien ;
+- sur la semaine en cours, la page s'ouvre **centrée sur aujourd'hui**, et y
+  revient au retour d'une fiche : c'est la question qu'on vient lui poser, et
+  du jeudi au dimanche la réponse tombait hors de l'écran. Le rafraîchissement
+  du retour sur l'application, lui, ne déplace pas la page sous le doigt ;
 - un bouton envoie les ingrédients de la semaine dans la liste de courses, après
   les avoir montrés **tels qu'ils y arriveront** — on décoche l'huile d'olive
   qu'on a déjà avant d'envoyer, pas après ;
@@ -337,12 +347,14 @@ résultat.
 
 L'existence de la recette **n'est pas vérifiée** à la pose, et ne peut pas
 l'être : ses tables appartiennent à un autre module. Un identifiant devenu caduc
-ne casse rien, il fait retomber la case sur son intitulé.
+ne casse rien, il fait retomber la case sur son intitulé — sans casserole, qui
+ne mènerait nulle part.
 
 **Passerelles** : le bouton d'envoi aux courses demande les deux modules — celui
-qui tient les ingrédients, celui qui les reçoit —, et le sélecteur de recettes
-demande le premier. Chaque lien se limite à un appel HTTP, même modèle que le
-frigo, voir [Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
+qui tient les ingrédients, celui qui les reçoit —, le sélecteur de recettes et
+la casserole demandent le premier. Chaque lien se limite à un appel HTTP — même
+modèle que le frigo — ou, pour la casserole, à l'adresse d'une page ; voir
+[Faire dialoguer deux modules](#faire-dialoguer-deux-modules).
 
 ### Recettes — `/recettes`
 
@@ -497,6 +509,17 @@ quoi les désigner : c'est par là que passe l'import d'une semaine de menus, sa
 que le planning écrive jamais dans les tables des recettes. Les plats en
 reviennent **dans l'ordre où ils sont partis**, ce qui permet de les recoudre par
 position.
+
+**Une adresse, aussi, pour les autres modules.** `/recettes?recette=12` ouvre
+la page sur la fiche de cette recette : c'est par là que la casserole d'un repas
+mène à sa recette, sans que le planning importe rien de ce module. Le paramètre
+est retiré de l'adresse aussitôt lu — c'est une consigne, pas un état : resté
+là, il rouvrirait au rechargement une fiche qu'on vient de fermer. Refermer la
+fiche ramène à la page d'où l'on vient ; ouverte directement par son adresse,
+elle se referme sur le répertoire. Une recette introuvable est annoncée par un
+bandeau, là où l'ouverture depuis la liste se referme en silence : on a été
+envoyé ici pour elle, et un répertoire muet laisserait croire que le lien ne
+mène nulle part.
 
 **Les tables ont changé de propriétaire, pas de forme.** `recipes` et
 `recipe_ingredients` avaient été créées par la première migration du module
@@ -1080,6 +1103,27 @@ devient deux requêtes et une couture par position, et ce qu'une transaction
 garantissait d'un bloc se garantit désormais par l'ordre des appels — le module
 qui écrit en premier étant celui dont l'échec ne laisse rien à moitié fait.
 
+**Quand le lien mène à une page**, et non plus à une route d'API, le contrat
+tient encore : on n'importe pas les composants de l'autre module, on se rend à
+son adresse. La casserole d'un repas mène ainsi à la fiche d'une recette, par
+une adresse construite en un seul endroit du module menus, à côté de ses appels
+HTTP :
+
+```jsx
+// menus/api.js
+export const adresseRecette = (id) => `/recettes?recette=${id}`;
+
+// …puis un simple lien, sans import du module recettes :
+<Link to={adresseRecette(recette.id)}>…</Link>
+```
+
+C'est le module qui reçoit qui documente son adresse, et qui la consomme à
+l'arrivée : il retire le paramètre une fois lu, et ramène d'où l'on vient quand
+on referme. L'appelant, lui, ne pose le lien que si le module répond
+(`useServerModule`) et que ce qu'il désigne existe encore — un pointeur caduc
+ne mènerait nulle part. Un paramètre plutôt qu'une sous-route : le socle déclare
+exactes les routes des modules, et `/recettes/12` retomberait sur l'accueil.
+
 ---
 
 ## Avancement
@@ -1130,6 +1174,9 @@ qui écrit en premier étant celui dont l'échec ne laisse rien à moitié fait.
 - [x] **Chercher dans les recettes** : par titre et par ingrédient, filtre par
       étiquettes libres dont les orthographes se rejoignent, et import d'une
       recette collée en texte avec aperçu avant création.
+- [x] **Des menus à la recette** : une casserole au bout d'un repas ouvre sa
+      fiche d'un tap, la refermer ramène au planning, et celui-ci s'ouvre
+      centré sur aujourd'hui.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
@@ -1142,7 +1189,10 @@ l'application. Côté recettes, l'import d'une semaine de menus ne sait pas enco
 porter les étapes ni les étiquettes — une recette qu'il crée naît avec ses seuls
 ingrédients, et sa préparation s'écrit après coup ; l'analyseur d'une recette
 collée sait pourtant déjà les lire, et
-[`docs/prompt-menus.md`](docs/prompt-menus.md) devrait alors le dire. Côté calendrier, les événements récurrents et un
+[`docs/prompt-menus.md`](docs/prompt-menus.md) devrait alors le dire. Côté
+menus, la semaine affichée gagnerait à vivre dans l'adresse : revenir d'une
+recette posée une autre semaine ramène pour l'instant sur la semaine en cours.
+Côté calendrier, les événements récurrents et un
 flux ICS en lecture seule, pour s'abonner depuis l'application native du
 téléphone. Une notification à l'approche d'une date de péremption ou d'un
 rendez-vous supposerait d'ajouter le push web (VAPID), non configuré à ce jour.
