@@ -20,7 +20,8 @@ export function useRecipes() {
     return { elements: data.recipes };
   }, []);
 
-  const { elements, status, error, dismissError, refresh, retirer } = useCollection(charger);
+  const { elements, status, error, dismissError, signalerErreur, refresh, retirer } =
+    useCollection(charger);
 
   /** @returns la recette telle que le serveur l'a enregistrée. */
   const enregistrer = useCallback(
@@ -57,6 +58,7 @@ export function useRecipes() {
     status,
     error,
     dismissError,
+    signalerErreur,
     enregistrer,
     supprimer,
   };
