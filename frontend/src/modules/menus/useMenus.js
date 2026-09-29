@@ -60,6 +60,17 @@ export function useMenus() {
   );
 
   /**
+   * La recette du répertoire que désigne une case, ou `null` : texte libre,
+   * recette supprimée depuis la pose, ou module recettes absent. Le pointeur
+   * n'étant garanti par rien, c'est le répertoire qui dit s'il mène encore
+   * quelque part.
+   */
+  const recetteDe = useCallback(
+    (repas) => (repas?.recipeId ? (recipes.find((r) => r.id === repas.recipeId) ?? null) : null),
+    [recipes],
+  );
+
+  /**
    * L'intitulé à afficher pour une case.
    *
    * La case porte le titre recopié le jour de la pose : c'est lui qui permet
@@ -68,12 +79,8 @@ export function useMenus() {
    * une recette ne se verrait jamais dans les semaines déjà posées.
    */
   const intituleDe = useCallback(
-    (repas) => {
-      if (!repas) return null;
-      const recette = repas.recipeId ? recipes.find((r) => r.id === repas.recipeId) : null;
-      return recette?.title ?? repas.title;
-    },
-    [recipes],
+    (repas) => (repas ? (recetteDe(repas)?.title ?? repas.title) : null),
+    [recetteDe],
   );
 
   /** Pose un repas dans une case, ou remplace celui qui s'y trouvait. */
@@ -135,6 +142,7 @@ export function useMenus() {
 
     entries,
     repasDe,
+    recetteDe,
     intituleDe,
     /** Après un import, le planning entier a changé. */
     rafraichir: () => refresh({ silent: true }),

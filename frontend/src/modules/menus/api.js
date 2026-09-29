@@ -34,3 +34,12 @@ export const menusApi = {
   /** Envoie un ingrédient dans la liste de courses. */
   ajouterAuxCourses: (name) => api.post('/shopping/items', { name }),
 };
+
+/**
+ * L'adresse de la fiche d'une recette, dans le module recettes.
+ *
+ * Le pendant, pour la navigation, des passerelles ci-dessus : ce module
+ * n'importe pas la fiche, il y mène. Le module recettes retire le paramètre à
+ * l'arrivée, et ramène ici quand on referme la fiche.
+ */
+export const adresseRecette = (id) => `/recettes?recette=${id}`;

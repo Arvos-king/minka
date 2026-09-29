@@ -21,6 +21,7 @@ export function MenusPage() {
     revenirALaSemaineCourante,
     entries,
     repasDe,
+    recetteDe,
     intituleDe,
     rafraichir,
     recipes,
@@ -129,6 +130,7 @@ export function MenusPage() {
                   date={date}
                   estAujourdhui={date === ceJour}
                   repasDe={repasDe}
+                  recetteDe={recetteDe}
                   intituleDe={intituleDe}
                   onOuvrir={(jour, creneau) => setSaisie({ date: jour, creneau })}
                 />
