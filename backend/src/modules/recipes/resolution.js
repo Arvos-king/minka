@@ -13,36 +13,11 @@
  * sans préparation, en revanche, n'est qu'une ébauche — souvent laissée par un
  * import d'avant, qui ne savait porter que les ingrédients — et la version
  * complète la remplace.
+ *
+ * Le titre se compare à l'orthographe près — voir `cleTitre`, dans le socle.
  */
 
-/**
- * La clé sous laquelle deux titres désignent le même plat.
- *
- * Sans casse ni accents, comme une étiquette ; mais aussi sans ponctuation, et
- * **sans le pluriel** de chaque mot : « Gratin de courgette » doit retrouver
- * « Gratin de courgettes », sans quoi le répertoire se dédouble au gré d'une
- * proposition écrite un peu autrement, et la recette relue la semaine dernière
- * reste à l'écart.
- *
- * Le pluriel n'est retiré que des mots de plus de trois lettres : « aux »,
- * « des », « riz » restent ce qu'ils sont. La règle est grossière — « noix »
- * devient « noi » — mais elle l'est des deux côtés, et c'est tout ce qu'on lui
- * demande : comparer, pas écrire.
- */
-export function cleTitre(titre) {
-  return (titre ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    // Ligatures que NFD ne décompose pas : « bœuf » s'écrit souvent « boeuf ».
-    .replace(/œ/g, 'oe')
-    .replace(/æ/g, 'ae')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .split(' ')
-    .map((mot) => (mot.length > 3 ? mot.replace(/[sx]$/, '') : mot))
-    .join(' ');
-}
+import { cleTitre } from '../../lib/titres.js';
 
 /**
  * La recette qu'un titre désigne, parmi celles du répertoire.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { champsACompleter, choisirRecette, cleTitre, sortDuPlat } from './resolution.js';
+import { champsACompleter, choisirRecette, sortDuPlat } from './resolution.js';
 
 /** Un plat tel que le rend le schéma : les listes toujours présentes. */
 const plat = (champs = {}) => ({
@@ -16,46 +16,6 @@ const plat = (champs = {}) => ({
 
 const INGREDIENT = { name: 'Courgettes', quantity: '600 g' };
 const ETAPE = { text: 'Préchauffer le four' };
-
-describe('cleTitre', () => {
-  it('ignore la casse, les accents et la ponctuation', () => {
-    assert.equal(cleTitre('Gratin dauphinois'), cleTitre('GRATIN  Dauphinois.'));
-    assert.equal(cleTitre('Pâtes à la crème'), cleTitre('pates a la creme'));
-    assert.equal(cleTitre('Chili sin carne'), cleTitre('Chili-sin-carne'));
-  });
-
-  it('confond les deux apostrophes', () => {
-    // L'une se tape au clavier d'un ordinateur, l'autre sort d'un téléphone ou
-    // d'une réponse de Claude.
-    assert.equal(cleTitre("Gratin d'aubergines"), cleTitre('Gratin d’aubergines'));
-  });
-
-  it('ignore le pluriel', () => {
-    // Sans cela, une proposition écrite au singulier dédoublait le répertoire.
-    assert.equal(cleTitre('Gratin de courgette'), cleTitre('Gratin de courgettes'));
-    assert.equal(cleTitre('Soupe de poireau'), cleTitre('Soupe de poireaux'));
-  });
-
-  it('laisse les mots courts tels quels', () => {
-    assert.equal(cleTitre('Tarte aux pommes'), 'tarte aux pomme');
-    assert.equal(cleTitre('Riz'), 'riz');
-  });
-
-  it('défait les ligatures', () => {
-    assert.equal(cleTitre('Bœuf bourguignon'), cleTitre('Boeuf bourguignon'));
-  });
-
-  it('ne confond pas deux plats différents', () => {
-    assert.notEqual(cleTitre('Tarte aux pommes'), cleTitre('Tarte aux pommes de terre'));
-    assert.notEqual(cleTitre('Gratin de courgettes'), cleTitre('Gratin d’aubergines'));
-  });
-
-  it('rend une clé vide pour un titre vide', () => {
-    assert.equal(cleTitre(''), '');
-    assert.equal(cleTitre(null), '');
-    assert.equal(cleTitre(' — '), '');
-  });
-});
 
 describe('choisirRecette', () => {
   const repertoire = [
