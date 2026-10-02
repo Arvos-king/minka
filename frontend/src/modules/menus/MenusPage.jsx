@@ -4,11 +4,14 @@ import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { aujourdhui } from '../../lib/dates.js';
 import { useServerModule } from '../../lib/serverModules.js';
+import { BandeauAnnulation } from './components/BandeauAnnulation.jsx';
+import { BandeauPlacement } from './components/BandeauPlacement.jsx';
 import { DayRow } from './components/DayRow.jsx';
 import { ImportSheet } from './components/ImportSheet.jsx';
 import { MealSheet } from './components/MealSheet.jsx';
 import { ShoppingSheet } from './components/ShoppingSheet.jsx';
 import { MenusIcon } from './MenusIcon.jsx';
+import { contenuDe } from './reorganisation.js';
 import { joursDeLaSemaine, libelleSemaine } from './semaine.js';
 import { useMenus } from './useMenus.js';
 
@@ -32,6 +35,11 @@ export function MenusPage() {
     definirRepas,
     viderRepas,
     creerEtPoser,
+    deplacer,
+    decaler,
+    annulation,
+    annuler,
+    oublierAnnulation,
   } = useMenus();
 
   // Le module courses est-il monté côté API ? Le lien entre les modules se
@@ -41,6 +49,54 @@ export function MenusPage() {
   const [saisie, setSaisie] = useState(null); // { date, creneau }
   const [coursesOuvertes, setCoursesOuvertes] = useState(false);
   const [importOuvert, setImportOuvert] = useState(false);
+
+  /*
+   * Mode « Déplacer… » : un repas attend sa case. Son contenu voyage avec lui,
+   * parce qu'on peut changer de semaine avant de le poser — sa case de départ
+   * n'est alors plus à l'écran.
+   */
+  const [placement, setPlacement] = useState(null); // { de: { date, slot }, contenu, intitule }
+
+  function commencerPlacement(date, creneau) {
+    const repas = repasDe(date, creneau);
+    if (!repas || repas.pending) return;
+
+    setSaisie(null);
+    oublierAnnulation();
+    setPlacement({ de: { date, slot: creneau }, contenu: contenuDe(repas), intitule: intituleDe(repas) });
+  }
+
+  /** Toucher une case : l'ouvrir, ou y poser le repas qui attend. */
+  function toucherCase(date, creneau) {
+    if (!placement) {
+      setSaisie({ date, creneau });
+      return;
+    }
+
+    const { de, contenu } = placement;
+    setPlacement(null);
+    // La case de départ elle-même : le geste est abandonné.
+    if (de.date === date && de.slot === creneau) return;
+    deplacer(de, { date, slot: creneau }, contenu);
+  }
+
+  useEffect(() => {
+    if (!placement) return undefined;
+
+    const surTouche = (evenement) => {
+      if (evenement.key === 'Escape') setPlacement(null);
+    };
+    window.addEventListener('keydown', surTouche);
+    return () => window.removeEventListener('keydown', surTouche);
+  }, [placement]);
+
+  /*
+   * Un seul bandeau à la fois au-dessus des onglets. Celui d'annulation attend
+   * que les panneaux soient refermés : derrière leur voile, il s'écoulerait
+   * sans être vu — le panneau d'une case offre alors sa propre annulation.
+   */
+  const panneauOuvert = saisie !== null || coursesOuvertes || importOuvert;
+  const bandeau = placement ? 'placement' : annulation && !panneauOuvert ? 'annulation' : null;
 
   const jours = joursDeLaSemaine(debut);
   const ceJour = aujourdhui();
@@ -91,7 +147,9 @@ export function MenusPage() {
   const envoiPossible = coursesDisponibles && recettesDisponibles;
 
   return (
-    <div className="pb-4">
+    // Un bandeau couvre le bas de l'écran : la marge le compense, pour que le
+    // dimanche et le bouton des courses restent atteignables.
+    <div className={bandeau ? 'pb-28' : 'pb-4'}>
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
@@ -154,7 +212,8 @@ export function MenusPage() {
                   repasDe={repasDe}
                   recetteDe={recetteDe}
                   intituleDe={intituleDe}
-                  onOuvrir={(jour, creneau) => setSaisie({ date: jour, creneau })}
+                  placement={placement}
+                  onOuvrir={toucherCase}
                 />
               </li>
             ))}
@@ -203,14 +262,26 @@ export function MenusPage() {
           intitule={intituleDe(repasDe(saisie.date, saisie.creneau))}
           recipes={recipes}
           recettesDisponibles={recettesDisponibles}
+          annulation={annulation}
           onChoisir={(contenu) => definirRepas(saisie.date, saisie.creneau, contenu)}
           onCreerRecette={(title) => creerEtPoser(saisie.date, saisie.creneau, title)}
           onVider={() => {
             const repas = repasDe(saisie.date, saisie.creneau);
             if (repas) viderRepas(repas);
           }}
+          onDeplacer={() => commencerPlacement(saisie.date, saisie.creneau)}
+          onDecaler={() => decaler(saisie.date, saisie.creneau)}
+          onAnnuler={annuler}
           onClose={() => setSaisie(null)}
         />
+      )}
+
+      {bandeau === 'placement' && (
+        <BandeauPlacement intitule={placement.intitule} onAnnuler={() => setPlacement(null)} />
+      )}
+
+      {bandeau === 'annulation' && (
+        <BandeauAnnulation annulation={annulation} onAnnuler={annuler} onFermer={oublierAnnulation} />
       )}
 
       {coursesOuvertes && (

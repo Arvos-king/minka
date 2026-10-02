@@ -1,9 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { aujourdhui } from '../../lib/dates.js';
+import { aujourdhui, decalerJours } from '../../lib/dates.js';
 import { useCollection } from '../../lib/useCollection.js';
 import { useServerModule } from '../../lib/serverModules.js';
 import { menusApi } from './api.js';
+import {
+  appliquerCases,
+  casesDAnnulation,
+  contenuDe,
+  predireAnnulation,
+  predireDeplacement,
+  releverCases,
+  resumerDeplacement,
+} from './reorganisation.js';
 import { debutSemaine, decalerSemaine, finSemaine } from './semaine.js';
 
 /**
@@ -33,10 +42,32 @@ export function useMenus() {
     dismissError,
     signalerErreur,
     refresh,
+    setElements,
     ajouter,
     modifier,
     retirer,
   } = useCollection(charger);
+
+  /*
+   * La semaine affichée, lue au retour d'un appel plutôt qu'à son départ : on
+   * a pu changer de semaine entre-temps, et les cases rendues par le serveur
+   * ne doivent toucher que celle qui est à l'écran.
+   */
+  const periode = useRef({ from: debut, to: finSemaine(debut) });
+  useEffect(() => {
+    periode.current = { from: debut, to: finSemaine(debut) };
+  }, [debut]);
+
+  /*
+   * La dernière réorganisation, gardée pour « Annuler » : les cases touchées,
+   * telles que le serveur les a rendues, et la phrase qui la résume.
+   *
+   * Toute autre écriture l'efface. Annuler un décalage après avoir posé
+   * « Resto » dans la case qu'il a libérée finirait en refus du serveur — à
+   * raison, mais on ne comprendrait pas pourquoi.
+   */
+  const [annulation, setAnnulation] = useState(null);
+  const oublierAnnulation = useCallback(() => setAnnulation(null), []);
 
   const recettesDisponibles = useServerModule('recipes');
   const [recipes, setRecipes] = useState([]);
@@ -86,6 +117,8 @@ export function useMenus() {
   /** Pose un repas dans une case, ou remplace celui qui s'y trouvait. */
   const definirRepas = useCallback(
     async (date, creneau, { recipeId = null, title }) => {
+      setAnnulation(null);
+
       const appel = async () => {
         const data = await menusApi.setEntry(date, creneau, { recipeId, title });
         return { element: data.entry };
@@ -107,7 +140,10 @@ export function useMenus() {
   );
 
   const viderRepas = useCallback(
-    (entry) => retirer(entry, () => menusApi.clearEntry(entry.onDate, entry.slot)),
+    (entry) => {
+      setAnnulation(null);
+      return retirer(entry, () => menusApi.clearEntry(entry.onDate, entry.slot));
+    },
     [retirer],
   );
 
@@ -121,6 +157,8 @@ export function useMenus() {
    */
   const creerEtPoser = useCallback(
     async (date, creneau, title) => {
+      setAnnulation(null);
+
       try {
         const { recipe } = await menusApi.creerRecette(title);
         await rafraichirRecettes();
@@ -133,6 +171,85 @@ export function useMenus() {
     [definirRepas, rafraichirRecettes, signalerErreur],
   );
 
+  /**
+   * Déplace un repas en poussant ceux qu'il déloge (`reorganisation.js`).
+   *
+   * La page applique d'abord la règle à ce qu'elle voit, puis la réponse du
+   * serveur, qui fait foi : lui seul voit au-delà du dimanche, et l'état réel
+   * du planning. En cas d'échec, les cases reprennent ce qu'elles portaient et
+   * la semaine se recharge — un refus signale le plus souvent que l'autre a
+   * réorganisé entre-temps.
+   *
+   * @param {{date: string, slot: string}} de
+   * @param {{date: string, slot: string}} vers
+   * @param {object} [contenuConnu]  ce que porte la case de départ quand elle
+   *   n'est plus à l'écran : le mode « Déplacer… » laisse changer de semaine.
+   * @returns `{ resume }`, ou `undefined` en cas d'échec — l'erreur est déjà
+   *   affichée.
+   */
+  const deplacer = useCallback(
+    async (de, vers, contenuConnu = null) => {
+      setAnnulation(null);
+
+      const contenu = contenuDe(repasDe(de.date, de.slot)) ?? contenuConnu;
+      const prevues = contenu ? predireDeplacement(entries, de, contenu, vers) : [];
+      const releves = releverCases(entries, prevues);
+      setElements((precedents) => appliquerCases(precedents, prevues, periode.current));
+
+      try {
+        const { cases } = await menusApi.deplacer(de, vers);
+        setElements((precedents) => appliquerCases(precedents, cases, periode.current));
+
+        const resume = resumerDeplacement(cases, vers, intituleDe);
+        setAnnulation({ cases, resume });
+        return { resume };
+      } catch (apiError) {
+        setElements((precedents) => appliquerCases(precedents, releves, periode.current));
+        signalerErreur(apiError.message);
+        refresh({ silent: true });
+        return undefined;
+      }
+    },
+    [entries, intituleDe, refresh, repasDe, setElements, signalerErreur],
+  );
+
+  /** « Décaler d'un jour » : la même règle, vers le lendemain au même moment. */
+  const decaler = useCallback(
+    (date, slot) => deplacer({ date, slot }, { date: decalerJours(date, 1), slot }),
+    [deplacer],
+  );
+
+  /**
+   * Défait la dernière réorganisation : chaque case touchée revient à son état
+   * d'avant. Le serveur refuse tout si l'une d'elles a changé depuis, plutôt
+   * que d'effacer en silence ce que l'autre vient de poser.
+   */
+  const annuler = useCallback(async () => {
+    if (!annulation) return undefined;
+
+    const { cases } = annulation;
+    setAnnulation(null);
+
+    const prevues = predireAnnulation(cases);
+    const releves = releverCases(entries, prevues);
+    setElements((precedents) => appliquerCases(precedents, prevues, periode.current));
+
+    try {
+      const reponse = await menusApi.fixerCases(casesDAnnulation(cases));
+      setElements((precedents) => appliquerCases(precedents, reponse.cases, periode.current));
+      return reponse;
+    } catch (apiError) {
+      setElements((precedents) => appliquerCases(precedents, releves, periode.current));
+      signalerErreur(
+        apiError.status === 409
+          ? "Impossible d'annuler : le planning a changé entre-temps."
+          : apiError.message,
+      );
+      refresh({ silent: true });
+      return undefined;
+    }
+  }, [annulation, entries, refresh, setElements, signalerErreur]);
+
   return {
     debut,
     fin: finSemaine(debut),
@@ -144,8 +261,11 @@ export function useMenus() {
     repasDe,
     recetteDe,
     intituleDe,
-    /** Après un import, le planning entier a changé. */
-    rafraichir: () => refresh({ silent: true }),
+    /** Après un import, le planning entier a changé — et ce qu'on aurait pu annuler avec. */
+    rafraichir: () => {
+      setAnnulation(null);
+      return refresh({ silent: true });
+    },
     recipes,
     recettesDisponibles,
     status,
@@ -155,5 +275,11 @@ export function useMenus() {
     definirRepas,
     viderRepas,
     creerEtPoser,
+
+    deplacer,
+    decaler,
+    annulation,
+    annuler,
+    oublierAnnulation,
   };
 }
