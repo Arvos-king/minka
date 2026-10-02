@@ -120,18 +120,31 @@ export const ingredientsQuerySchema = z.object({
 });
 
 /**
- * Des plats désignés par leur intitulé, à retrouver ou à créer.
+ * Des plats désignés par leur intitulé, à retrouver, à créer ou à compléter.
  *
- * C'est ce qui permet à un autre module — le planning des menus — d'importer
- * une semaine écrite en texte sans jamais toucher aux tables des recettes :
+ * C'est ce qui permet à un autre module — le planning des menus, le connecteur
+ * Claude — de poser une semaine sans jamais toucher aux tables des recettes :
  * il envoie des intitulés, il reçoit des identifiants.
+ *
+ * Un plat peut arriver avec tout ce qu'une recette porte : parts, remarque,
+ * ingrédients, étapes, étiquettes. Ce que le répertoire en garde dépend de ce
+ * qu'il sait déjà — voir `resolution.js`.
  *
  * Le plafond est un garde-fou, pas une règle métier : le nombre de repas d'une
  * semaine regarde celui qui appelle, pas le répertoire.
  */
 export const resolveSchema = z.object({
   plats: z
-    .array(z.object({ title, ingredients }))
+    .array(
+      z.object({
+        title,
+        servings: servings.default(null),
+        notes: notes.default(null),
+        ingredients,
+        steps,
+        tags,
+      }),
+    )
     .min(1, 'Aucun plat à retrouver.')
     .max(50, 'Trop de plats d’un coup.'),
 });

@@ -5,6 +5,7 @@
 import { db, stmt } from '../../db/index.js';
 import { libelleCourse } from './courses.js';
 import { aligner } from './etiquettes.js';
+import { champsACompleter, choisirRecette, sortDuPlat } from './resolution.js';
 
 function toPublicRecipe(row) {
   if (!row) return null;
@@ -45,14 +46,18 @@ const toPublicStep = (row) => ({
  * sont là. Le tri et le filtre se font ensuite dans le navigateur, sans
  * aller-retour à chaque lettre tapée, et hors ligne comme en ligne.
  *
- * Trois requêtes plutôt qu'une jointure : celle-ci multiplierait les lignes par
- * le nombre d'ingrédients avant qu'on ne les regroupe. À cette échelle la
+ * Les étapes n'y sont que comptées : `stepCount` dit si une recette est
+ * achevée ou n'est qu'une ébauche, ce que le connecteur Claude doit savoir pour
+ * proposer de la compléter plutôt que de la désigner par son seul titre.
+ *
+ * Quatre requêtes plutôt qu'une jointure : celle-ci multiplierait les lignes
+ * par le nombre d'ingrédients avant qu'on ne les regroupe. À cette échelle la
  * différence est nulle, la lisibilité non.
  */
 export function listRecipes() {
   const recettes = stmt('SELECT * FROM recipes ORDER BY title COLLATE NOCASE')
     .all()
-    .map((row) => ({ ...toPublicRecipe(row), ingredients: [], tags: [] }));
+    .map((row) => ({ ...toPublicRecipe(row), ingredients: [], tags: [], stepCount: 0 }));
 
   const parId = new Map(recettes.map((recette) => [recette.id, recette]));
 
@@ -66,6 +71,13 @@ export function listRecipes() {
     'SELECT recipe_id, tag FROM recipe_tags ORDER BY tag COLLATE NOCASE',
   ).all()) {
     parId.get(ligne.recipe_id)?.tags.push(ligne.tag);
+  }
+
+  for (const ligne of stmt(
+    'SELECT recipe_id, COUNT(*) AS etapes FROM recipe_steps GROUP BY recipe_id',
+  ).all()) {
+    const recette = parId.get(ligne.recipe_id);
+    if (recette) recette.stepCount = ligne.etapes;
   }
 
   return recettes;
@@ -267,57 +279,86 @@ export function listGroupedIngredients(ids) {
 
 // --- Retrouver ou créer des recettes par leur intitulé ------------------------
 
-/** Retrouve une recette par son titre, insensiblement à la casse. */
+/**
+ * Retrouve une recette par son titre, à l'orthographe près — voir `cleTitre`.
+ *
+ * Le répertoire entier est relu à chaque plat : une recette créée deux lignes
+ * plus haut, dans la même transaction, doit être retrouvée. À quelques
+ * centaines de titres, c'est sans conséquence.
+ */
 function trouverParTitre(title) {
-  return toPublicRecipe(stmt('SELECT * FROM recipes WHERE title = ? COLLATE NOCASE').get(title));
+  const trouvee = choisirRecette(title, stmt('SELECT id, title FROM recipes').all());
+  return trouvee ? getRecipe(trouvee.id) : null;
 }
 
 /**
  * Des intitulés en entrée, des identifiants en sortie.
  *
- * C'est ce qui permet d'importer une semaine de menus écrite en texte sans que
- * le module qui la pose ait à toucher aux tables des recettes. La règle qui
- * décide du sort de chaque plat :
+ * C'est ce qui permet d'importer une semaine de menus — écrite en texte, ou
+ * posée par le connecteur Claude — sans que le module qui la pose ait à
+ * toucher aux tables des recettes. Le sort de chaque plat est décidé par
+ * `sortDuPlat` (voir `resolution.js`) :
  *
- *   — des ingrédients listés → une recette, créée ou mise à jour. C'est ce qui
- *     alimente ensuite la liste de courses, sans quoi l'import ne servirait
- *     qu'à écrire sept intitulés ;
- *   — pas d'ingrédients, mais une recette du même nom existe → on la réutilise,
- *     ce qui permet d'écrire « Gratin de courgettes » sans recopier sa liste
- *     chaque semaine ;
- *   — pas d'ingrédients, aucune recette connue → rien, `recipeId` reste nul.
- *     À l'appelant d'en faire ce qu'il veut ; le planning en fait un texte
- *     libre, comme « restes » ou « chez mes parents ».
+ *   — une recette inconnue qui arrive avec ses ingrédients ou ses étapes est
+ *     **créée**, entière : parts, étiquettes et remarque comprises ;
+ *   — une ébauche — une recette sans étapes — est **complétée** par ce qui
+ *     arrive, sans perdre ce que le foyer y avait écrit ;
+ *   — une recette qui a sa préparation est **conservée** telle quelle : la
+ *     recette du foyer fait foi, et l'appelant en est averti ;
+ *   — un titre seul **réutilise** la recette qu'il désigne, ce qui permet
+ *     d'écrire « Gratin de courgettes » sans recopier sa liste chaque semaine ;
+ *   — un titre seul que rien ne désigne reste **inconnu**, `recipeId` nul. Le
+ *     planning en fait un texte libre, comme « restes » ou « chez mes parents ».
  *
  * Le tout dans une transaction : un répertoire à moitié écrit laisserait des
  * recettes derrière lui sans le planning qui devait les utiliser.
  *
  * Le titre renvoyé est celui **du répertoire**, pas celui qu'on a tapé :
- * « gratin de courgettes » retrouve « Gratin de courgettes », et c'est cette
+ * « gratin de courgette » retrouve « Gratin de courgettes », et c'est cette
  * orthographe-là que l'appelant recopiera.
  */
 export function resoudre(plats, userId) {
-  const bilan = { creees: [], misesAJour: [], reutilisees: [], inconnues: [] };
+  const bilan = { creees: [], completees: [], conservees: [], reutilisees: [], inconnues: [] };
   const resolus = [];
 
-  const appliquer = db.transaction(() => {
-    for (const { title, ingredients } of plats) {
-      const existante = trouverParTitre(title);
+  /*
+   * Un même plat peut revenir deux fois dans une semaine. La seconde fois, la
+   * recette existe — on vient de la créer ou de la compléter — et la
+   * règle la dirait « conservée », ce qui ferait croire que la proposition a
+   * été écartée. Elle est simplement réutilisée, sans nouvelle ligne au bilan.
+   */
+  const dejaTraitees = new Set();
 
-      if (ingredients.length > 0 && existante) {
-        remplacerIngredients(existante.id, ingredients);
-        bilan.misesAJour.push(existante.title);
+  const appliquer = db.transaction(() => {
+    for (const plat of plats) {
+      const existante = trouverParTitre(plat.title);
+
+      if (existante && dejaTraitees.has(existante.id)) {
         resolus.push({ title: existante.title, recipeId: existante.id });
-      } else if (ingredients.length > 0) {
-        const creee = createRecipe({ title, ingredients }, userId);
+        continue;
+      }
+
+      const sort = sortDuPlat({
+        existante,
+        aPreparation: (existante?.steps.length ?? 0) > 0,
+        plat,
+      });
+
+      if (sort === 'creer') {
+        const creee = createRecipe(plat, userId);
         bilan.creees.push(creee.title);
+        dejaTraitees.add(creee.id);
         resolus.push({ title: creee.title, recipeId: creee.id });
-      } else if (existante) {
-        bilan.reutilisees.push(existante.title);
-        resolus.push({ title: existante.title, recipeId: existante.id });
+      } else if (sort === 'libre') {
+        bilan.inconnues.push(plat.title);
+        resolus.push({ title: plat.title, recipeId: null });
       } else {
-        bilan.inconnues.push(title);
-        resolus.push({ title, recipeId: null });
+        if (sort === 'completer') updateRecipe(existante.id, champsACompleter(existante, plat));
+
+        const rubrique = { completer: 'completees', conserver: 'conservees', reutiliser: 'reutilisees' };
+        bilan[rubrique[sort]].push(existante.title);
+        dejaTraitees.add(existante.id);
+        resolus.push({ title: existante.title, recipeId: existante.id });
       }
     }
   });
