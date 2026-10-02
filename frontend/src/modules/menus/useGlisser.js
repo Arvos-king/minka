@@ -149,8 +149,10 @@ export function useGlisser({ onDeposer, onToucher }) {
       if (!g.actif) {
         if (Math.hypot(g.x - g.depart.x, g.y - g.depart.y) < SEUIL) return;
         g.actif = true;
-        // Le repas se décroche : un retour au doigt, là où le téléphone le permet.
-        navigator.vibrate?.(10);
+        // Le repas se décroche : un retour au doigt, là où le téléphone le
+        // permet. Pas avant un premier vrai geste sur la page — le navigateur
+        // refuserait, et le signalerait en erreur.
+        if (navigator.userActivation?.hasBeenActive ?? true) navigator.vibrate?.(10);
         setGlisse({ de, intitule, vers: null });
         animation.current = requestAnimationFrame(defiler);
       }
