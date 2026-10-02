@@ -46,6 +46,48 @@ export const planQuerySchema = z.object({
   to: isoDate,
 });
 
+/** Une case désignée dans un corps de requête : un jour et un moment. */
+const caseDuPlan = z.object({ date: isoDate, slot });
+
+/**
+ * Déplacement d'un repas. La règle — insérer et pousser — est celle de
+ * `reorganisation.js` ; le schéma n'écarte que le geste sans objet.
+ */
+export const deplacerSchema = z
+  .object({ de: caseDuPlan, vers: caseDuPlan })
+  .refine(({ de, vers }) => de.date !== vers.date || de.slot !== vers.slot, {
+    message: 'Le repas est déjà dans cette case.',
+    path: ['vers'],
+  });
+
+/**
+ * Plusieurs cases fixées d'un bloc — ce qui annule une réorganisation.
+ *
+ * `repas: null` vide la case. `attendu`, facultatif, est ce que l'appelant
+ * pense y trouver (`null` pour une case vide) : s'il se trompe sur une seule,
+ * rien n'est écrit. Absent, la case est fixée sans condition.
+ *
+ * La borne est large plutôt qu'exacte : elle n'écarte qu'un corps absurde,
+ * une poussée réelle s'arrêtant à la première case libre. Une même case deux
+ * fois, en revanche, n'aurait pas de sens — laquelle l'emporterait ?
+ */
+export const fixerCasesSchema = z.object({
+  cases: z
+    .array(
+      z.object({
+        onDate: isoDate,
+        slot,
+        repas: setEntrySchema.nullable(),
+        attendu: setEntrySchema.nullable().optional(),
+      }),
+    )
+    .min(1, 'Aucune case à fixer.')
+    .max(400, 'Trop de cases d’un coup.')
+    .refine((cases) => new Set(cases.map((c) => `${c.onDate}|${c.slot}`)).size === cases.length, {
+      message: 'Une même case figure deux fois.',
+    }),
+});
+
 /**
  * Une semaine posée d'un coup.
  *

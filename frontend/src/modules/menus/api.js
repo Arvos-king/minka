@@ -9,6 +9,18 @@ export const menusApi = {
   /** Pose une semaine entière d'un coup, en une transaction côté serveur. */
   importer: (entries) => api.post('/menus/import', { entries }),
 
+  /**
+   * Déplace un repas en poussant ceux qu'il déloge — voir `reorganisation.js`.
+   * Rend chaque case touchée, avec son état d'avant et d'après.
+   */
+  deplacer: (de, vers) => api.post('/menus/plan/deplacer', { de, vers }),
+
+  /** Fixe plusieurs cases d'un bloc, sous condition : ce qu'emploie « Annuler ». */
+  fixerCases: (cases) => api.patch('/menus/plan', { cases }),
+
+  /** Les textes libres les plus fréquents du foyer. */
+  raccourcis: () => api.get('/menus/raccourcis'),
+
   /*
    * --- Passerelles vers d'autres modules -----------------------------------
    *

@@ -4,12 +4,18 @@ import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { aujourdhui } from '../../lib/dates.js';
 import { useServerModule } from '../../lib/serverModules.js';
+import { BandeauAnnulation } from './components/BandeauAnnulation.jsx';
+import { BandeauPlacement } from './components/BandeauPlacement.jsx';
 import { DayRow } from './components/DayRow.jsx';
+import { Fantome } from './components/Fantome.jsx';
 import { ImportSheet } from './components/ImportSheet.jsx';
 import { MealSheet } from './components/MealSheet.jsx';
 import { ShoppingSheet } from './components/ShoppingSheet.jsx';
 import { MenusIcon } from './MenusIcon.jsx';
+import { PoigneeIcon } from './PoigneeIcon.jsx';
+import { contenuDe, decrireDepot } from './reorganisation.js';
 import { joursDeLaSemaine, libelleSemaine } from './semaine.js';
+import { useGlisser } from './useGlisser.js';
 import { useMenus } from './useMenus.js';
 
 export function MenusPage() {
@@ -25,6 +31,7 @@ export function MenusPage() {
     intituleDe,
     rafraichir,
     recipes,
+    raccourcis,
     recettesDisponibles,
     status,
     error,
@@ -32,6 +39,11 @@ export function MenusPage() {
     definirRepas,
     viderRepas,
     creerEtPoser,
+    deplacer,
+    decaler,
+    annulation,
+    annuler,
+    oublierAnnulation,
   } = useMenus();
 
   // Le module courses est-il monté côté API ? Le lien entre les modules se
@@ -41,6 +53,67 @@ export function MenusPage() {
   const [saisie, setSaisie] = useState(null); // { date, creneau }
   const [coursesOuvertes, setCoursesOuvertes] = useState(false);
   const [importOuvert, setImportOuvert] = useState(false);
+
+  /*
+   * Mode « Déplacer… » : un repas attend sa case. Son contenu voyage avec lui,
+   * parce qu'on peut changer de semaine avant de le poser — sa case de départ
+   * n'est alors plus à l'écran.
+   */
+  const [placement, setPlacement] = useState(null); // { de: { date, slot }, contenu, intitule }
+
+  function commencerPlacement(date, creneau) {
+    const repas = repasDe(date, creneau);
+    if (!repas || repas.pending) return;
+
+    setSaisie(null);
+    oublierAnnulation();
+    setPlacement({ de: { date, slot: creneau }, contenu: contenuDe(repas), intitule: intituleDe(repas) });
+  }
+
+  /** Toucher une case : l'ouvrir, ou y poser le repas qui attend. */
+  function toucherCase(date, creneau) {
+    if (!placement) {
+      setSaisie({ date, creneau });
+      return;
+    }
+
+    const { de, contenu } = placement;
+    setPlacement(null);
+    // La case de départ elle-même : le geste est abandonné.
+    if (de.date === date && de.slot === creneau) return;
+    deplacer(de, { date, slot: creneau }, contenu);
+  }
+
+  useEffect(() => {
+    if (!placement) return undefined;
+
+    const surTouche = (evenement) => {
+      if (evenement.key === 'Escape') setPlacement(null);
+    };
+    window.addEventListener('keydown', surTouche);
+    return () => window.removeEventListener('keydown', surTouche);
+  }, [placement]);
+
+  /*
+   * La poignée d'un repas : glissée, elle le dépose ; touchée, elle ouvre le
+   * mode « Déplacer… », le même que celui du panneau.
+   */
+  const { glisse, fantome, poignee } = useGlisser({
+    onDeposer: (de, vers) => deplacer(de, vers),
+    onToucher: (de) => commencerPlacement(de.date, de.slot),
+  });
+
+  const issueDuDepot = glisse?.vers
+    ? decrireDepot(glisse.vers, intituleDe(repasDe(glisse.vers.date, glisse.vers.slot)))
+    : 'Vers quelle case ?';
+
+  /*
+   * Un seul bandeau à la fois au-dessus des onglets. Celui d'annulation attend
+   * que les panneaux soient refermés : derrière leur voile, il s'écoulerait
+   * sans être vu — le panneau d'une case offre alors sa propre annulation.
+   */
+  const panneauOuvert = saisie !== null || coursesOuvertes || importOuvert;
+  const bandeau = placement ? 'placement' : annulation && !panneauOuvert ? 'annulation' : null;
 
   const jours = joursDeLaSemaine(debut);
   const ceJour = aujourdhui();
@@ -91,7 +164,9 @@ export function MenusPage() {
   const envoiPossible = coursesDisponibles && recettesDisponibles;
 
   return (
-    <div className="pb-4">
+    // Un bandeau couvre le bas de l'écran : la marge le compense, pour que le
+    // dimanche et le bouton des courses restent atteignables.
+    <div className={bandeau ? 'pb-28' : 'pb-4'}>
       {error && (
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
@@ -145,7 +220,9 @@ export function MenusPage() {
 
       {status === 'ready' && (
         <>
-          <ul className="space-y-3">
+          {/* Pendant un glisser à la souris, le pointeur traverse des intitulés
+              qu'il ne doit pas sélectionner au passage. */}
+          <ul className={['space-y-3', glisse ? 'select-none' : ''].join(' ')}>
             {jours.map((date) => (
               <li key={date} ref={date === ceJour ? carteDuJour : undefined}>
                 <DayRow
@@ -154,11 +231,28 @@ export function MenusPage() {
                   repasDe={repasDe}
                   recetteDe={recetteDe}
                   intituleDe={intituleDe}
-                  onOuvrir={(jour, creneau) => setSaisie({ date: jour, creneau })}
+                  placement={placement}
+                  glisse={glisse}
+                  poignee={poignee}
+                  onOuvrir={toucherCase}
                 />
               </li>
             ))}
           </ul>
+
+          {/* Le geste ne se devine pas tout à fait : la poignée se voit, mais
+              qu'on puisse aussi la toucher, et ce que devient un repas déjà
+              en place, il faut le dire. En bas de la semaine, comme l'aide
+              des courses : c'est là qu'on la lit, après l'avoir parcourue. */}
+          {repasPrevus > 0 && !placement && (
+            <p className="mt-3 text-xs text-sand-500">
+              {/* Les marges négatives rattrapent le vide que le dessin laisse de
+                  part et d'autre de ses points. */}
+              Pour déplacer un repas, fais glisser sa poignée{' '}
+              <PoigneeIcon className="-mx-1 inline size-4 align-[-3px]" />, ou touche-la puis choisis
+              la case. Sur un repas déjà prévu, il s'insère et pousse la suite d'un jour.
+            </p>
+          )}
 
           {/* La boucle du module : ce qui est prévu devient ce qu'il faut
               acheter. Le bouton se place après la semaine, dans l'ordre où l'on
@@ -203,15 +297,30 @@ export function MenusPage() {
           intitule={intituleDe(repasDe(saisie.date, saisie.creneau))}
           recipes={recipes}
           recettesDisponibles={recettesDisponibles}
+          raccourcis={raccourcis}
+          annulation={annulation}
           onChoisir={(contenu) => definirRepas(saisie.date, saisie.creneau, contenu)}
           onCreerRecette={(title) => creerEtPoser(saisie.date, saisie.creneau, title)}
           onVider={() => {
             const repas = repasDe(saisie.date, saisie.creneau);
             if (repas) viderRepas(repas);
           }}
+          onDeplacer={() => commencerPlacement(saisie.date, saisie.creneau)}
+          onDecaler={() => decaler(saisie.date, saisie.creneau)}
+          onAnnuler={annuler}
           onClose={() => setSaisie(null)}
         />
       )}
+
+      {bandeau === 'placement' && (
+        <BandeauPlacement intitule={placement.intitule} onAnnuler={() => setPlacement(null)} />
+      )}
+
+      {bandeau === 'annulation' && (
+        <BandeauAnnulation annulation={annulation} onAnnuler={annuler} onFermer={oublierAnnulation} />
+      )}
+
+      <Fantome ref={fantome} glisse={glisse} description={issueDuDepot} />
 
       {coursesOuvertes && (
         <ShoppingSheet
