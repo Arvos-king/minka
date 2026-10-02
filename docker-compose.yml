@@ -54,6 +54,14 @@ services:
       BACKUP_HOUR: ${BACKUP_HOUR:-3}
       BACKUP_KEEP: ${BACKUP_KEEP:-14}
       BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
+
+      # Connecteur Claude (voir .env.example et le README). Vides par défaut :
+      # le connecteur reste éteint tant qu'on ne l'a pas mis en service.
+      MCP_RESOURCE_URL: ${MCP_RESOURCE_URL:-}
+      MCP_ISSUER: ${MCP_ISSUER:-}
+      MCP_PERMISSION: ${MCP_PERMISSION:-}
+      MCP_USERS: ${MCP_USERS:-}
+      MCP_JWKS_URL: ${MCP_JWKS_URL:-}
     volumes:
       # La base SQLite vit ici. Sur unRAID : /mnt/user/appdata/minka/data
       - ./data:/data

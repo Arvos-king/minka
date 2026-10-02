@@ -332,7 +332,11 @@ d'après. **Annuler** rétablit le premier en attendant le second : si l'autre a
 touché une de ces cases entre-temps, le serveur refuse tout plutôt que
 d'effacer son geste sans que personne le sache.
 
-**Importer une semaine**, enfin : le bouton « Importer » de l'en-tête accepte un
+**Importer une semaine**, enfin. Le chemin ordinaire est désormais le
+[connecteur Claude](#connecteur-claude--apimcp) : Claude lit le planning, le
+répertoire et le frigo, et pose lui-même la semaine qu'on a préparée ensemble,
+recettes complètes comprises. Le bouton « Importer » de l'en-tête reste pour le
+reste — une semaine rédigée ailleurs, ou sans le connecteur. Il accepte un
 menu écrit en texte, l'analyse à la frappe et montre **ce qui sera posé**, jour
 par jour, avant d'appliquer. Le format reste lisible tel quel — c'est d'abord un
 menu qu'on lit, accessoirement un texte qu'une machine analyse :
@@ -353,15 +357,22 @@ Les jours s'écrivent en toutes lettres ou abrégés, avec ou sans quantième
 (`Lundi`, `lun.`, `Lundi 31 août`) ; les créneaux acceptent `Midi`/`Déjeuner` et
 `Soir`/`Dîner` ; la décoration Markdown d'une réponse copiée est ignorée.
 
-Le sort de chaque plat suit une seule règle :
+Le sort de chaque plat est décidé par le module recettes, selon la règle
+[« la recette du foyer fait foi »](#la-recette-du-foyer-fait-foi) — la même pour
+l'import texte et pour le connecteur :
 
-- **des ingrédients listés → une recette**, créée ou mise à jour. C'est ce qui
-  alimente ensuite la liste de courses ;
-- **pas d'ingrédients, mais une recette du même nom existe → elle est
-  réutilisée**, ce qui permet d'écrire « Gratin de courgettes » sans recopier sa
-  liste chaque semaine ;
+- **des ingrédients listés, aucune recette de ce nom → une recette créée**.
+  C'est ce qui alimente ensuite la liste de courses ;
+- **une recette de ce nom existe → elle est réutilisée**, ce qui permet
+  d'écrire « Gratin de courgettes » sans recopier sa liste chaque semaine. Si
+  elle n'a pas encore de préparation, les ingrédients listés la complètent ; si
+  elle en a une, elle est gardée telle quelle, et le bilan le dit ;
 - **pas d'ingrédients, aucune recette connue → un texte libre**, comme
   « restes » ou « chez mes parents ».
+
+Le nom est retrouvé à l'orthographe près — accents, apostrophes, pluriel :
+« Gratin de courgette » retrouve « Gratin de courgettes » au lieu d'en créer
+une seconde.
 
 L'import se fait en **deux requêtes, deux transactions**. Les plats partent
 d'abord au module recettes, qui les retrouve ou les crée et rend leurs
@@ -374,9 +385,8 @@ Sans le module recettes, la semaine entière se pose en texte libre : les
 ingrédients lus sont perdus, mais le menu est là — et le panneau le dit avant
 d'appliquer.
 
-Le pré-prompt du projet Claude qui rédige ces semaines vit dans
-[`docs/prompt-menus.md`](docs/prompt-menus.md) : il décrit ce format à la
-lettre, et c'est là qu'il faut répercuter toute évolution de l'analyseur.
+L'import texte ne porte que les ingrédients, pas les étapes : une recette qu'il
+crée naît sans préparation. C'est le connecteur qui porte une recette entière.
 
 | Route | Effet |
 | --- | --- |
@@ -537,29 +547,55 @@ d'ail » au milieu des ingrédients n'annonce pas une recette pour deux.
 Ce qui n'a pas été compris est dit avant d'enregistrer, ligne par ligne, plutôt
 que de laisser découvrir ce qui manque.
 
+#### La recette du foyer fait foi
+
+Des recettes arrivent aussi d'ailleurs que du formulaire : l'import d'une semaine
+de menus, le connecteur Claude. Quand l'une porte le nom d'une recette déjà au
+répertoire, une seule règle décide (`modules/recipes/resolution.js`) :
+
+- une recette qui a **sa préparation** — au moins une étape — a été écrite ou
+  relue par quelqu'un de la maison. **Elle n'est pas touchée**, même face à une
+  version plus fournie, et l'appelant en est averti. On la corrige en la
+  modifiant, pas en la réimportant ;
+- une recette **sans préparation** n'est qu'une ébauche — souvent laissée par
+  l'import texte, qui ne porte que les ingrédients. La version qui arrive la
+  **complète** : ses ingrédients et ses étapes remplacent les anciens, qui vont
+  ensemble ; les parts et la remarque ne sont posées que si elles manquaient ;
+  les étiquettes s'ajoutent à celles du foyer — « les enfants aiment » ne se
+  perd pas parce qu'une proposition ne le savait pas.
+
+Le nom se compare **à l'orthographe près** : sans casse, sans accents, sans
+ponctuation, sans le pluriel de chaque mot. « Gratin de courgette » retrouve
+« Gratin de courgettes », et le répertoire ne se dédouble plus au gré d'une
+proposition écrite un peu autrement. Parmi des doublons nés avant cette règle,
+celle qu'on a écrite exactement ainsi passe d'abord, sinon la plus ancienne. La
+comparaison vit dans le socle (`lib/titres.js`), le connecteur s'en servant aussi.
+
 | Route | Effet |
 | --- | --- |
-| `GET /api/recipes/items` | Le répertoire, avec le **nom** des ingrédients et les étiquettes |
+| `GET /api/recipes/items` | Le répertoire, avec le **nom** des ingrédients, les étiquettes et le nombre d'étapes |
 | `GET /api/recipes/items/:id` | Une recette entière |
 | `POST /api/recipes/items` | Création |
 | `PATCH /api/recipes/items/:id` | Modification — `ingredients`, `steps` et `tags` remplacent la liste entière |
 | `DELETE /api/recipes/items/:id` | Suppression |
 | `GET /api/recipes/ingredients?ids=1,2,5` | Ingrédients de plusieurs recettes, regroupés par nom |
-| `POST /api/recipes/resolve` | Des intitulés → des identifiants, en créant ce qui manque |
+| `POST /api/recipes/resolve` | Des plats → des identifiants, en créant ou complétant ce qu'il faut |
 
 Le répertoire porte le **nom** des ingrédients — pas leurs quantités, pas les
 étapes. C'est ce qu'il faut pour choisir, et surtout pour chercher : le tri et
 le filtre se font ensuite dans le navigateur, sans aller-retour à chaque lettre
-tapée, et hors ligne comme en ligne.
+tapée, et hors ligne comme en ligne. Les étapes n'y sont que comptées
+(`stepCount`) : de quoi distinguer une recette achevée d'une ébauche.
 
 Les deux dernières routes existent **pour les autres modules**. `/ingredients` livre le
 libellé tout fait — « Crème (20 cl + un filet) » — de sorte que celui qui
 l'envoie dans les courses n'a qu'une chaîne à recopier, sans rien savoir de la
-forme d'un ingrédient. `/resolve` reçoit des plats lus dans un texte et rend de
-quoi les désigner : c'est par là que passe l'import d'une semaine de menus, sans
-que le planning écrive jamais dans les tables des recettes. Les plats en
-reviennent **dans l'ordre où ils sont partis**, ce qui permet de les recoudre par
-position.
+forme d'un ingrédient. `/resolve` reçoit des plats — un titre, et tout ce
+qu'une recette peut porter — et rend de quoi les désigner, avec le bilan de ce
+que la règle ci-dessus en a fait : c'est par là que passent l'import d'une
+semaine de menus et le connecteur Claude, sans que ni l'un ni l'autre écrive
+jamais dans les tables des recettes. Les plats en reviennent **dans l'ordre où
+ils sont partis**, ce qui permet de les recoudre par position.
 
 **Une adresse, aussi, pour les autres modules.** `/recettes?recette=12` ouvre
 la page sur la fiche de cette recette : c'est par là que la casserole d'un repas
@@ -578,6 +614,139 @@ menus ; celle du module recettes les déclare en `CREATE TABLE IF NOT EXISTS` �
 rien sur une base en service, tout sur une base neuve ou sur une installation où
 le dossier `menus` n'est pas déposé. Réécrire l'histoire pour les retirer de
 `menus:001` aurait fait diverger les deux cas.
+
+### Connecteur Claude — `/api/mcp`
+
+Les menus de la semaine se préparent avec Claude, dans un projet claude.ai. Le
+connecteur lui ouvre Minka par le protocole MCP : il **lit** ce qu'on a mangé,
+le répertoire et le frigo, puis **pose** la semaine dont on est convenus —
+recettes entières comprises, étapes, parts et étiquettes, prêtes pour le mode
+cuisine. Plus de bloc de texte à coller, plus de recette à reprendre une à une
+pour y ajouter sa préparation.
+
+| Outil | Effet |
+| --- | --- |
+| `lire_planning` | Le planning jour par jour, cases vides comprises. Sans paramètre : les quatre semaines passées, la courante et la suivante, et la date du jour |
+| `lister_recettes` | Le répertoire : titres exacts, étiquettes, noms des ingrédients, et si la recette a sa préparation |
+| `lire_recette` | Une recette entière |
+| `lire_frigo` | Les produits, les dates les plus proches en tête |
+| `poser_repas` | Pose jusqu'à quatorze repas, recettes comprises |
+| `enregistrer_recette` | Garde une recette au répertoire sans la planifier |
+| `modifier_recette` | Réécrit une recette existante — à la demande explicite seulement |
+
+Module sans interface, comme la sauvegarde. Un outil n'est proposé que si le
+module dont il dépend est monté : sans frigo, Claude ne voit pas `lire_frigo`.
+
+**Les garde-fous de l'écriture.** Claude propose d'abord la semaine dans la
+conversation, et n'écrit qu'une fois d'accord — c'est la consigne de ses
+instructions, et claude.ai demande par défaut l'autorisation avant de se servir
+d'un outil. Ensuite :
+
+- **une case déjà occupée n'est jamais écrasée** sans `remplacer: true`, que
+  Claude ne passe qu'à la demande : `poser_repas` refuse tout et nomme la case.
+  Une case qui porte déjà le même plat — à l'orthographe près — n'est pas un
+  conflit : on peut reposer une semaine pour n'en changer qu'un soir ;
+- **la recette du foyer fait foi** : une recette qui a sa préparation n'est pas
+  réécrite, et le bilan le dit à Claude, qui ne croit pas ses ingrédients
+  partis dans les courses ([voir Recettes](#la-recette-du-foyer-fait-foi)) ;
+- **le planning se relit avant d'écrire**, et chaque case s'écrit sous
+  condition de ce qu'on y a lu — la garde qui protège déjà « Annuler » : si
+  l'autre a touché la semaine entre-temps, rien n'est écrit.
+
+**L'accès est délivré par Pocket-ID, pas par Minka.** Claude présente un jeton
+que Pocket-ID a signé après une connexion par passkey ; le connecteur en
+vérifie la signature, l'émetteur, l'**audience** — un jeton délivré pour une
+autre application du foyer, par le même Pocket-ID, n'ouvre pas Minka —,
+l'échéance et la permission. `MCP_USERS` rapporte ensuite la personne à son
+compte Minka : c'est en son nom que tout est lu et écrit, et c'est aussi la
+liste de qui a le droit d'entrer.
+
+Le refus d'un jeton part en 401 **avant** le SDK MCP : une fois un outil lancé,
+tout ce qu'il rend est emballé dans un 200, et un 200 ne déclenche jamais la
+connexion. L'en-tête `WWW-Authenticate` de ce 401 mène Claude au document de
+découverte (RFC 9728), servi sous `/api/mcp/oauth-protected-resource` et non à
+la racine du domaine : Claude accepte n'importe quelle adresse à cet endroit, et
+une route `/.well-known` à la racine aurait demandé de toucher au nginx du
+socle.
+
+**Le connecteur passe par les mêmes routes que l'interface.** Il n'importe le
+code d'aucun module et ne lit aucune de leurs tables : il appelle leur API HTTP
+en boucle locale (`127.0.0.1`), avec une session signée au nom de la personne.
+C'est [Faire dialoguer deux modules](#faire-dialoguer-deux-modules) appliqué
+côté serveur — chaque module garde ses règles (validation, « la recette du
+foyer fait foi », condition `attendu`), et ce que Claude écrit porte le nom de
+qui l'a demandé, comme s'il l'avait tapé.
+
+**Sans état.** Un serveur MCP est construit pour chaque requête puis jeté :
+pas de session à expirer, rien à perdre au redémarrage du conteneur. Le SDK
+(v2) sert aussi bien les clients d'aujourd'hui que ceux du protocole de 2025,
+claude.ai compris.
+
+**Deux textes, deux rôles.** Ce que le connecteur dit de lui-même à chaque
+conversation — comment lire Minka, comment y écrire — vit dans
+`modules/mcp/instructions.js`, à côté des outils qu'il décrit, pour ne jamais
+s'en écarter. Les goûts du foyer — qui mange, ce qu'on évite, le temps qu'on a,
+la cantine — sont les instructions du projet Claude :
+[`docs/prompt-menus.md`](docs/prompt-menus.md).
+
+#### Mettre le connecteur en service
+
+Sans aucune variable `MCP_*`, le connecteur est éteint et son adresse répond
+503 en le disant. À moitié configuré, l'API refuse de démarrer : un connecteur
+exposé sur Internet qui vérifierait mal ses jetons serait la pire des trappes.
+
+| Variable | Rôle |
+| --- | --- |
+| `MCP_RESOURCE_URL` | Adresse publique du connecteur, `https://minka.<domaine>/api/mcp`. C'est aussi l'audience attendue dans les jetons |
+| `MCP_ISSUER` | Adresse publique de Pocket-ID, `https://id.<domaine>` |
+| `MCP_PERMISSION` | La permission de l'API Minka dans Pocket-ID, par exemple `menus` |
+| `MCP_USERS` | `<identifiant Pocket-ID>=<compte Minka>`, séparés par des virgules |
+| `MCP_JWKS_URL` | Facultative : les clés de Pocket-ID par son adresse interne, si le conteneur ne joint pas l'adresse publique |
+
+**1. Dans Pocket-ID**, créer un client OIDC « Claude » : client **public**
+(sans secret), PKCE activé, adresses de retour
+`https://claude.ai/api/mcp/auth_callback` et
+`https://claude.com/api/mcp/auth_callback` — Anthropic annonce que la seconde
+remplacera un jour la première. Puis, dans **Réglages > API**, créer l'API
+« Minka » : identifiant de ressource = `MCP_RESOURCE_URL` exactement, une
+permission (`menus`), et l'accès accordé au client « Claude ».
+
+Le client se déclare à la main : Pocket-ID n'offre ni l'enregistrement
+automatique des clients, ni, tant qu'on ne l'y autorise pas, l'identité publiée
+de Claude.
+
+**2. Dans le `.env`**, renseigner les variables. L'identifiant Pocket-ID d'une
+personne est celui qui figure dans l'adresse de sa fiche, dans
+l'administration des utilisateurs. À défaut, le journal le donne à la première
+connexion refusée :
+
+```
+[mcp] sujet inconnu « … » : ajoute-le à MCP_USERS pour lui ouvrir Minka.
+```
+
+**3. Redéployer**, puis vérifier :
+
+```bash
+docker compose up -d --build
+docker logs minka-api 2>&1 | grep '\[mcp\]'
+curl https://minka.<domaine>/api/mcp/oauth-protected-resource
+```
+
+Le conteneur doit pouvoir joindre Pocket-ID pour y lire ses clés. Si la box ne
+renvoie pas vers l'intérieur une adresse publique appelée depuis le réseau local
+(« hairpin NAT »), la vérification des jetons échoue : `MCP_JWKS_URL` donne
+alors l'adresse interne, `http://IP_UNRAID:1411/.well-known/jwks.json`.
+
+**4. Dans claude.ai**, *Personnaliser → Connecteurs → Ajouter un connecteur
+personnalisé* : l'adresse `MCP_RESOURCE_URL`, et dans les réglages avancés
+l'identifiant du client « Claude », secret vide. *Se connecter* ouvre
+Pocket-ID ; une fois revenu, activer le connecteur dans le projet (menu **+** de
+la conversation → *Connecteurs*). Les outils de lecture peuvent être autorisés
+une fois pour toutes ; ceux d'écriture gagnent à demander à chaque fois.
+
+Claude appelle depuis les adresses d'Anthropic, `160.79.104.0/21`, aussi bien
+Minka que Pocket-ID : une liste d'accès de Nginx Proxy Manager ou une décision
+de CrowdSec qui les bloquerait se traduit par « Couldn't reach the MCP server ».
 
 ### Notes — `/notes`
 
@@ -797,6 +966,9 @@ trois qui méritent l'attention :
 | `SESSION_COOKIE_SECURE` | `true` | Restreint le cookie de session au HTTPS. Voir l'avertissement ci-dessous. |
 | `TRUST_PROXY` | `2` | Nombre de proxies devant l'API : Nginx Proxy Manager, puis le nginx de `minka-web`. |
 
+Les variables `MCP_*` du connecteur Claude sont décrites avec lui, dans
+[Mettre le connecteur en service](#mettre-le-connecteur-en-service).
+
 ### ⚠️ `SESSION_COOKIE_SECURE` et l'accès direct par IP
 
 Avec `SESSION_COOKIE_SECURE=true`, **la connexion ne fonctionne pas via
@@ -961,10 +1133,21 @@ d'un nom d'article en rayon : la normalisation qui réunit « Œufs », « oeufs
 « 2 œufs », les pièges du français que le dictionnaire doit tenir — le lait de
 coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson — et
 l'invariant qui vérifie que chacun de ses quatre cents termes se range là où il
-est déclaré. Enfin `modules/menus/reorganisation.js`, la règle « insérer et
+est déclaré. Puis `modules/menus/reorganisation.js`, la règle « insérer et
 pousser » qui réorganise le planning : la poussée jusqu'à la première case
 libre, la chaîne qui tourne quand un repas y remonte, le débordement sur la
-semaine suivante.
+semaine suivante. Et `modules/recipes/resolution.js` avec `lib/titres.js`, la
+règle « la recette du foyer fait foi » et la comparaison des titres à
+l'orthographe près — que deux plats différents, « Tarte aux pommes » et « Tarte
+aux pommes de terre », ne se confondent pas.
+
+Enfin le connecteur Claude : sa configuration (`modules/mcp/config.js`), qui
+refuse une installation à moitié faite ; la vérification des jetons
+(`jeton.js`), éprouvée contre un faux Pocket-ID — des clés générées pour
+l'occasion, sans réseau — qui signe des jetons pour une autre application, par
+un autre émetteur, expirés ou sans la permission ; et la traduction entre les
+mots de Claude et les routes de Minka (`traduction.js`), dont la détection des
+cases occupées.
 
 Côté interface : `lib/dates.js`, `lib/collection.js` — les opérations de liste
 et le suivi des quantités sur lesquels repose `useCollection` — et la logique
@@ -1077,7 +1260,9 @@ couvre la navigation, qui n'a alors plus lieu d'être visible.
 ### Ce que le socle met à disposition
 
 Côté API : `isoDate` et `isoTime` (`src/lib/schemas.js`), validateurs de date et
-d'heure qui vérifient l'existence réelle du jour, pas seulement le format.
+d'heure qui vérifient l'existence réelle du jour, pas seulement le format ; et
+`cleTitre` / `memePlat` (`src/lib/titres.js`), qui disent si deux titres
+désignent le même plat — sans casse, accents, ponctuation ni pluriel.
 
 Côté interface : `lib/dates.js` (`aujourdhui`, `decalerJours`, `joursEntre`) —
 tous les calculs y passent par UTC, car comparer des jours en heure locale fait
@@ -1239,6 +1424,13 @@ exactes les routes des modules, et `/recettes/12` retomberait sur l'accueil.
       une seule règle, « insérer et pousser », appliquée par le serveur et
       prédite par la page —, annuler pendant huit secondes, et les textes
       libres du foyer posés d'un tap.
+- [x] **La recette du foyer fait foi** : une recette qui a sa préparation n'est
+      plus réécrite par un import, une ébauche est complétée sans perdre ce que
+      le foyer y avait mis, et les titres se retrouvent à l'orthographe près.
+- [x] **Connecteur Claude** : Claude lit le planning, le répertoire et le frigo,
+      et pose la semaine préparée ensemble, recettes entières comprises — sans
+      copier-coller. L'accès est délivré par Pocket-ID, et le connecteur ne
+      parle aux autres modules que par leurs routes HTTP.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
@@ -1247,11 +1439,11 @@ pas été faite parce que sa difficulté n'est pas la file, mais le conflit quan
 vous modifiez tous les deux la même chose chacun de votre côté. Côté liste de
 courses, les rayons étant faits, les évolutions naturelles seraient les articles
 récurrents et le temps réel (SSE) à la place du rafraîchissement au retour sur
-l'application. Côté recettes, l'import d'une semaine de menus ne sait pas encore
-porter les étapes ni les étiquettes — une recette qu'il crée naît avec ses seuls
-ingrédients, et sa préparation s'écrit après coup ; l'analyseur d'une recette
-collée sait pourtant déjà les lire, et
-[`docs/prompt-menus.md`](docs/prompt-menus.md) devrait alors le dire. Côté
+l'application. Côté connecteur Claude, l'étape suivante serait d'envoyer
+lui-même les ingrédients de la semaine dans la liste de courses — elle passe
+aujourd'hui par le bouton des menus, qui laisse décocher ce qu'on a déjà —, puis
+d'ouvrir d'autres modules : le calendrier, pour que Claude sache quels soirs on
+ne dîne pas à la maison. Côté
 menus, la semaine affichée gagnerait à vivre dans l'adresse : revenir d'une
 recette posée une autre semaine ramène pour l'instant sur la semaine en cours.
 Côté calendrier, les événements récurrents et un
