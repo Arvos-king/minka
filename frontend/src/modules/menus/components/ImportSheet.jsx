@@ -108,10 +108,19 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
                   {bilan.recettes.creees.join(', ')}
                 </li>
               )}
-              {bilan.recettes?.misesAJour.length > 0 && (
+              {bilan.recettes?.completees.length > 0 && (
                 <li>
-                  {bilan.recettes.misesAJour.length} recette(s) mise(s) à jour :{' '}
-                  {bilan.recettes.misesAJour.join(', ')}
+                  {bilan.recettes.completees.length} recette(s) complétée(s) :{' '}
+                  {bilan.recettes.completees.join(', ')}
+                </li>
+              )}
+              {/* La recette du foyer fait foi : une liste collée ne réécrit pas
+                  une recette qui a déjà sa préparation. Le dire, sans quoi on
+                  croirait ses nouveaux ingrédients partis dans les courses. */}
+              {bilan.recettes?.conservees.length > 0 && (
+                <li>
+                  Gardée(s) telle(s) quelle(s), car elles ont déjà leur préparation :{' '}
+                  {bilan.recettes.conservees.join(', ')}
                 </li>
               )}
               {bilan.recettes?.inconnues.length > 0 && (
