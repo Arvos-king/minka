@@ -288,6 +288,50 @@ renommer une recette se voit dans les semaines déjà posées.
 Sans le module recettes, le planning reste un agenda de repas écrits à la main.
 C'est déjà la moitié d'une vraie semaine.
 
+**Réorganiser la semaine** se fait d'un geste, sans rien perdre : « ce soir,
+resto » ne coûte plus la fin de semaine à refaire.
+
+- une **poignée** au bout de chaque repas l'emporte jusqu'à une autre case.
+  Pendant le geste, le repas suit le doigt en annonçant l'issue — « jeudi 8
+  soir · pousse « Chili » » —, la case visée s'éclaire, et la page défile seule
+  quand on approche d'un bord ;
+- **touchée sans être glissée**, la poignée ouvre « Déplacer… », qu'on trouve
+  aussi dans le panneau d'une case : on touche ensuite la case d'arrivée, au
+  besoin dans une autre semaine. C'est aussi le chemin du clavier et du lecteur
+  d'écran ;
+- **« Décaler d'un jour »**, dans le panneau, envoie le repas au lendemain. Le
+  panneau reste ouvert sur la case vidée, et le resto tient en deux touchers :
+  décaler, puis « Resto » ;
+- tant que le champ du panneau est vide, les **raccourcis** — les textes libres
+  que le foyer écrit le plus souvent sur huit semaines, complétés par « Restes »
+  et « Resto » — se posent d'un tap ;
+- chaque réorganisation laisse **huit secondes pour annuler**, ce qui vaut mieux
+  qu'une confirmation avant chaque geste.
+
+Glisser, poser par « Déplacer… » et décaler obéissent à **une seule règle,
+« insérer et pousser »** : la case de départ se libère, le repas prend la case
+d'arrivée, et celui qu'il déloge glisse d'un jour sur le même créneau — un dîner
+reste un dîner —, jusqu'à la première case libre. Celle-ci peut être la case quittée, quand un repas
+remonte sa propre chaîne, ou un jour de la semaine suivante : rien ne se perd.
+Le prix de la règle : échanger le midi et le soir d'un même jour ne se fait plus
+d'un geste, puisque le dîner délogé part au lendemain soir — c'est ce que
+rattrape l'annulation.
+
+**Le serveur tranche, l'interface prédit.** La poussée peut franchir le
+dimanche, que la page n'a pas chargé, et doit partir de l'état réel du planning,
+sur lequel l'autre a pu poser un repas depuis : c'est le serveur qui l'applique,
+dans une transaction. La page applique d'abord la même règle à ce qu'elle voit,
+pour l'affichage optimiste, puis la réponse, qui fait foi — sans en garder ce
+qui tombe hors de la semaine affichée. La fonction est donc recopiée des deux
+côtés, `reorganisation.js` dans le module de l'API comme dans celui de
+l'interface, et leurs tests déroulent les mêmes scénarios : si l'une change,
+l'autre doit suivre.
+
+Les deux routes d'écriture rendent chaque case touchée avec son état d'avant et
+d'après. **Annuler** rétablit le premier en attendant le second : si l'autre a
+touché une de ces cases entre-temps, le serveur refuse tout plutôt que
+d'effacer son geste sans que personne le sache.
+
 **Importer une semaine**, enfin : le bouton « Importer » de l'en-tête accepte un
 menu écrit en texte, l'analyse à la frappe et montre **ce qui sera posé**, jour
 par jour, avant d'appliquer. Le format reste lisible tel quel — c'est d'abord un
@@ -339,11 +383,18 @@ lettre, et c'est là qu'il faut répercuter toute évolution de l'analyseur.
 | `GET /api/menus/plan?from=&to=` | Repas prévus sur la période |
 | `PUT /api/menus/plan/:date/:slot` | Pose un repas (`title`, plus `recipeId` facultatif) |
 | `DELETE /api/menus/plan/:date/:slot` | Vide la case |
+| `POST /api/menus/plan/deplacer` | Déplace un repas en poussant ceux qu'il déloge (`de`, `vers`) |
+| `PATCH /api/menus/plan` | Fixe plusieurs cases d'un bloc, chacune sous condition de ce qu'elle porte (`attendu`) |
+| `GET /api/menus/raccourcis` | Textes libres les plus fréquents du foyer |
 | `POST /api/menus/import` | Pose une semaine entière, en une transaction |
 
 `PUT` et non `POST` sur une case : c'est une ressource adressable dont on fixe
 le contenu, et poser deux fois le même repas au même endroit doit donner le même
-résultat.
+résultat. `PATCH` sur le planning : seules les cases citées changent.
+
+Une réorganisation s'écrit **case par case, par contenu**, plutôt qu'en
+déplaçant des lignes : sous `UNIQUE (on_date, slot)`, une ligne avancée d'un
+jour heurterait sa voisine avant que celle-ci ait bougé.
 
 L'existence de la recette **n'est pas vérifiée** à la pose, et ne peut pas
 l'être : ses tables appartiennent à un autre module. Un identifiant devenu caduc
@@ -910,12 +961,18 @@ d'un nom d'article en rayon : la normalisation qui réunit « Œufs », « oeufs
 « 2 œufs », les pièges du français que le dictionnaire doit tenir — le lait de
 coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson — et
 l'invariant qui vérifie que chacun de ses quatre cents termes se range là où il
-est déclaré.
+est déclaré. Enfin `modules/menus/reorganisation.js`, la règle « insérer et
+pousser » qui réorganise le planning : la poussée jusqu'à la première case
+libre, la chaîne qui tourne quand un repas y remonte, le débordement sur la
+semaine suivante.
 
 Côté interface : `lib/dates.js`, `lib/collection.js` — les opérations de liste
 et le suivi des quantités sur lesquels repose `useCollection` — et la logique
 pure de chaque module : échéances du frigo, agenda du calendrier, échéances des
-tâches, regroupement de la liste de courses par rayon.
+tâches, regroupement de la liste de courses par rayon, réorganisation du
+planning des menus — la copie de la règle du serveur, vérifiée par les mêmes
+scénarios que l'original —, son défilement au bord de l'écran et ses
+raccourcis.
 
 Les fichiers testés sont volontairement séparés de tout accès à la base ou au
 DOM. C'est ce qui permet à `node --test` de les charger tels quels : un test qui
@@ -1177,6 +1234,11 @@ exactes les routes des modules, et `/recettes/12` retomberait sur l'accueil.
 - [x] **Des menus à la recette** : une casserole au bout d'un repas ouvre sa
       fiche d'un tap, la refermer ramène au planning, et celui-ci s'ouvre
       centré sur aujourd'hui.
+- [x] **Réorganiser la semaine** : glisser un repas par sa poignée, le poser
+      par « Déplacer… » jusque dans une autre semaine, le décaler d'un jour —
+      une seule règle, « insérer et pousser », appliquée par le serveur et
+      prédite par la page —, annuler pendant huit secondes, et les textes
+      libres du foyer posés d'un tap.
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
