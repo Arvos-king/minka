@@ -7,6 +7,7 @@
  */
 
 import { db, stmt } from '../../db/index.js';
+import { contenuDe, memeContenu, planifierDeplacement } from './reorganisation.js';
 
 /**
  * Une case du planning.
@@ -77,4 +78,79 @@ export function importerSemaine(entries) {
   });
 
   return { posees: appliquer() };
+}
+
+/**
+ * Réécrit des cases, et rend pour chacune son état d'avant et d'après.
+ *
+ * Case par case, par contenu, plutôt qu'en déplaçant des lignes : sous
+ * `UNIQUE (on_date, slot)`, une ligne avancée d'un jour heurterait sa voisine
+ * avant que celle-ci ait bougé. Chaque case n'apparaissant qu'une fois, l'ordre
+ * des écritures est indifférent.
+ *
+ * `avant` est un contenu (ce que l'appelant pourra rétablir), `apres` la case
+ * telle qu'elle se lit désormais, identifiant compris.
+ */
+function reecrire(changements) {
+  return changements.map(({ onDate, slot, avant, apres }) => {
+    if (apres) return { onDate, slot, avant, apres: setEntry({ onDate, slot, ...apres }) };
+
+    clearEntry(onDate, slot);
+    return { onDate, slot, avant, apres: null };
+  });
+}
+
+/**
+ * Déplace un repas, en poussant ce qu'il déloge — la règle est dans
+ * `reorganisation.js`.
+ *
+ * Tout se lit et s'écrit dans la même transaction : la poussée part de l'état
+ * réel du planning, pas de celui qu'affichait le téléphone, sur lequel l'autre
+ * a pu poser un repas depuis. Et c'est le serveur seul qui voit au-delà du
+ * dimanche, là où une poussée peut finir.
+ *
+ * @returns les cases touchées, ou `null` si la case de départ est vide — le
+ *   repas a changé de place entre-temps, et rien n'a été écrit.
+ */
+export function deplacerRepas(de, vers) {
+  const appliquer = db.transaction(() => {
+    const source = getEntry(de.date, de.slot);
+    if (!source) return null;
+
+    const suite = stmt('SELECT * FROM meal_plan WHERE slot = :slot AND on_date >= :date')
+      .all({ slot: vers.slot, date: vers.date })
+      .map(toPublicEntry);
+
+    return reecrire(planifierDeplacement({ de, contenu: contenuDe(source), vers, suite }));
+  });
+
+  return appliquer();
+}
+
+/**
+ * Fixe plusieurs cases d'un bloc. C'est ce qui annule une réorganisation : on
+ * rétablit l'état d'avant de chaque case touchée.
+ *
+ * `attendu`, quand il est fourni, est ce que l'appelant pense trouver dans la
+ * case. Tous sont vérifiés avant la moindre écriture, et un seul désaccord
+ * suffit à ne rien écrire : l'autre a touché au planning entre-temps, et
+ * rétablir par-dessus effacerait son geste sans que personne le sache.
+ *
+ * @returns les cases touchées, ou `null` en cas de désaccord.
+ */
+export function fixerCases(cases) {
+  const appliquer = db.transaction(() => {
+    const avants = cases.map(({ onDate, slot }) => contenuDe(getEntry(onDate, slot)));
+
+    const desaccord = cases.some(
+      ({ attendu }, rang) => attendu !== undefined && !memeContenu(avants[rang], attendu),
+    );
+    if (desaccord) return null;
+
+    return reecrire(
+      cases.map(({ onDate, slot, repas }, rang) => ({ onDate, slot, avant: avants[rang], apres: repas })),
+    );
+  });
+
+  return appliquer();
 }

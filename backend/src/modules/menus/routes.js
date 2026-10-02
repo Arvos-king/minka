@@ -1,10 +1,31 @@
 import { Router } from 'express';
 
+import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
-import { clearEntry, importerSemaine, listPlan, setEntry } from './service.js';
-import { importSchema, planParamsSchema, planQuerySchema, setEntrySchema } from './schemas.js';
+import {
+  clearEntry,
+  deplacerRepas,
+  fixerCases,
+  importerSemaine,
+  listPlan,
+  setEntry,
+} from './service.js';
+import {
+  deplacerSchema,
+  fixerCasesSchema,
+  importSchema,
+  planParamsSchema,
+  planQuerySchema,
+  setEntrySchema,
+} from './schemas.js';
 
 export const router = Router();
+
+/**
+ * 409 : le planning n'est plus celui sur lequel le geste a été pensé. Rien n'a
+ * été écrit ; l'interface recharge et laisse recommencer.
+ */
+const planModifie = (message) => new AppError(409, 'PLAN_CONFLICT', message);
 
 router.get('/plan', validate({ query: planQuerySchema }), (req, res) => {
   res.json({ entries: listPlan(req.valid.query) });
@@ -31,6 +52,36 @@ router.delete('/plan/:date/:slot', validate({ params: planParamsSchema }), (req,
   // Vider une case déjà vide n'est pas une erreur : le geste a le résultat
   // attendu, et l'autre a pu la vider entre-temps.
   res.json({ ok: true, cleared: clearEntry(date, slot) });
+});
+
+/**
+ * Déplace un repas, en poussant ce qu'il déloge.
+ *
+ * Glisser par la poignée, poser par « Déplacer… », « Décaler d'un jour » :
+ * trois gestes, une seule route. La réponse rend chaque case touchée avec son
+ * état d'avant, de quoi annuler, et d'après, de quoi afficher.
+ */
+router.post('/plan/deplacer', validate({ body: deplacerSchema }), (req, res) => {
+  const { de, vers } = req.valid.body;
+
+  const cases = deplacerRepas(de, vers);
+  if (!cases) throw planModifie("Ce repas n'est plus à sa place : le planning a changé entre-temps.");
+
+  res.json({ cases });
+});
+
+/**
+ * Fixe plusieurs cases d'un bloc, sous condition de ce qu'elles portent.
+ *
+ * `PATCH` : seules les cases citées changent, le reste du planning est
+ * intact. C'est ce qu'emploie « Annuler », qui rétablit l'état d'avant d'une
+ * réorganisation en attendant celui d'après.
+ */
+router.patch('/plan', validate({ body: fixerCasesSchema }), (req, res) => {
+  const cases = fixerCases(req.valid.body.cases);
+  if (!cases) throw planModifie('Le planning a changé entre-temps.');
+
+  res.json({ cases });
 });
 
 /**
