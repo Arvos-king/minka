@@ -26,6 +26,11 @@ import { CRENEAUX, libelleJour } from '../semaine.js';
  * jour » l'envoie au lendemain en poussant la suite. Après un décalage, le
  * panneau **reste ouvert sur la case vidée**, champ prêt : « ce soir, resto »
  * se dit alors en deux gestes, décaler puis écrire.
+ *
+ * Tant que le champ est vide, les **raccourcis** — les textes libres que le
+ * foyer écrit le plus souvent — se posent d'un tap. Ce qu'on retape chaque
+ * semaine n'a pas à être retapé : avec un décalage, le resto tient en deux
+ * touchers.
  */
 export function MealSheet({
   date,
@@ -34,6 +39,7 @@ export function MealSheet({
   intitule,
   recipes,
   recettesDisponibles,
+  raccourcis,
   annulation,
   onChoisir,
   onCreerRecette,
@@ -173,7 +179,7 @@ export function MealSheet({
             className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
-          {texte !== '' && (
+          {texte !== '' ? (
             <div className="mt-2 flex gap-2">
               <Button type="submit" variant="secondary" className="flex-1">
                 Poser tel quel
@@ -183,6 +189,37 @@ export function MealSheet({
                   En faire une recette
                 </Button>
               )}
+            </div>
+          ) : (
+            // Les pastilles de « Ranger dans… » des courses : même forme, même
+            // geste — un tap, et le panneau se referme.
+            <div role="group" aria-label="Raccourcis" className="mt-2 flex flex-wrap gap-1.5">
+              {raccourcis.map((raccourci) => {
+                const pose =
+                  repas !== null &&
+                  !repas.recipeId &&
+                  repas.title.toLocaleLowerCase('fr') === raccourci.toLocaleLowerCase('fr');
+
+                return (
+                  <button
+                    key={raccourci}
+                    type="button"
+                    onClick={() => {
+                      onChoisir({ title: raccourci });
+                      onClose();
+                    }}
+                    aria-pressed={pose}
+                    // `min-h-11` : en dessous de 44 px, une pilule n'est pas
+                    // visable au pouce.
+                    className={[
+                      'min-h-11 rounded-full px-3.5 text-sm font-medium transition-colors',
+                      pose ? 'bg-brand-600 text-white' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
+                    ].join(' ')}
+                  >
+                    {raccourci}
+                  </button>
+                );
+              })}
             </div>
           )}
         </form>

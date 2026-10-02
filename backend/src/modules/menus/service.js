@@ -34,6 +34,35 @@ export function listPlan({ from, to }) {
     .map(toPublicEntry);
 }
 
+/**
+ * Les textes libres que le foyer écrit le plus souvent — « Restes », « Resto »,
+ * « Chez mes parents » —, pour les proposer d'un tap plutôt que de les
+ * retaper chaque semaine.
+ *
+ * Sur huit semaines : assez pour qu'une habitude s'installe, assez peu pour
+ * qu'un « Chez mamie » de l'été dernier finisse par s'effacer. Les semaines
+ * déjà planifiées comptent aussi.
+ *
+ * Regroupés sans tenir compte de la casse, « restes » et « Restes » n'étant
+ * qu'une seule habitude ; `lower()` ne connaît que l'ASCII, ce qui laisse
+ * séparés « Écrasée » et « écrasée » — un cas trop rare pour une table de
+ * correspondances. Parmi les orthographes, c'est la plus récente qui
+ * l'emporte : SQLite prend la colonne nue sur la ligne qui porte le
+ * `MAX(on_date)`.
+ */
+export function textesLibresFrequents() {
+  return stmt(`
+    SELECT title, COUNT(*) AS fois, MAX(on_date) AS dernier
+    FROM meal_plan
+    WHERE recipe_id IS NULL AND on_date >= date('now', '-56 days')
+    GROUP BY lower(title)
+    ORDER BY fois DESC, dernier DESC
+    LIMIT 5
+  `)
+    .all()
+    .map((row) => row.title);
+}
+
 export function getEntry(onDate, slot) {
   const row = stmt('SELECT * FROM meal_plan WHERE on_date = ? AND slot = ?').get(onDate, slot);
   return row ? toPublicEntry(row) : null;

@@ -9,6 +9,7 @@ import {
   importerSemaine,
   listPlan,
   setEntry,
+  textesLibresFrequents,
 } from './service.js';
 import {
   deplacerSchema,
@@ -29,6 +30,11 @@ const planModifie = (message) => new AppError(409, 'PLAN_CONFLICT', message);
 
 router.get('/plan', validate({ query: planQuerySchema }), (req, res) => {
   res.json({ entries: listPlan(req.valid.query) });
+});
+
+/** Les textes libres les plus fréquents du foyer, proposés en raccourcis. */
+router.get('/raccourcis', (req, res) => {
+  res.json({ raccourcis: textesLibresFrequents() });
 });
 
 /**

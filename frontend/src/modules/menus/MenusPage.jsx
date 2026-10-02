@@ -31,6 +31,7 @@ export function MenusPage() {
     intituleDe,
     rafraichir,
     recipes,
+    raccourcis,
     recettesDisponibles,
     status,
     error,
@@ -296,6 +297,7 @@ export function MenusPage() {
           intitule={intituleDe(repasDe(saisie.date, saisie.creneau))}
           recipes={recipes}
           recettesDisponibles={recettesDisponibles}
+          raccourcis={raccourcis}
           annulation={annulation}
           onChoisir={(contenu) => definirRepas(saisie.date, saisie.creneau, contenu)}
           onCreerRecette={(title) => creerEtPoser(saisie.date, saisie.creneau, title)}

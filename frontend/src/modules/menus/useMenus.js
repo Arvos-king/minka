@@ -4,6 +4,7 @@ import { aujourdhui, decalerJours } from '../../lib/dates.js';
 import { useCollection } from '../../lib/useCollection.js';
 import { useServerModule } from '../../lib/serverModules.js';
 import { menusApi } from './api.js';
+import { completerRaccourcis } from './raccourcis.js';
 import {
   appliquerCases,
   casesDAnnulation,
@@ -85,6 +86,25 @@ export function useMenus() {
     rafraichirRecettes();
   }, [rafraichirRecettes]);
 
+  /*
+   * Les raccourcis du panneau d'une case : les textes libres les plus
+   * fréquents du foyer. Une commodité, pas une donnée : s'ils ne se chargent
+   * pas, le panneau garde ceux de départ, sans bandeau d'erreur.
+   */
+  const [raccourcis, setRaccourcis] = useState(() => completerRaccourcis([]));
+
+  const rafraichirRaccourcis = useCallback(async () => {
+    try {
+      setRaccourcis(completerRaccourcis((await menusApi.raccourcis()).raccourcis));
+    } catch {
+      // Ceux de départ restent proposés.
+    }
+  }, []);
+
+  useEffect(() => {
+    rafraichirRaccourcis();
+  }, [rafraichirRaccourcis]);
+
   const repasDe = useCallback(
     (date, creneau) => entries.find((e) => e.onDate === date && e.slot === creneau) ?? null,
     [entries],
@@ -127,16 +147,22 @@ export function useMenus() {
       const existante = repasDe(date, creneau);
       const affichage = { recipeId, title };
 
+      let reponse;
       try {
-        if (existante) return await modifier(existante, affichage, appel);
-        return await ajouter({ onDate: date, slot: creneau, ...affichage }, appel);
+        reponse = existante
+          ? await modifier(existante, affichage, appel)
+          : await ajouter({ onDate: date, slot: creneau, ...affichage }, appel);
       } catch {
         // `ajouter` relance, `modifier` non : on rattrape pour que l'appelant
         // n'ait pas à connaître cette différence. L'erreur est déjà affichée.
         return undefined;
       }
+
+      // Un texte libre de plus : il peut entrer dans les raccourcis.
+      if (reponse && recipeId === null) rafraichirRaccourcis();
+      return reponse;
     },
-    [ajouter, modifier, repasDe],
+    [ajouter, modifier, rafraichirRaccourcis, repasDe],
   );
 
   const viderRepas = useCallback(
@@ -261,12 +287,17 @@ export function useMenus() {
     repasDe,
     recetteDe,
     intituleDe,
-    /** Après un import, le planning entier a changé — et ce qu'on aurait pu annuler avec. */
+    /**
+     * Après un import, le planning entier a changé — ce qu'on aurait pu
+     * annuler avec, et peut-être les textes libres les plus fréquents.
+     */
     rafraichir: () => {
       setAnnulation(null);
+      rafraichirRaccourcis();
       return refresh({ silent: true });
     },
     recipes,
+    raccourcis,
     recettesDisponibles,
     status,
     error,

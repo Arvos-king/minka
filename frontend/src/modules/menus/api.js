@@ -18,6 +18,9 @@ export const menusApi = {
   /** Fixe plusieurs cases d'un bloc, sous condition : ce qu'emploie « Annuler ». */
   fixerCases: (cases) => api.patch('/menus/plan', { cases }),
 
+  /** Les textes libres les plus fréquents du foyer. */
+  raccourcis: () => api.get('/menus/raccourcis'),
+
   /*
    * --- Passerelles vers d'autres modules -----------------------------------
    *
