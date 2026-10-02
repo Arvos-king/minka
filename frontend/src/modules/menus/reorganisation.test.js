@@ -5,6 +5,7 @@ import {
   appliquerCases,
   casesDAnnulation,
   contenuDe,
+  decrireDepot,
   planifierDeplacement,
   predireAnnulation,
   predireDeplacement,
@@ -415,6 +416,19 @@ describe('resumerDeplacement', () => {
     assert.equal(
       resumerDeplacement(cases, vers, () => 'Gratin d’automne'),
       '« Gratin d’automne » passe au jeudi 20 soir.',
+    );
+  });
+});
+
+describe('decrireDepot', () => {
+  it('nomme la case visée', () => {
+    assert.equal(decrireDepot({ date: '2026-08-20', slot: 'soir' }, null), 'jeudi 20 soir');
+  });
+
+  it('prévient du repas qu’on y délogerait', () => {
+    assert.equal(
+      decrireDepot({ date: '2026-08-20', slot: 'midi' }, 'Chili sin carne'),
+      'jeudi 20 midi · pousse « Chili sin carne »',
     );
   });
 });

@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom';
 
 import { PlusIcon } from '../../../components/icons.jsx';
 import { adresseRecette } from '../api.js';
+import { PoigneeIcon } from '../PoigneeIcon.jsx';
 import { RecetteIcon } from '../RecetteIcon.jsx';
 import { CRENEAUX, libelleJour } from '../semaine.js';
+
+const estCase = (designee, date, slot) => designee?.date === date && designee.slot === slot;
 
 /**
  * Une journée du planning : son nom, puis ses deux repas.
@@ -18,11 +21,28 @@ import { CRENEAUX, libelleJour } from '../semaine.js';
  * préparer. Le geste courant a donc sa propre cible, comme le bouton « fait »
  * de l'entretien.
  *
+ * Tout au bout, la **poignée** déplace le repas : glissée, elle l'emporte
+ * jusqu'à une autre case ; touchée, elle ouvre le mode « Déplacer… »
+ * (`useGlisser`). Elle reste à part de la ligne pour la même raison que la
+ * casserole — on ne déplace pas un repas en voulant le changer. Chaque créneau
+ * porte ses `data-*`, par lesquels le glisser trouve la case sous le doigt.
+ *
  * En mode « Déplacer… » (`placement`), chaque ligne devient une case où poser
- * le repas en attente : la casserole s'efface — elle ferait quitter la page en
- * plein geste —, et la case de départ, estompée, annule si on la touche.
+ * le repas en attente : casserole et poignée s'effacent — l'une ferait quitter
+ * la page en plein geste, l'autre n'a plus d'objet —, et la case de départ,
+ * estompée, annule si on la touche.
  */
-export function DayRow({ date, estAujourdhui, repasDe, recetteDe, intituleDe, placement, onOuvrir }) {
+export function DayRow({
+  date,
+  estAujourdhui,
+  repasDe,
+  recetteDe,
+  intituleDe,
+  placement,
+  glisse,
+  poignee,
+  onOuvrir,
+}) {
   return (
     <section
       className={[
@@ -40,28 +60,45 @@ export function DayRow({ date, estAujourdhui, repasDe, recetteDe, intituleDe, pl
         {/* L'espace est écrit, pas seulement dessiné : `gap-2` ne sépare que
             visuellement, et un lecteur d'écran annoncerait « lundi
             17aujourd'hui ». */}
-        {estAujourdhui && <span className="text-xs font-normal">{' '}· aujourd'hui</span>}
+        {estAujourdhui && <span className="text-xs font-normal">{' '}· aujourd'hui</span>}
       </h3>
 
       {CRENEAUX.map((creneau, index) => {
-        const repas = repasDe(date, creneau.valeur);
+        const slot = creneau.valeur;
+        const repas = repasDe(date, slot);
         const intitule = intituleDe(repas);
-        const recette = recetteDe(repas);
-        const estDepart = placement?.de.date === date && placement.de.slot === creneau.valeur;
+        const recette = !placement ? recetteDe(repas) : null;
+        // Un repas pas encore confirmé ne part nulle part : le serveur ne le
+        // connaît pas encore sous cette forme.
+        const saisissable = repas && !repas.pending && !placement;
+        const estDepart = estCase(placement?.de, date, slot) || estCase(glisse?.de, date, slot);
+        const estVisee = estCase(glisse?.vers, date, slot);
 
         return (
           <div
-            key={creneau.valeur}
-            className={['flex', index > 0 ? 'border-t border-sand-100' : ''].join(' ')}
+            key={slot}
+            data-case={`${date} ${slot}`}
+            data-date={date}
+            data-slot={slot}
+            className={[
+              'flex transition-colors',
+              index > 0 ? 'border-t border-sand-100' : '',
+              // La case où le repas tomberait si on lâchait maintenant.
+              estVisee ? 'bg-brand-50 outline-2 -outline-offset-2 outline-brand-500' : '',
+              // Le repas « soulevé » : la ligne entière, casserole et poignée
+              // comprises, estompée et cernée de pointillés à l'intérieur — que
+              // la carte arrondie ne rogne pas.
+              estDepart ? 'opacity-50 outline-2 -outline-offset-4 outline-sand-400 outline-dashed' : '',
+            ].join(' ')}
           >
             <button
               type="button"
-              onClick={() => onOuvrir(date, creneau.valeur)}
+              onClick={() => onOuvrir(date, slot)}
               className={[
-                'flex min-h-14 min-w-0 flex-1 items-center gap-3 px-4 text-left active:bg-sand-50',
-                // Le repas « soulevé » : estompé, et cerné de pointillés à
-                // l'intérieur de la ligne, que la carte arrondie ne rogne pas.
-                estDepart ? 'opacity-50 outline-2 -outline-offset-4 outline-sand-400 outline-dashed' : '',
+                'flex min-h-14 min-w-0 flex-1 items-center gap-3 pl-4 text-left active:bg-sand-50',
+                // Une casserole ou une poignée au bout : la marge leur revient,
+                // pour laisser au titre la largeur qu'il avait.
+                recette || saisissable ? 'pr-2' : 'pr-4',
               ].join(' ')}
             >
               <span className="w-12 shrink-0 text-sm font-medium text-sand-500">
@@ -100,14 +137,27 @@ export function DayRow({ date, estAujourdhui, repasDe, recetteDe, intituleDe, pl
                 d'un autre module. Il n'apparaît que si la recette existe
                 encore au répertoire — un pointeur caduc ne mènerait nulle
                 part. */}
-            {recette && !placement && (
+            {recette && (
               <Link
                 to={adresseRecette(recette.id)}
                 aria-label={`Ouvrir la recette : ${recette.title}`}
-                className="grid min-h-14 w-14 shrink-0 place-items-center text-accent active:bg-brand-50"
+                className="grid min-h-14 w-12 shrink-0 place-items-center text-accent active:bg-brand-50"
               >
                 <RecetteIcon className="size-6" />
               </Link>
+            )}
+
+            {/* `touch-none` : le doigt posé ici ne fait pas défiler la page, il
+                saisit le repas. Le reste de la ligne défile normalement. */}
+            {saisissable && (
+              <button
+                type="button"
+                {...poignee({ date, slot }, intitule)}
+                aria-label={`Déplacer « ${intitule} »`}
+                className="grid min-h-14 w-10 shrink-0 cursor-grab touch-none place-items-center text-sand-400 select-none active:cursor-grabbing active:bg-sand-50"
+              >
+                <PoigneeIcon className="size-5" />
+              </button>
             )}
           </div>
         );

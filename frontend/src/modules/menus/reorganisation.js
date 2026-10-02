@@ -199,3 +199,18 @@ export function resumerDeplacement(cases, vers, titre) {
   if (pousses.length === 1) return `${phrase}, et pousse ${guillemets(titre(arrivee.avant))} d'un jour.`;
   return `${phrase}, et pousse ${pousses.length} repas d'un jour.`;
 }
+
+/**
+ * Ce qu'annonce le repas qu'on glisse, au-dessus du doigt : la case visée, et
+ * le repas qu'on y délogerait. C'est avant de lâcher qu'on veut le savoir.
+ *
+ *   jeudi 8 soir
+ *   jeudi 8 soir · pousse « Chili »
+ *
+ * @param {{date: string, slot: string}} vers
+ * @param {string|null} occupant  l'intitulé du repas en place, s'il y en a un
+ */
+export function decrireDepot(vers, occupant) {
+  const ou = libelleCase({ onDate: vers.date, slot: vers.slot });
+  return occupant ? `${ou} · pousse ${guillemets(occupant)}` : ou;
+}
