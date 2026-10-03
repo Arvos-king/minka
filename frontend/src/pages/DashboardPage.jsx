@@ -3,12 +3,10 @@ import { Link } from 'react-router-dom';
 import { ChevronRightIcon, HouseIcon } from '../components/icons.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { modules } from '../modules/registry.js';
+import { T } from '../textes.js';
 
 function greeting() {
-  const hour = new Date().getHours();
-  if (hour < 5) return 'Bonne nuit';
-  if (hour < 18) return 'Bonjour';
-  return 'Bonsoir';
+  return T.accueil.salutation(new Date().getHours());
 }
 
 /**
@@ -23,15 +21,13 @@ export function DashboardPage() {
       <p className="text-2xl font-semibold tracking-tight text-sand-900">
         {greeting()} {user?.displayName}
       </p>
-      <p className="mt-1 text-sm text-sand-600">Que veux-tu ouvrir&nbsp;?</p>
+      <p className="mt-1 text-sm text-sand-600">{T.accueil.question}</p>
 
       {modules.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
           <HouseIcon className="mx-auto size-8 text-sand-400" />
-          <p className="mt-3 text-sm font-medium text-sand-700">Aucun module pour le moment</p>
-          <p className="mt-1 text-sm text-sand-500">
-            Le premier — la liste de courses — arrive à l'étape suivante.
-          </p>
+          <p className="mt-3 text-sm font-medium text-sand-700">{T.accueil.aucunModule}</p>
+          <p className="mt-1 text-sm text-sand-500">{T.accueil.premierModule}</p>
         </div>
       ) : (
         <ul className="mt-6 grid gap-3 sm:grid-cols-2">

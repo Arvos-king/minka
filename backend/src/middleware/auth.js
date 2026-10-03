@@ -9,10 +9,10 @@
 import { config } from '../config/index.js';
 import { stmt } from '../db/index.js';
 import { clearSessionCookie, setSessionCookie, shouldRenew, verifySessionToken } from '../lib/tokens.js';
+import { T } from '../textes.js';
 import { AppError } from './errorHandler.js';
 
-const UNAUTHENTICATED = () =>
-  new AppError(401, 'UNAUTHENTICATED', 'Session absente ou expirée, reconnecte-toi.');
+const UNAUTHENTICATED = () => new AppError(401, 'UNAUTHENTICATED', T.erreurs.sessionAbsente);
 
 export function requireAuth(req, res, next) {
   const token = req.cookies?.[config.session.cookieName];

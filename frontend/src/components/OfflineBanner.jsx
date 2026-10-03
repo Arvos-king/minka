@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { derniereSynchro, libelleAnciennete, useEnLigne } from '../lib/reseau.js';
+import { T } from '../textes.js';
 
 /**
  * Bandeau « hors ligne », sous l'en-tête.
@@ -35,10 +36,10 @@ export function OfflineBanner() {
       role="status"
       className="bg-amber-100 px-4 py-1.5 text-center text-xs font-medium text-amber-900"
     >
-      Hors ligne
-      {anciennete && <> — données {anciennete}</>}
+      {T.horsLigne.titre}
+      {anciennete && T.horsLigne.donnees(anciennete)}
       {'. '}
-      <span className="font-normal">Les modifications ne seront pas enregistrées.</span>
+      <span className="font-normal">{T.horsLigne.modifications}</span>
     </p>
   );
 }

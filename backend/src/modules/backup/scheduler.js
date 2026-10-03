@@ -7,7 +7,9 @@
  * partir de l'heure locale du moment, jamais par addition de 24 heures.
  */
 
+import { LOCALE } from '../../lib/langue.js';
 import { creerSauvegarde, listerSauvegardes, reglages } from './service.js';
+import { T } from './textes.js';
 
 let minuteur = null;
 
@@ -29,7 +31,7 @@ function programmer() {
     } catch (error) {
       // Une sauvegarde ratée ne doit pas emporter le serveur, ni empêcher la
       // tentative du lendemain.
-      console.error('[backup] échec de la sauvegarde :', error.message);
+      console.error(T.echec, error.message);
     }
     programmer();
   }, delai);
@@ -37,12 +39,12 @@ function programmer() {
   // Le minuteur ne doit pas retenir le processus au moment de l'arrêt.
   minuteur.unref?.();
 
-  console.log(`[backup] prochaine sauvegarde le ${cible.toLocaleString('fr-FR')}`);
+  console.log(T.prochaine(cible.toLocaleString(LOCALE)));
 }
 
 export function demarrerPlanificateur() {
   if (!reglages.actif) {
-    console.log('[backup] désactivé (BACKUP_ENABLED=false).');
+    console.log(T.desactive);
     return;
   }
 
@@ -57,7 +59,7 @@ export function demarrerPlanificateur() {
     try {
       creerSauvegarde();
     } catch (error) {
-      console.error('[backup] échec de la sauvegarde initiale :', error.message);
+      console.error(T.echecInitiale, error.message);
     }
   }
 

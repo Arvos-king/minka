@@ -7,6 +7,7 @@ import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
 import { changePasswordSchema, loginSchema } from './schemas.js';
 import { toPublicUser, updatePassword, verifyCredentials } from './service.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
@@ -28,13 +29,8 @@ const loginLimiter = rateLimit({
   standardHeaders: 'draft-8',
   legacyHeaders: false,
   handler: (req, res) => {
-    console.warn(`[auth] trop de tentatives de connexion depuis ${req.ip}`);
-    res.status(429).json({
-      error: {
-        code: 'TOO_MANY_ATTEMPTS',
-        message: 'Trop de tentatives de connexion. Réessaie dans quelques minutes.',
-      },
-    });
+    console.warn(T.journal.tropDeTentatives(req.ip));
+    res.status(429).json({ error: { code: 'TOO_MANY_ATTEMPTS', message: T.tropDeTentatives } });
   },
 });
 
@@ -46,8 +42,8 @@ router.post('/login', loginLimiter, validate({ body: loginSchema }), async (req,
     // L'adresse est journalisée pour pouvoir repérer un acharnement ; le
     // message renvoyé reste volontairement vague, il ne dit pas si c'est
     // l'identifiant ou le mot de passe qui est faux.
-    console.warn(`[auth] échec de connexion pour « ${username} » depuis ${req.ip}`);
-    throw new AppError(401, 'INVALID_CREDENTIALS', 'Identifiant ou mot de passe incorrect.');
+    console.warn(T.journal.echec(username, req.ip));
+    throw new AppError(401, 'INVALID_CREDENTIALS', T.identifiantsIncorrects);
   }
 
   setSessionCookie(res, user);
@@ -79,7 +75,7 @@ router.post(
     // déverrouillé suffirait à changer les identifiants du compte.
     const user = await verifyCredentials(req.user.username, currentPassword);
     if (!user) {
-      throw new AppError(403, 'INVALID_PASSWORD', 'Le mot de passe actuel est incorrect.');
+      throw new AppError(403, 'INVALID_PASSWORD', T.motDePasseActuelIncorrect);
     }
 
     await updatePassword(req.user.id, newPassword);

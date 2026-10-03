@@ -7,6 +7,13 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Langue et monnaie de l'instance : figées à la compilation (voir
+# vite.config.js). docker-compose les passe depuis le même `.env` que l'API.
+ARG MINKA_LANG=fr
+ARG MINKA_CURRENCY=EUR
+ENV MINKA_LANG=$MINKA_LANG MINKA_CURRENCY=$MINKA_CURRENCY
+
 RUN npm run build
 
 # --- Étape 2 : service des fichiers statiques --------------------------------

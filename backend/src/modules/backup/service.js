@@ -12,6 +12,7 @@ import path from 'node:path';
 
 import { config } from '../../config/index.js';
 import { db } from '../../db/index.js';
+import { T } from './textes.js';
 
 /**
  * Réglages du module.
@@ -28,7 +29,7 @@ function lireEntier(nom, defaut, { min, max }) {
 
   const valeur = Number(brut);
   if (!Number.isInteger(valeur) || valeur < min || valeur > max) {
-    console.warn(`[backup] ${nom}="${brut}" ignoré (attendu : entier entre ${min} et ${max}).`);
+    console.warn(T.reglageIgnore(nom, brut, min, max));
     return defaut;
   }
   return valeur;
@@ -93,10 +94,7 @@ export function creerSauvegarde() {
   const taille = fs.statSync(destination).size;
   const purgees = purgerAnciennes();
 
-  console.log(
-    `[backup] ${nom} (${Math.round(taille / 1024)} Ko)` +
-      (purgees > 0 ? ` — ${purgees} ancienne(s) sauvegarde(s) retirée(s)` : ''),
-  );
+  console.log(T.sauvegarde(nom, Math.round(taille / 1024), purgees));
 
   return { nom, taille, purgees };
 }

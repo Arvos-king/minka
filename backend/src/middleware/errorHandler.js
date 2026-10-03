@@ -9,12 +9,14 @@
  * middleware — inutile d'encapsuler quoi que ce soit.
  */
 
+import { T } from '../textes.js';
+
 /** Erreur métier, destinée à être affichée telle quelle au client. */
 export class AppError extends Error {
   /**
    * @param {number} status  code HTTP
    * @param {string} code    identifiant stable, exploitable par le frontend
-   * @param {string} message message lisible, en français
+   * @param {string} message message lisible, dans la langue de l'instance
    * @param {unknown} [details]
    */
   constructor(status, code, message, details) {
@@ -29,7 +31,7 @@ export class AppError extends Error {
 /** Toute route inconnue renvoie un JSON, jamais la page d'erreur HTML d'Express. */
 export function notFoundHandler(req, res) {
   res.status(404).json({
-    error: { code: 'NOT_FOUND', message: `Route inconnue : ${req.method} ${req.originalUrl}` },
+    error: { code: 'NOT_FOUND', message: T.erreurs.routeInconnue(req.method, req.originalUrl) },
   });
 }
 
@@ -43,13 +45,13 @@ export function errorHandler(err, req, res, next) {
 
   // JSON malformé : express.json() lève une SyntaxError porteuse d'un status.
   if (err?.type === 'entity.parse.failed') {
-    return res.status(400).json({ error: { code: 'INVALID_JSON', message: 'Corps de requête JSON invalide.' } });
+    return res.status(400).json({ error: { code: 'INVALID_JSON', message: T.erreurs.jsonInvalide } });
   }
 
   // Tout le reste est un bug : trace complète côté serveur, message neutre
   // côté client (un message d'erreur interne renseigne un attaquant).
   console.error('[error]', err);
   return res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: 'Une erreur interne est survenue.' },
+    error: { code: 'INTERNAL_ERROR', message: T.erreurs.interne },
   });
 }

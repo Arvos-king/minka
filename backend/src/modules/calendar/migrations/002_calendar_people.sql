@@ -23,10 +23,11 @@ CREATE TABLE calendar_people (
 INSERT INTO calendar_people (id, display_name, user_id, sort_order)
 SELECT id, display_name, id, id FROM users;
 
--- Les membres du foyer sans compte. Ils partagent le même rang : ce sont les
--- noms qui les départagent à l'affichage, et un participant ajouté plus tard
--- se range naturellement parmi eux.
-INSERT INTO calendar_people (display_name) VALUES ('Félix'), ('Moka');
+-- Les membres du foyer sans compte s'ajoutent depuis l'application. Cette
+-- migration en semait deux, propres au premier foyer qui l'a déployée :
+-- retirés depuis qu'une autre instance peut naître de ce dépôt. Les bases où
+-- elle est déjà passée les gardent — `schema_migrations` ne retient que le
+-- nom du fichier, elle n'y sera jamais rejouée.
 
 -- SQLite ne sait pas modifier une contrainte de clé étrangère : il faut
 -- recréer la table, recopier les données, puis la renommer. `owner_id` désigne

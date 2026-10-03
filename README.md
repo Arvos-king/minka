@@ -967,7 +967,8 @@ trois qui méritent l'attention :
 | `TRUST_PROXY` | `2` | Nombre de proxies devant l'API : Nginx Proxy Manager, puis le nginx de `minka-web`. |
 
 Les variables `MCP_*` du connecteur Claude sont décrites avec lui, dans
-[Mettre le connecteur en service](#mettre-le-connecteur-en-service).
+[Mettre le connecteur en service](#mettre-le-connecteur-en-service) ;
+`MINKA_LANG` et `MINKA_CURRENCY` dans [Langue](#langue).
 
 ### ⚠️ `SESSION_COOKIE_SECURE` et l'accès direct par IP
 
@@ -990,6 +991,48 @@ tous les deux d'un coup.
 
 - `2` — derrière Nginx Proxy Manager (valeur par défaut)
 - `1` — en accès direct sur le port 8070, sans reverse proxy
+
+---
+
+## Langue
+
+Minka parle **une langue par instance** : `fr` (par défaut) ou `en`, fixée par
+`MINKA_LANG` dans `.env`. Tout suit ce réglage — l'interface, les messages de
+l'API, ses journaux, le connecteur Claude. La monnaie du budget se règle à
+côté, par `MINKA_CURRENCY` (code ISO 4217, `EUR` par défaut). L'anglais de
+Minka est britannique : le jour avant le mois, « Monday 5 October ».
+
+L'interface est **compilée** dans la langue de l'instance : le manifeste de la
+PWA et `<html lang>` en dépendent, et ne sauraient attendre une réponse du
+serveur — une langue lue au démarrage ferait clignoter l'écran, et dépendrait du
+réseau que l'application doit savoir perdre. `docker-compose.yml` passe donc
+les deux variables en argument de build à `minka-web`, et `MINKA_LANG` en
+environnement à `minka-api`, depuis le même `.env` : l'interface et l'API ne
+peuvent pas se contredire. Changer de langue demande de reconstruire :
+
+```bash
+docker compose up -d --build
+```
+
+Ce qui ne change pas avec la langue : les données déjà saisies, les adresses de
+l'application (`/courses`, `/recettes`…) et le code lui-même — identifiants,
+champs JSON et commentaires restent en français. Ce que Minka sème au premier
+démarrage, comme le plan d'entretien par défaut, naît dans la langue de
+l'instance et n'en change plus.
+
+Une valeur inconnue arrête tout, l'API au démarrage comme l'interface à la
+compilation, plutôt que de retomber en silence sur le français.
+
+En développement, la variable se donne au lancement, des deux côtés
+(`backend/.env` peut aussi la porter) :
+
+```bash
+cd backend && MINKA_LANG=en npm run dev
+```
+
+```bash
+cd frontend && MINKA_LANG=en npm run dev
+```
 
 ---
 
@@ -1165,6 +1208,12 @@ fichier de base, pour vérifier une addition de dates.
 Un test vit à côté du code qu'il vérifie, dans le dossier de son module — un
 module reste ainsi entier dans son dossier, tests compris.
 
+Les deux langues se vérifient dans le même `npm test` : une fonction qui produit
+ou lit du texte prend la langue en paramètre, et ses tests anglais la donnent
+explicitement. Hors de Vite, l'interface est en français quelle que soit la
+variable du poste ; l'API, elle, lit `MINKA_LANG` dans l'environnement — les
+tests s'y lancent donc sans elle.
+
 ---
 
 ## Ajouter un module
@@ -1216,16 +1265,17 @@ sa table n'est jamais créée.
 ```js
 import BudgetPage from './BudgetPage.jsx';
 import { BudgetIcon } from './BudgetIcon.jsx';
+import { T } from './textes.js';
 
 export default {
   id: 'budget',
-  label: 'Budget',
-  description: 'Les dépenses du mois',
+  label: T.module.label,
+  description: T.module.description,
   path: '/budget',
   Component: BudgetPage,
-  Icon: BudgetIcon,      // facultatif
-  shortLabel: 'Budget',  // facultatif — libellé de l'onglet, si `label` est long
-  tabOrder: 3,           // facultatif — rang d'affichage, tuile comme onglet
+  Icon: BudgetIcon,                 // facultatif
+  shortLabel: T.module.shortLabel,  // facultatif — libellé de l'onglet, si `label` est long
+  tabOrder: 3,                      // facultatif — rang d'affichage, tuile comme onglet
 };
 ```
 
@@ -1238,6 +1288,48 @@ Là aussi, deux modules ne peuvent partager ni leur `id` ni leur `path`. Le
 second est écarté du registre avec un message en console, plutôt que de faire
 échouer toute l'interface : un module mal déclaré ne doit pas emporter le reste
 de l'application.
+
+### Les textes d'un module
+
+Un module ne laisse aucune phrase en dur dans ses composants : il les range dans
+son propre `textes.js`, une entrée par langue, avec les mêmes clés.
+
+```js
+// frontend/src/modules/budget/textes.js
+import { textes } from '../../lib/langue.js';
+
+export const TEXTES = {
+  fr: {
+    module: { label: 'Budget', description: 'Où part l’argent du mois' },
+    depenses: (n) => `${n} dépense${n > 1 ? 's' : ''}`,
+  },
+  en: {
+    module: { label: 'Budget', description: 'Where the money goes this month' },
+    depenses: (n) => `${n} expense${n > 1 ? 's' : ''}`,
+  },
+};
+
+export const T = textes(TEXTES);
+```
+
+Une entrée est une chaîne, ou une fonction dès qu'il faut accorder ou
+interpoler : pluriels, élisions et ordre des mots restent l'affaire de chaque
+langue, sans syntaxe de gabarit à apprendre. Côté API, même fichier, même forme,
+dans `backend/src/modules/<nom>/` : messages d'erreur, messages des schémas
+zod, journaux. Le socle tient les siens dans `src/textes.js`, de chaque côté ;
+côté interface, `commun` y rassemble ce que tous les modules partagent
+(« Fermer », « Enregistrer »).
+
+Un test du socle, `lib/langue.test.js` de chaque côté, trouve tous les
+`textes.js` et vérifie que chaque langue porte exactement les mêmes clés, avec
+des fonctions au même nombre de paramètres : une traduction oubliée échoue au
+test, pas à l'écran. Rien à déclarer pour qu'un nouveau module y passe.
+
+Une fonction pure qui produit ou lit du texte — un libellé d'échéance, un
+analyseur d'import — prend la langue en dernier paramètre, celle de l'instance
+par défaut, et choisit son dictionnaire par `textes(TEXTES, langue)`. Les
+formats de date passent par `formateurDate(options, langue)` (`lib/langue.js`),
+qui choisit la locale et garde les formateurs en cache.
 
 ### Ancrer un élément en bas de l'écran
 

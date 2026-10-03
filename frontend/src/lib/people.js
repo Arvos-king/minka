@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { T } from '../textes.js';
 import { api } from './apiClient.js';
 
 /**
@@ -46,9 +47,9 @@ export function couleurPersonne(personId) {
   return PALETTE[(personId - 1) % PALETTE.length];
 }
 
-export function nomPersonne(personId, people, defaut = 'Tout le monde') {
+export function nomPersonne(personId, people, defaut = T.membres.toutLeMonde) {
   if (personId === null || personId === undefined) return defaut;
-  return people.find((personne) => personne.id === personId)?.displayName ?? 'Inconnu';
+  return people.find((personne) => personne.id === personId)?.displayName ?? T.membres.inconnu;
 }
 
 // --- État --------------------------------------------------------------------

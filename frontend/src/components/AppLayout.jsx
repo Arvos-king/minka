@@ -2,6 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
 import { findModuleByPath, modules } from '../modules/registry.js';
+import { T } from '../textes.js';
 import { ArrowLeftIcon } from './icons.jsx';
 import { OfflineBanner } from './OfflineBanner.jsx';
 import { TabBar } from './TabBar.jsx';
@@ -14,7 +15,7 @@ import { UpdateBanner } from './UpdateBanner.jsx';
  */
 function pageTitle(pathname) {
   if (pathname === '/') return 'Minka';
-  if (pathname === '/compte') return 'Mon compte';
+  if (pathname === '/compte') return T.entete.monCompte;
   return findModuleByPath(pathname)?.label ?? 'Minka';
 }
 
@@ -47,7 +48,7 @@ export function AppLayout() {
               type="button"
               onClick={() => navigate(-1)}
               className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
-              aria-label="Revenir en arrière"
+              aria-label={T.entete.revenir}
             >
               <ArrowLeftIcon className="size-5" />
             </button>
@@ -60,7 +61,7 @@ export function AppLayout() {
           <Link
             to="/compte"
             className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-semibold transition-colors hover:bg-white/25 active:bg-white/30"
-            aria-label="Mon compte"
+            aria-label={T.entete.monCompte}
           >
             {initial}
           </Link>

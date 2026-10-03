@@ -47,4 +47,16 @@ describe('libelleAnciennete', () => {
     // futur. « il y a -3 min » serait plus inquiétant que faux.
     assert.equal(libelleAnciennete(MAINTENANT + 3 * MINUTE, MAINTENANT), "à l'instant");
   });
+
+  describe('en anglais', () => {
+    const ago = (ecart) => libelleAnciennete(MAINTENANT - ecart, MAINTENANT, 'en');
+
+    it('suit les mêmes paliers', () => {
+      assert.equal(ago(0), 'just now');
+      assert.equal(ago(5 * MINUTE), '5 min ago');
+      assert.equal(ago(2 * HEURE), '2 h ago');
+      assert.equal(ago(JOUR), 'yesterday');
+      assert.equal(ago(3 * JOUR), '3 days ago');
+    });
+  });
 });

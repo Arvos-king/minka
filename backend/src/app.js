@@ -14,6 +14,7 @@ import { config } from './config/index.js';
 import { requireAuth } from './middleware/auth.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { originGuard } from './middleware/originGuard.js';
+import { T } from './textes.js';
 
 export function createApp(modules) {
   const app = express();
@@ -60,10 +61,7 @@ export function createApp(modules) {
     } else {
       app.use(module.basePath, module.router);
     }
-    console.log(
-      `[modules] ${module.name} monté sur ${module.basePath}` +
-        `${module.requiresAuth ? '' : ' (accès public)'}`,
-    );
+    console.log(T.serveur.moduleMonte(module.name, module.basePath, !module.requiresAuth));
   }
 
   // Sans chemin : Express 5 n'accepte plus les motifs « * » historiques.

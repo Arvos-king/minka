@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { construireOnglets, ongletActif } from '../modules/construireRegistre.js';
 import { modules } from '../modules/registry.js';
+import { T } from '../textes.js';
 import { HouseIcon, MoreIcon } from './icons.jsx';
 
 /**
@@ -29,7 +30,7 @@ export function TabBar() {
 
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={T.onglets.navigation}
       className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-sand-200 bg-surface-haute/95 backdrop-blur"
     >
       <ul className="mx-auto flex max-w-2xl">

@@ -3,10 +3,69 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+/*
+ * Langue et monnaie de l'instance, figées à la compilation.
+ *
+ * Les mêmes variables que l'API, lues dans le même `.env` (docker-compose les
+ * passe en argument de build) : l'interface et le serveur ne peuvent pas
+ * parler deux langues différentes. Le manifeste de la PWA et `<html lang>` en
+ * dépendent, et ne sauraient attendre une réponse du serveur. Changer de
+ * langue demande donc de reconstruire l'image — ce que fait déjà
+ * `docker compose up -d --build`.
+ */
+const LANGUE = (process.env.MINKA_LANG ?? '').trim().toLowerCase() || 'fr';
+const DEVISE = (process.env.MINKA_CURRENCY ?? '').trim().toUpperCase() || 'EUR';
+
+if (!['fr', 'en'].includes(LANGUE)) {
+  throw new Error(`MINKA_LANG="${process.env.MINKA_LANG}" : valeurs possibles fr ou en. / Accepted values: fr or en.`);
+}
+if (!/^[A-Z]{3}$/.test(DEVISE)) {
+  throw new Error(
+    `MINKA_CURRENCY="${process.env.MINKA_CURRENCY}" : code ISO 4217 attendu (EUR, GBP, USD…). ` +
+      '/ Expected an ISO 4217 code (EUR, GBP, USD…).',
+  );
+}
+
+const PRESENTATION = {
+  fr: { description: 'La maison, en un seul endroit' },
+  en: { description: 'Your home, all in one place' },
+}[LANGUE];
+
+/**
+ * Pose la langue et la description de l'instance dans `index.html`, qui reste
+ * écrit en français. Un repère introuvable arrête la compilation : une page
+ * annoncée `lang="fr"` lue en anglais par un lecteur d'écran ne se remarquerait
+ * pas autrement.
+ */
+const htmlDeLInstance = {
+  name: 'minka-langue',
+  transformIndexHtml(html) {
+    const remplacements = [
+      ['<html lang="fr">', `<html lang="${LANGUE}">`],
+      [
+        'content="Minka — la maison, en un seul endroit."',
+        `content="Minka — ${PRESENTATION.description.toLowerCase()}."`,
+      ],
+    ];
+    return remplacements.reduce((page, [avant, apres]) => {
+      if (!page.includes(avant)) {
+        throw new Error(`index.html : « ${avant} » introuvable, la langue ne peut pas y être posée.`);
+      }
+      return page.replace(avant, apres);
+    }, html);
+  },
+};
+
 export default defineConfig({
+  define: {
+    __MINKA_LANG__: JSON.stringify(LANGUE),
+    __MINKA_CURRENCY__: JSON.stringify(DEVISE),
+  },
+
   plugins: [
     react(),
     tailwindcss(),
+    htmlDeLInstance,
     VitePWA({
       // Le service worker se met à jour tout seul ; l'application propose
       // ensuite un rechargement (voir src/main.jsx).
@@ -19,8 +78,8 @@ export default defineConfig({
       manifest: {
         name: 'Minka',
         short_name: 'Minka',
-        description: 'La maison, en un seul endroit',
-        lang: 'fr',
+        description: PRESENTATION.description,
+        lang: LANGUE,
         start_url: '/',
         scope: '/',
         display: 'standalone',

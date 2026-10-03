@@ -6,6 +6,9 @@
  * et se vérifie donc avec le seul `node --test`.
  */
 
+import { LOCALE } from '../lib/langue.js';
+import { T } from '../textes.js';
+
 const CHAMPS_REQUIS = ['id', 'label', 'path', 'Component'];
 
 /**
@@ -20,7 +23,7 @@ const CHAMPS_REQUIS = ['id', 'label', 'path', 'Component'];
 export function comparerModules(a, b) {
   return (
     (a.tabOrder ?? Number.POSITIVE_INFINITY) - (b.tabOrder ?? Number.POSITIVE_INFINITY) ||
-    a.label.localeCompare(b.label, 'fr')
+    a.label.localeCompare(b.label, LOCALE)
   );
 }
 
@@ -114,12 +117,12 @@ export function construireOnglets(modules, { maxOnglets = MAX_ONGLETS } = {}) {
   const ordonnes = [...modules].sort(comparerModules);
 
   if (ordonnes.length + 1 <= maxOnglets) {
-    return [{ cle: 'accueil', label: 'Accueil', path: '/' }, ...ordonnes.map(enOnglet)];
+    return [{ cle: 'accueil', label: T.onglets.accueil, path: '/' }, ...ordonnes.map(enOnglet)];
   }
 
   return [
     ...ordonnes.slice(0, maxOnglets - 1).map(enOnglet),
-    { cle: 'plus', label: 'Plus', path: '/' },
+    { cle: 'plus', label: T.onglets.plus, path: '/' },
   ];
 }
 

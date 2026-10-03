@@ -7,6 +7,7 @@
  * où l'application serait un jour servie depuis un autre domaine.
  */
 
+import { T } from '../textes.js';
 import { marquerSynchro } from './reseau.js';
 
 const BASE_URL = '/api';
@@ -42,7 +43,7 @@ async function request(method, path, { body, allowAnonymous = false, signal } = 
   } catch (error) {
     // Coupure réseau : fréquent en magasin, le message doit rester clair.
     if (error.name === 'AbortError') throw error;
-    throw new ApiError(0, 'NETWORK_ERROR', 'Connexion au serveur impossible.');
+    throw new ApiError(0, 'NETWORK_ERROR', T.reseau.injoignable);
   }
 
   /*
@@ -66,7 +67,7 @@ async function request(method, path, { body, allowAnonymous = false, signal } = 
     throw new ApiError(
       response.status,
       error?.code ?? 'HTTP_ERROR',
-      error?.message ?? `Erreur ${response.status}.`,
+      error?.message ?? T.reseau.erreur(response.status),
       error?.details,
     );
   }

@@ -10,15 +10,12 @@
 
 import { config } from '../../config/index.js';
 import { countUsers, createUser, findByUsername } from './service.js';
+import { T } from './textes.js';
 
 export async function seedUsers() {
   if (config.seedUsers.length === 0) {
     if (countUsers() === 0) {
-      console.warn(
-        '[auth] Aucun compte en base et aucun compte déclaré dans ' +
-          "l'environnement : personne ne pourra se connecter. Renseigne " +
-          'MINKA_USER1_USERNAME et MINKA_USER1_PASSWORD dans le fichier .env.',
-      );
+      console.warn(T.journal.aucunCompte);
     }
     return;
   }
@@ -28,6 +25,6 @@ export async function seedUsers() {
 
     await createUser({ username, password, displayName });
     // Le mot de passe n'apparaît évidemment jamais dans les journaux.
-    console.log(`[auth] compte créé : ${username} (${displayName})`);
+    console.log(T.journal.compteCree(username, displayName));
   }
 }
