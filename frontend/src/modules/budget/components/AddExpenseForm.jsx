@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { PlusIcon } from '../../../components/icons.jsx';
 import { aujourdhui } from '../../../lib/dates.js';
 import { analyserMontant } from '../montants.js';
+import { T } from '../textes.js';
 
 /**
  * Saisie rapide, ancrée en bas de l'écran.
@@ -53,8 +54,8 @@ export function AddExpenseForm({ onAdd, moisAffiche, moisCourant }) {
           ref={champMontant}
           value={montant}
           onChange={(e) => setMontant(e.target.value)}
-          placeholder="12,50"
-          aria-label="Montant"
+          placeholder={T.saisie.montantExemple}
+          aria-label={T.saisie.montant}
           inputMode="decimal"
           enterKeyHint="next"
           autoComplete="off"
@@ -63,8 +64,8 @@ export function AddExpenseForm({ onAdd, moisAffiche, moisCourant }) {
         <input
           value={libelle}
           onChange={(e) => setLibelle(e.target.value)}
-          placeholder="Boulangerie…"
-          aria-label="Ce que c'était"
+          placeholder={T.saisie.libelleExemple}
+          aria-label={T.saisie.ceQueCEtait}
           enterKeyHint="done"
           autoCapitalize="sentences"
           autoComplete="off"
@@ -73,7 +74,7 @@ export function AddExpenseForm({ onAdd, moisAffiche, moisCourant }) {
         <button
           type="submit"
           disabled={!valide}
-          aria-label="Ajouter la dépense"
+          aria-label={T.saisie.ajouter}
           className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
         >
           <PlusIcon className="size-6" />

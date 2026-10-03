@@ -1,21 +1,23 @@
 import { z } from 'zod';
 
 import { isoDate } from '../../lib/schemas.js';
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
 
 const title = z
   .string()
   .trim()
-  .min(1, "L'intitulé est requis.")
-  .max(160, "L'intitulé est trop long.");
+  .min(1, T.schemas.intituleRequis)
+  .max(160, T.schemas.intituleTropLong);
 
 /** Rythmes proposés. `null` = tâche à faire une seule fois. */
 export const RECURRENCES = ['daily', 'weekly', 'monthly', 'quarterly', 'biannual', 'yearly'];
 
 const recurrence = z
-  .enum(RECURRENCES, { message: 'Rythme de répétition inconnu.' })
+  .enum(RECURRENCES, { message: T.schemas.rythmeInconnu })
   .nullable();
 
-const note = z.string().trim().max(500, 'La note est trop longue.').nullable();
+const note = z.string().trim().max(500, T.schemas.noteTropLongue).nullable();
 const assigneeId = z.number().int().positive().nullable();
 
 export const createTaskSchema = z
@@ -33,7 +35,7 @@ export const createTaskSchema = z
    */
   .refine((valeur) => !valeur.recurrence || valeur.dueOn, {
     path: ['dueOn'],
-    message: 'Une tâche qui se répète a besoin d’une échéance de départ.',
+    message: T.schemas.echeanceDeDepart,
   });
 
 export const updateTaskSchema = z
@@ -46,7 +48,7 @@ export const updateTaskSchema = z
     note: note.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const listQuerySchema = z.object({

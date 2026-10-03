@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { personExists } from '../../lib/people.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
+import { T as SOCLE } from '../../textes.js';
 import {
   createTask,
   createZone,
@@ -25,18 +26,18 @@ import {
   updateTaskSchema,
   zoneBodySchema,
 } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const taskNotFound = () =>
-  new AppError(404, 'MAINTENANCE_TASK_NOT_FOUND', "Cette intervention n'existe plus.");
-const zoneNotFound = () => new AppError(404, 'ZONE_NOT_FOUND', "Cette pièce n'existe plus.");
-const zoneTaken = () => new AppError(409, 'ZONE_LABEL_TAKEN', 'Une pièce porte déjà ce nom.');
+const taskNotFound = () => new AppError(404, 'MAINTENANCE_TASK_NOT_FOUND', T.introuvable);
+const zoneNotFound = () => new AppError(404, 'ZONE_NOT_FOUND', T.pieceIntrouvable);
+const zoneTaken = () => new AppError(409, 'ZONE_LABEL_TAKEN', T.pieceDejaPrise);
 
 function verifierReferences({ zoneId, assigneeId }) {
   if (zoneId != null && !getZone(zoneId)) throw zoneNotFound();
   if (assigneeId != null && !personExists(assigneeId)) {
-    throw new AppError(400, 'PERSON_NOT_FOUND', "Cette personne n'existe plus.");
+    throw new AppError(400, 'PERSON_NOT_FOUND', SOCLE.erreurs.personneDisparue);
   }
 }
 

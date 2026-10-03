@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { personExists } from '../../lib/people.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
+import { T as SOCLE } from '../../textes.js';
 import {
   createTaskSchema,
   listQuerySchema,
@@ -18,14 +19,15 @@ import {
   listTasks,
   updateTask,
 } from './service.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const taskNotFound = () => new AppError(404, 'TASK_NOT_FOUND', "Cette tâche n'existe plus.");
+const taskNotFound = () => new AppError(404, 'TASK_NOT_FOUND', T.introuvable);
 
 function verifierPersonne(assigneeId) {
   if (assigneeId !== undefined && assigneeId !== null && !personExists(assigneeId)) {
-    throw new AppError(400, 'UNKNOWN_PERSON', "Ce membre du foyer n'existe pas.");
+    throw new AppError(400, 'UNKNOWN_PERSON', SOCLE.erreurs.membreInconnu);
   }
 }
 
@@ -60,8 +62,8 @@ router.patch(
     // échéance, sinon elle ne reviendrait jamais. On vérifie l'état résultant.
     const resultante = { ...existante, ...req.valid.body };
     if (resultante.recurrence && !resultante.dueOn) {
-      throw new AppError(400, 'VALIDATION_ERROR', 'Données invalides.', [
-        { champ: 'dueOn', message: 'Une tâche qui se répète a besoin d’une échéance.' },
+      throw new AppError(400, 'VALIDATION_ERROR', SOCLE.erreurs.donneesInvalides, [
+        { champ: 'dueOn', message: T.echeanceRequise },
       ]);
     }
 

@@ -16,6 +16,13 @@ describe('libelleJour', () => {
     assert.match(libelleJour(decalerJours(aujourdhui(), 3)), /^\p{L}+ \d+ \p{L}+$/u);
   });
 
+  it('parle anglais quand on le lui demande', () => {
+    assert.equal(libelleJour(aujourdhui(), 'en'), 'Today');
+    assert.equal(libelleJour(decalerJours(aujourdhui(), 1), 'en'), 'Tomorrow');
+    // « Tuesday 6 October » : le jour avant le mois, à la britannique.
+    assert.match(libelleJour(decalerJours(aujourdhui(), 3), 'en'), /^\p{L}+ \d+ \p{L}+$/u);
+  });
+
   it('ajoute l’année quand elle est lointaine', () => {
     // Sinon un événement dans quinze mois se lirait comme s'il tombait cette
     // année-ci.
@@ -141,6 +148,7 @@ describe('grouperParJour', () => {
 describe('libelleHoraire', () => {
   it('annonce une journée entière', () => {
     assert.equal(libelleHoraire({ startsAt: null }), 'Journée');
+    assert.equal(libelleHoraire({ startsAt: null }, 'en'), 'All day');
   });
 
   it('donne l’heure seule quand il n’y a pas de fin', () => {

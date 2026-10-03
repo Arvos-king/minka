@@ -4,10 +4,11 @@ import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
 import { createItemSchema, itemParamsSchema, updateItemSchema } from './schemas.js';
 import { createItem, deleteItem, getItem, listItems, updateItem } from './service.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const itemNotFound = () => new AppError(404, 'ITEM_NOT_FOUND', "Ce produit n'est plus dans le frigo.");
+const itemNotFound = () => new AppError(404, 'ITEM_NOT_FOUND', T.introuvable);
 
 router.get('/items', (req, res) => {
   res.json({ items: listItems() });

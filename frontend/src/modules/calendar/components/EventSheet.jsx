@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { aujourdhui } from '../../../lib/dates.js';
 import { couleurPersonne } from '../../../lib/people.js';
+import { T as SOCLE } from '../../../textes.js';
+import { T } from '../textes.js';
 
 /**
  * Panneau de saisie d'un événement, glissé depuis le bas de l'écran.
@@ -67,21 +69,26 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
     }
   }
 
-  const choixPersonnes = [{ id: null, displayName: 'Tout le monde' }, ...people];
+  const choixPersonnes = [{ id: null, displayName: SOCLE.membres.toutLeMonde }, ...people];
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
       {/* Toucher le fond ferme le panneau : geste attendu sur mobile. */}
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={enEdition ? "Modifier l'événement" : 'Nouvel événement'}
+        aria-label={enEdition ? T.feuille.modifier : T.feuille.nouveau}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
-          {enEdition ? "Modifier l'événement" : 'Nouvel événement'}
+          {enEdition ? T.feuille.modifier : T.feuille.nouveau}
         </h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
@@ -89,8 +96,8 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
             ref={champTitre}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Intitulé"
-            aria-label="Intitulé"
+            placeholder={T.feuille.intitule}
+            aria-label={T.feuille.intitule}
             required
             maxLength={120}
             className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -98,7 +105,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
 
           <div className="rounded-xl bg-surface p-3 ring-1 ring-sand-200">
             <label className="flex items-center justify-between gap-3">
-              <span className="text-sm font-medium text-sand-700">Date</span>
+              <span className="text-sm font-medium text-sand-700">{SOCLE.commun.date}</span>
               <input
                 type="date"
                 value={startsOn}
@@ -109,7 +116,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
             </label>
 
             <label className="mt-3 flex items-center justify-between gap-3 border-t border-sand-100 pt-3">
-              <span className="text-sm font-medium text-sand-700">Journée entière</span>
+              <span className="text-sm font-medium text-sand-700">{T.feuille.journeeEntiere}</span>
               <input
                 type="checkbox"
                 checked={journeeEntiere}
@@ -124,7 +131,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                   type="time"
                   value={startsAt}
                   onChange={(e) => setStartsAt(e.target.value)}
-                  aria-label="Heure de début"
+                  aria-label={T.feuille.heureDebut}
                   className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 <span className="text-sand-400">→</span>
@@ -132,7 +139,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                   type="time"
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
-                  aria-label="Heure de fin (facultative)"
+                  aria-label={T.feuille.heureFin}
                   className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
@@ -140,22 +147,22 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
 
             <label className="mt-3 flex items-center justify-between gap-3 border-t border-sand-100 pt-3">
               <span className="text-sm font-medium text-sand-700">
-                Se termine le
-                <span className="ml-1 font-normal text-sand-500">(séjour)</span>
+                {T.feuille.seTermine}
+                <span className="ml-1 font-normal text-sand-500">{T.feuille.sejour}</span>
               </span>
               <input
                 type="date"
                 value={endsOn}
                 min={startsOn}
                 onChange={(e) => setEndsOn(e.target.value)}
-                aria-label="Date de fin, pour un événement sur plusieurs jours"
+                aria-label={T.feuille.dateFin}
                 className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Qui est concerné&nbsp;?</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.quiEstConcerne}</p>
             <div className="flex flex-wrap gap-2">
               {choixPersonnes.map((personne) => {
                 const actif = ownerId === personne.id;
@@ -184,8 +191,8 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Note (facultative)"
-            aria-label="Note"
+            placeholder={SOCLE.commun.noteFacultative}
+            aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
             className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -199,10 +206,10 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Annuler
+              {SOCLE.commun.annuler}
             </Button>
             <Button type="submit" loading={enregistrement} className="flex-1">
-              Enregistrer
+              {SOCLE.commun.enregistrer}
             </Button>
           </div>
 
@@ -216,7 +223,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
               }}
               className="w-full text-danger"
             >
-              Supprimer l'événement
+              {T.feuille.supprimer}
             </Button>
           )}
         </form>

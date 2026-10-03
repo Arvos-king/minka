@@ -1,5 +1,6 @@
 import { extrait, libelleModification, titreAffiche } from '../apercu.js';
 import { PinIcon } from '../NotesIcon.jsx';
+import { T } from '../textes.js';
 
 /**
  * Une note dans la liste.
@@ -26,7 +27,7 @@ export function NoteCard({ note, onOuvrir, onEpingler }) {
         className="min-h-14 flex-1 rounded-l-2xl px-4 py-3 text-left active:bg-sand-50"
       >
         <span className="block font-medium text-sand-900">
-          {titre === '' ? <span className="text-sand-400">Note sans titre</span> : titre}
+          {titre === '' ? <span className="text-sand-400">{T.sansTitre}</span> : titre}
         </span>
 
         {apercu !== '' && (
@@ -43,7 +44,7 @@ export function NoteCard({ note, onOuvrir, onEpingler }) {
         type="button"
         onClick={() => onEpingler(note)}
         aria-pressed={note.pinned}
-        aria-label={note.pinned ? `Détacher ${titre || 'cette note'}` : `Épingler ${titre || 'cette note'}`}
+        aria-label={note.pinned ? T.detacher(titre || T.cetteNote) : T.epingler(titre || T.cetteNote)}
         className={[
           'grid min-h-14 w-14 shrink-0 place-items-center rounded-r-2xl active:bg-sand-100',
           note.pinned ? 'text-accent' : 'text-sand-400',

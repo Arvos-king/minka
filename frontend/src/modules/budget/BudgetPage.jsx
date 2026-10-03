@@ -4,6 +4,7 @@ import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { aujourdhui } from '../../lib/dates.js';
 import { usePeople } from '../../lib/people.js';
+import { T as SOCLE } from '../../textes.js';
 import { BudgetIcon } from './BudgetIcon.jsx';
 import { AddExpenseForm } from './components/AddExpenseForm.jsx';
 import { CategoryBar } from './components/CategoryBar.jsx';
@@ -12,6 +13,7 @@ import { ExpenseRow } from './components/ExpenseRow.jsx';
 import { ExpenseSheet } from './components/ExpenseSheet.jsx';
 import { libelleMois } from './mois.js';
 import { formaterMontantCourt } from './montants.js';
+import { T } from './textes.js';
 import { useBudget } from './useBudget.js';
 
 export function BudgetPage() {
@@ -52,7 +54,7 @@ export function BudgetPage() {
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
           <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
@@ -63,7 +65,7 @@ export function BudgetPage() {
         <button
           type="button"
           onClick={moisPrecedent}
-          aria-label="Mois précédent"
+          aria-label={T.moisPrecedent}
           className="grid size-11 shrink-0 place-items-center rounded-full text-sand-600 active:bg-sand-200"
         >
           <ChevronRightIcon className="size-5 rotate-180" />
@@ -76,7 +78,7 @@ export function BudgetPage() {
         <button
           type="button"
           onClick={moisSuivant}
-          aria-label="Mois suivant"
+          aria-label={T.moisSuivant}
           className="grid size-11 shrink-0 place-items-center rounded-full text-sand-600 active:bg-sand-200"
         >
           <ChevronRightIcon className="size-5" />
@@ -86,12 +88,12 @@ export function BudgetPage() {
       {!moisCourant && (
         <div className="mb-4 text-center">
           <Button size="sm" variant="secondary" onClick={revenirAuMoisCourant}>
-            Revenir à ce mois-ci
+            {T.revenirAuMoisCourant}
           </Button>
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && (
         <>
@@ -100,27 +102,24 @@ export function BudgetPage() {
             {formaterMontantCourt(totals.spentCents)}
           </p>
           <p className="mb-5 text-center text-sm text-sand-500">
-            {expenses.length === 0
-              ? 'Aucune dépense ce mois-ci'
-              : `${expenses.length} dépense${expenses.length > 1 ? 's' : ''}`}
+            {expenses.length === 0 ? T.aucuneDepense : T.depenses(expenses.length)}
           </p>
 
           <section className="mb-6">
             <div className="mb-2 flex items-baseline justify-between gap-3">
-              <h2 className="text-sm font-medium text-sand-600">Par catégorie</h2>
+              <h2 className="text-sm font-medium text-sand-600">{T.parCategorie}</h2>
               <button
                 type="button"
                 onClick={() => setCategoriesOuvertes(true)}
                 className="min-h-9 text-sm font-medium text-accent"
               >
-                Gérer
+                {SOCLE.commun.gerer}
               </button>
             </div>
 
             {categories.length === 0 && sansCategorie === 0 ? (
               <p className="rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
-                Aucune catégorie. Sans elles, le total du mois reste juste&nbsp;; avec, on voit où
-                il part.
+                {T.aucuneCategorie}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -133,7 +132,7 @@ export function BudgetPage() {
                   />
                 ))}
                 {sansCategorie > 0 && (
-                  <CategoryBar label="Sans catégorie" spentCents={sansCategorie} budgetCents={null} />
+                  <CategoryBar label={T.sansCategorie} spentCents={sansCategorie} budgetCents={null} />
                 )}
               </ul>
             )}
@@ -143,15 +142,13 @@ export function BudgetPage() {
 
       {status === 'ready' && (
         <section>
-          <h2 className="mb-2 text-sm font-medium text-sand-600">Le détail</h2>
+          <h2 className="mb-2 text-sm font-medium text-sand-600">{T.leDetail}</h2>
 
           {expenses.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
               <BudgetIcon className="mx-auto size-8 text-sand-400" />
-              <p className="mt-3 text-sm font-medium text-sand-700">Rien de noté</p>
-              <p className="mt-1 text-sm text-sand-500">
-                Le montant et deux mots suffisent&nbsp;; le reste se précise plus tard.
-              </p>
+              <p className="mt-3 text-sm font-medium text-sand-700">{T.rienDeNote}</p>
+              <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>
           ) : (
             <ul className="space-y-2">

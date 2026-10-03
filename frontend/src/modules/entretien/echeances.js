@@ -4,26 +4,25 @@
  */
 
 import { aujourdhui, joursEntre } from '../../lib/dates.js';
+import { LANGUE, formateurDate, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
 /** Les rythmes proposés. Pas de « chaque jour » : ce serait du ménage courant. */
-export const RYTHMES = [
-  { valeur: 'weekly', libelle: 'Chaque semaine' },
-  { valeur: 'monthly', libelle: 'Chaque mois' },
-  { valeur: 'quarterly', libelle: 'Tous les trois mois' },
-  { valeur: 'biannual', libelle: 'Tous les six mois' },
-  { valeur: 'yearly', libelle: 'Chaque année' },
-];
+const VALEURS_RYTHMES = ['weekly', 'monthly', 'quarterly', 'biannual', 'yearly'];
 
-export function libelleRythme(recurrence) {
-  return RYTHMES.find((r) => r.valeur === recurrence)?.libelle ?? null;
+export function rythmes(langue = LANGUE) {
+  const t = textes(TEXTES, langue).rythmes;
+  return VALEURS_RYTHMES.map((valeur) => ({ valeur, libelle: t[valeur] }));
 }
 
-const formatCourt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
-const formatAvecAnnee = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
+export const RYTHMES = rythmes();
+
+export function libelleRythme(recurrence, langue = LANGUE) {
+  return rythmes(langue).find((r) => r.valeur === recurrence)?.libelle ?? null;
+}
+
+const FORMAT_COURT = { day: 'numeric', month: 'short' };
+const FORMAT_AVEC_ANNEE = { ...FORMAT_COURT, year: 'numeric' };
 
 /**
  * Un retard d'entretien se compte en semaines et en mois, pas en jours.
@@ -32,29 +31,30 @@ const formatAvecAnnee = new Intl.DateTimeFormat('fr-FR', {
  * comprend tout de suite, et c'est bien l'ordre de grandeur qui compte pour
  * décider si l'on s'en occupe aujourd'hui.
  */
-function libelleRetard(jours) {
-  if (jours === 1) return 'Hier';
-  if (jours < 14) return `En retard de ${jours} j`;
-  if (jours < 60) return `En retard de ${Math.round(jours / 7)} sem.`;
-  return `En retard de ${Math.round(jours / 30)} mois`;
+function libelleRetard(jours, t) {
+  if (jours === 1) return t.hier;
+  if (jours < 14) return t.retardJours(jours);
+  if (jours < 60) return t.retardSemaines(Math.round(jours / 7));
+  return t.retardMois(Math.round(jours / 30));
 }
 
 /**
  * @returns {{ niveau: 'retard'|'aujourdhui'|'bientot'|'plusTard', libelle: string, jours: number }}
  */
-export function statutEcheance(dueOn, leJour = aujourdhui()) {
+export function statutEcheance(dueOn, leJour = aujourdhui(), langue = LANGUE) {
+  const t = textes(TEXTES, langue).echeance;
   const jours = joursEntre(leJour, dueOn);
 
-  if (jours < 0) return { niveau: 'retard', libelle: libelleRetard(-jours), jours };
-  if (jours === 0) return { niveau: 'aujourdhui', libelle: "Aujourd'hui", jours };
-  if (jours === 1) return { niveau: 'bientot', libelle: 'Demain', jours };
-  if (jours <= 7) return { niveau: 'bientot', libelle: `Dans ${jours} j`, jours };
+  if (jours < 0) return { niveau: 'retard', libelle: libelleRetard(-jours, t), jours };
+  if (jours === 0) return { niveau: 'aujourdhui', libelle: t.aujourdhui, jours };
+  if (jours === 1) return { niveau: 'bientot', libelle: t.demain, jours };
+  if (jours <= 7) return { niveau: 'bientot', libelle: t.dans(jours), jours };
 
   const objet = new Date(`${dueOn}T12:00:00`);
   const memeAnnee = objet.getFullYear() === new Date(`${leJour}T12:00:00`).getFullYear();
   return {
     niveau: 'plusTard',
-    libelle: (memeAnnee ? formatCourt : formatAvecAnnee).format(objet),
+    libelle: formateurDate(memeAnnee ? FORMAT_COURT : FORMAT_AVEC_ANNEE, langue).format(objet),
     jours,
   };
 }

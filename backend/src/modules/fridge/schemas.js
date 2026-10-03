@@ -1,18 +1,20 @@
 import { z } from 'zod';
 
 import { isoDate } from '../../lib/schemas.js';
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
 
 const name = z
   .string()
   .trim()
-  .min(1, 'Le nom du produit est requis.')
-  .max(120, 'Le nom est trop long.');
+  .min(1, T.schemas.nomRequis)
+  .max(120, T.schemas.nomTropLong);
 
 const quantity = z
   .number()
-  .int('La quantité doit être un nombre entier.')
-  .min(1, 'La quantité doit être au moins de 1.')
-  .max(99, 'La quantité ne peut pas dépasser 99.');
+  .int(T.schemas.quantiteEntiere)
+  .min(1, T.schemas.quantiteMin)
+  .max(99, T.schemas.quantiteMax);
 
 /**
  * Date de péremption. `null` est une valeur acceptée et signifiante : elle
@@ -33,7 +35,7 @@ export const updateItemSchema = z
     expiresOn: expiresOn.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const itemParamsSchema = z.object({

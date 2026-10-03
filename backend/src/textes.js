@@ -68,6 +68,9 @@ export const TEXTES = {
       origineNonAutorisee: 'Origine non autorisée.',
       origineEtrangere: "L'origine de la requête ne correspond pas au domaine de l'application.",
       donneesInvalides: 'Données invalides.',
+      aucuneModification: 'Aucune modification fournie.',
+      membreInconnu: "Ce membre du foyer n'existe pas.",
+      personneDisparue: "Cette personne n'existe plus.",
     },
   },
 
@@ -130,6 +133,9 @@ export const TEXTES = {
       origineNonAutorisee: 'Origin not allowed.',
       origineEtrangere: "The request's origin does not match the application's domain.",
       donneesInvalides: 'Invalid data.',
+      aucuneModification: 'No changes provided.',
+      membreInconnu: 'This household member does not exist.',
+      personneDisparue: 'This person no longer exists.',
     },
   },
 };

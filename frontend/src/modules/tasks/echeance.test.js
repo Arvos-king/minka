@@ -55,6 +55,27 @@ describe('formaterDate', () => {
   });
 });
 
+describe('en anglais', () => {
+  it('nomme les échéances proches', () => {
+    assert.equal(statutEcheance(dans(-1), 'en').libelle, 'Yesterday');
+    assert.equal(statutEcheance(dans(-4), 'en').libelle, '4 days overdue');
+    assert.equal(statutEcheance(dans(0), 'en').libelle, 'Today');
+    assert.equal(statutEcheance(dans(1), 'en').libelle, 'Tomorrow');
+    assert.equal(statutEcheance(dans(2), 'en').libelle, 'In 2 days');
+  });
+
+  it('écrit la date le jour avant le mois', () => {
+    // Anglais britannique : « 6 Sept », comme « 6 sept. ».
+    assert.match(statutEcheance(dans(20), 'en').libelle, /^\d+ \p{L}+$/u);
+  });
+
+  it('nomme les rythmes', () => {
+    assert.equal(libelleRythme(null, 'en'), 'Once');
+    assert.equal(libelleRythme('weekly', 'en'), 'Every week');
+    assert.equal(libelleRythme('biannual', 'en'), 'Every six months');
+  });
+});
+
 describe('libelleRythme', () => {
   it('nomme chaque rythme proposé', () => {
     assert.equal(libelleRythme(null), 'Une seule fois');

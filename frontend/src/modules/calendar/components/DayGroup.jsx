@@ -1,5 +1,6 @@
 import { couleurPersonne, nomPersonne } from '../../../lib/people.js';
 import { libelleHoraire, libelleJour } from '../agenda.js';
+import { T } from '../textes.js';
 
 /**
  * Les événements d'une même journée.
@@ -35,7 +36,7 @@ export function DayGroup({ date, events, people, onSelect }) {
                     </span>
                     {event.joursTotal && (
                       <span className="shrink-0 rounded-full bg-sand-200 px-2 py-0.5 text-xs text-sand-600">
-                        jour {event.jourIndex}/{event.joursTotal}
+                        {T.jourSur(event.jourIndex, event.joursTotal)}
                       </span>
                     )}
                   </span>

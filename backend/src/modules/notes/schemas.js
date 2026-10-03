@@ -1,14 +1,17 @@
 import { z } from 'zod';
 
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
+
 /** `null` = pas de titre : il sera déduit de la première ligne du corps. */
-const title = z.string().trim().max(120, 'Le titre est trop long.').nullable();
+const title = z.string().trim().max(120, T.schemas.titreTropLong).nullable();
 
 /**
  * Le corps d'une note. Généreux mais borné : le plafond de charge utile de
  * l'API est à 100 ko, et une note qui l'approcherait serait refusée par une
  * erreur bien moins claire que celle-ci.
  */
-const body = z.string().max(20_000, 'Cette note est trop longue.');
+const body = z.string().max(20_000, T.schemas.noteTropLongue);
 
 const pinned = z.boolean();
 
@@ -35,7 +38,7 @@ export const updateNoteSchema = z
   })
   .refine(
     (value) => Object.keys(value).some((cle) => cle !== 'expectedVersion'),
-    { message: 'Aucune modification fournie.' },
+    { message: SOCLE.erreurs.aucuneModification },
   );
 
 export const noteParamsSchema = z.object({

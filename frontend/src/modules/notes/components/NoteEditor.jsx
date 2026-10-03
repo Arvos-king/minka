@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ArrowLeftIcon, TrashIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { notesApi } from '../api.js';
 import { PinIcon } from '../NotesIcon.jsx';
+import { T } from '../textes.js';
 
 /** Délai d'inactivité avant enregistrement. Assez court pour rassurer, assez
  *  long pour ne pas envoyer une requête par lettre tapée. */
@@ -134,19 +136,19 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
   }
 
   const INDICATEURS = {
-    attente: 'Modifications en attente…',
-    envoi: 'Enregistrement…',
-    enregistre: 'Enregistré',
+    attente: T.editeur.enAttente,
+    envoi: T.editeur.envoi,
+    enregistre: T.editeur.enregistre,
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-fond" role="dialog" aria-modal="true" aria-label="Note">
+    <div className="fixed inset-0 z-40 flex flex-col bg-fond" role="dialog" aria-modal="true" aria-label={T.editeur.note}>
       <header className="pt-safe shrink-0 bg-entete text-white shadow-sm">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-1 px-2">
           <button
             type="button"
             onClick={fermer}
-            aria-label="Fermer la note"
+            aria-label={T.editeur.fermer}
             className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
           >
             <ArrowLeftIcon className="size-5" />
@@ -161,7 +163,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
               type="button"
               onClick={basculerEpingle}
               aria-pressed={pinned}
-              aria-label={pinned ? 'Détacher la note' : 'Épingler la note'}
+              aria-label={pinned ? T.editeur.detacher : T.editeur.epingler}
               className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
             >
               <PinIcon className="size-5" rempli={pinned} />
@@ -172,15 +174,13 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
 
       {etat === 'conflit' && (
         <div role="alert" className="bg-amber-100 px-4 py-3 text-amber-900">
-          <p className="mx-auto max-w-2xl text-sm font-medium">
-            Cette note a été modifiée ailleurs pendant que tu écrivais.
-          </p>
+          <p className="mx-auto max-w-2xl text-sm font-medium">{T.editeur.conflit}</p>
           <div className="mx-auto mt-2 flex max-w-2xl flex-wrap gap-2">
             <Button size="sm" variant="secondary" onClick={reprendreLAutre}>
-              Voir leur version
+              {T.editeur.voirLeurVersion}
             </Button>
             <Button size="sm" onClick={imposerMonTexte}>
-              Garder mon texte
+              {T.editeur.garderMonTexte}
             </Button>
           </div>
         </div>
@@ -197,8 +197,8 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
           ref={champTitre}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Titre (facultatif)"
-          aria-label="Titre de la note"
+          placeholder={T.editeur.titrePlaceholder}
+          aria-label={T.editeur.titre}
           maxLength={120}
           className="w-full shrink-0 bg-transparent text-lg font-semibold text-sand-900 outline-none placeholder:font-normal placeholder:text-sand-400"
         />
@@ -207,8 +207,8 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
           ref={champCorps}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Écris ici…"
-          aria-label="Contenu de la note"
+          placeholder={T.editeur.corpsPlaceholder}
+          aria-label={T.editeur.corps}
           maxLength={20000}
           className="mt-3 min-h-64 w-full flex-1 resize-none bg-transparent leading-relaxed text-sand-800 outline-none placeholder:text-sand-400"
         />
@@ -225,10 +225,10 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
                     onClose();
                   }}
                 >
-                  Supprimer la note
+                  {T.editeur.supprimerLaNote}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setConfirmationSuppression(false)}>
-                  Annuler
+                  {SOCLE.commun.annuler}
                 </Button>
               </div>
             ) : (
@@ -239,7 +239,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
                 className="text-danger"
               >
                 <TrashIcon className="size-4" />
-                Supprimer
+                {SOCLE.commun.supprimer}
               </Button>
             )}
           </div>

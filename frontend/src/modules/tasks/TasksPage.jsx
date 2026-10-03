@@ -3,10 +3,13 @@ import { useEffect, useState } from 'react';
 import { ChevronDownIcon, PlusIcon } from '../../components/icons.jsx';
 import { PeopleSheet } from '../../components/PeopleSheet.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import { formateurDate } from '../../lib/langue.js';
 import { couleurPersonne, usePeople } from '../../lib/people.js';
+import { T as SOCLE } from '../../textes.js';
 import { TaskRow } from './components/TaskRow.jsx';
 import { TaskSheet } from './components/TaskSheet.jsx';
 import { TasksIcon } from './TasksIcon.jsx';
+import { T } from './textes.js';
 import { useTasks } from './useTasks.js';
 
 /**
@@ -16,12 +19,12 @@ import { useTasks } from './useTasks.js';
  */
 function libelleDateLongue(date) {
   const objet = new Date(`${date}T12:00:00`);
-  return objet.toLocaleDateString('fr-FR', {
+  return formateurDate({
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     ...(objet.getFullYear() === new Date().getFullYear() ? {} : { year: 'numeric' }),
-  });
+  }).format(objet);
 }
 
 export function TasksPage() {
@@ -65,14 +68,14 @@ export function TasksPage() {
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
           <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
 
       {replanification && (
         <p role="status" className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
-          «&nbsp;{replanification.titre}&nbsp;» revient le {libelleDateLongue(replanification.dueOn)}.
+          {T.revient(replanification.titre, libelleDateLongue(replanification.dueOn))}
         </p>
       )}
 
@@ -89,7 +92,7 @@ export function TasksPage() {
               filtre === null ? 'bg-sand-900 text-fond' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
             ].join(' ')}
           >
-            Tout
+            {SOCLE.commun.tout}
           </button>
 
           {people.map((personne) => {
@@ -117,30 +120,26 @@ export function TasksPage() {
             onClick={() => setGestionMembres(true)}
             className="ml-auto text-sm font-medium text-accent"
           >
-            Gérer
+            {SOCLE.commun.gerer}
           </button>
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && (
         <>
           <p className="mb-3 text-sm font-medium text-sand-600">
-            {aFaire.length === 0
-              ? 'Rien à faire'
-              : `${aFaire.length} tâche${aFaire.length > 1 ? 's' : ''} à faire`}
+            {aFaire.length === 0 ? T.rienAFaire : T.aFaire(aFaire.length)}
           </p>
 
           {aFaire.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
               <TasksIcon className="mx-auto size-8 text-sand-400" />
               <p className="mt-3 text-sm font-medium text-sand-700">
-                {counts.pending > 0 ? 'Rien pour cette personne' : 'Tout est fait'}
+                {counts.pending > 0 ? T.rienPourCettePersonne : T.toutEstFait}
               </p>
-              <p className="mt-1 text-sm text-sand-500">
-                Touche le bouton en bas à droite pour ajouter une tâche.
-              </p>
+              <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>
           ) : (
             <ul className="space-y-2">
@@ -167,7 +166,7 @@ export function TasksPage() {
                 <ChevronDownIcon
                   className={`size-4 transition-transform ${afficherFaites ? '' : '-rotate-90'}`}
                 />
-                Faites ({faites.length})
+                {T.faites(faites.length)}
               </button>
 
               {afficherFaites && (
@@ -196,17 +195,15 @@ export function TasksPage() {
                             setAfficherFaites(false);
                           }}
                         >
-                          {faites.length > 1
-                            ? `Supprimer les ${faites.length} tâches`
-                            : 'Supprimer la tâche'}
+                          {T.supprimerFaites(faites.length)}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setConfirmationPurge(false)}>
-                          Annuler
+                          {SOCLE.commun.annuler}
                         </Button>
                       </div>
                     ) : (
                       <Button size="sm" variant="secondary" onClick={() => setConfirmationPurge(true)}>
-                        Vider les tâches faites
+                        {T.viderFaites}
                       </Button>
                     )}
                   </div>
@@ -220,7 +217,7 @@ export function TasksPage() {
       <button
         type="button"
         onClick={() => setSaisie({})}
-        aria-label="Ajouter une tâche"
+        aria-label={T.ajouter}
         className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />

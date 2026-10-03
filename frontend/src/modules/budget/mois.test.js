@@ -62,4 +62,9 @@ describe('libelleMois', () => {
     // En feuilletant les mois passés, on doit voir qu'on a changé d'exercice.
     assert.match(libelleMois('2025-12-01', MAINTENANT), /décembre\s+2025/);
   });
+
+  it('parle anglais quand on le lui demande', () => {
+    assert.equal(libelleMois('2026-08-01', MAINTENANT, 'en'), 'August');
+    assert.equal(libelleMois('2025-12-01', MAINTENANT, 'en'), 'December 2025');
+  });
 });

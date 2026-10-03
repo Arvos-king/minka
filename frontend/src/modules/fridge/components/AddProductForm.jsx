@@ -1,13 +1,15 @@
 import { useRef, useState } from 'react';
 
 import { PlusIcon } from '../../../components/icons.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { dansNJours } from '../expiry.js';
+import { T } from '../textes.js';
 
 const RACCOURCIS = [
-  { libelle: 'Sans date', jours: null },
-  { libelle: '3 j', jours: 3 },
-  { libelle: '1 sem.', jours: 7 },
-  { libelle: '1 mois', jours: 30 },
+  { libelle: T.formulaire.raccourcis.sansDate, jours: null },
+  { libelle: T.formulaire.raccourcis.troisJours, jours: 3 },
+  { libelle: T.formulaire.raccourcis.semaine, jours: 7 },
+  { libelle: T.formulaire.raccourcis.mois, jours: 30 },
 ];
 
 /**
@@ -69,7 +71,7 @@ export function AddProductForm({ onAdd }) {
               type="date"
               value={expiresOn ?? ''}
               onChange={(event) => setExpiresOn(event.target.value || null)}
-              aria-label="Date de péremption précise"
+              aria-label={T.formulaire.datePrecise}
               className="shrink-0 rounded-full bg-surface px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
@@ -80,8 +82,8 @@ export function AddProductForm({ onAdd }) {
             ref={inputRef}
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Ajouter un produit…"
-            aria-label="Nom du produit à ajouter"
+            placeholder={T.formulaire.placeholder}
+            aria-label={T.formulaire.nomAAjouter}
             enterKeyHint="done"
             autoCapitalize="sentences"
             autoComplete="off"
@@ -90,7 +92,7 @@ export function AddProductForm({ onAdd }) {
           <button
             type="submit"
             disabled={name.trim() === ''}
-            aria-label="Ajouter"
+            aria-label={SOCLE.commun.ajouter}
             className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
           >
             <PlusIcon className="size-6" />

@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
 import { aujourdhui } from '../../../lib/dates.js';
+import { formateurDate } from '../../../lib/langue.js';
 import { couleurPersonne } from '../../../lib/people.js';
+import { T as SOCLE } from '../../../textes.js';
 import { RYTHMES } from '../echeances.js';
+import { T } from '../textes.js';
 
 /**
  * Réglage d'une intervention, glissé depuis le bas.
@@ -59,22 +62,27 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
     }
   }
 
-  const choixPersonnes = [{ id: null, displayName: 'Qui veut' }, ...people];
+  const choixPersonnes = [{ id: null, displayName: T.feuille.quiVeut }, ...people];
   const pastille =
     'inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-medium ring-1 transition';
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={enEdition ? "Régler l'intervention" : 'Nouvelle intervention'}
+        aria-label={enEdition ? T.feuille.regler : T.feuille.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
-          {enEdition ? "Régler l'intervention" : 'Nouvelle intervention'}
+          {enEdition ? T.feuille.regler : T.feuille.nouvelle}
         </h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
@@ -82,17 +90,17 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
             ref={champLabel}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            placeholder="Détartrer la machine à espresso"
-            aria-label="Ce qu'il y a à faire"
+            placeholder={T.feuille.placeholder}
+            aria-label={T.feuille.aFaire}
             required
             maxLength={160}
             className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Pièce</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.piece}</p>
             <div className="flex flex-wrap gap-2">
-              {[{ id: null, label: 'Toute la maison' }, ...zones].map((zone) => {
+              {[{ id: null, label: T.touteLaMaison }, ...zones].map((zone) => {
                 const actif = zoneId === zone.id;
                 return (
                   <button
@@ -110,7 +118,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Rythme</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.rythme}</p>
             <div className="flex flex-wrap gap-2">
               {RYTHMES.map((rythme) => {
                 const actif = recurrence === rythme.valeur;
@@ -130,7 +138,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
           </div>
 
           <label className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 ring-1 ring-sand-200">
-            <span className="text-sm font-medium text-sand-700">Prochaine fois</span>
+            <span className="text-sm font-medium text-sand-700">{T.feuille.prochaineFois}</span>
             <input
               type="date"
               value={dueOn}
@@ -142,12 +150,16 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
 
           {tache?.lastDoneOn && (
             <p className="text-sm text-sand-500">
-              Dernier passage&nbsp;: {new Date(`${tache.lastDoneOn}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {T.feuille.dernierPassage(
+                formateurDate({ day: 'numeric', month: 'long', year: 'numeric' }).format(
+                  new Date(`${tache.lastDoneOn}T12:00:00`),
+                ),
+              )}
             </p>
           )}
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Qui s'en occupe&nbsp;?</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.quiSEnOccupe}</p>
             <div className="flex flex-wrap gap-2">
               {choixPersonnes.map((personne) => {
                 const actif = assigneeId === personne.id;
@@ -171,8 +183,8 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Note (référence du filtre, numéro du chauffagiste…)"
-            aria-label="Note"
+            placeholder={T.feuille.notePlaceholder}
+            aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
             className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -186,10 +198,10 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Annuler
+              {SOCLE.commun.annuler}
             </Button>
             <Button type="submit" loading={enregistrement} className="flex-1">
-              Enregistrer
+              {SOCLE.commun.enregistrer}
             </Button>
           </div>
 
@@ -199,11 +211,11 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
                   sortie, on finit par cocher pour faire taire la ligne, et le
                   planning ne veut plus rien dire. */}
               <div className="border-t border-sand-200 pt-4">
-                <p className="mb-2 text-sm font-medium text-sand-700">Pas maintenant</p>
+                <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.pasMaintenant}</p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { jours: 7, libelle: 'Dans une semaine' },
-                    { jours: 30, libelle: 'Dans un mois' },
+                    { jours: 7, libelle: T.feuille.dansUneSemaine },
+                    { jours: 30, libelle: T.feuille.dansUnMois },
                   ].map((choix) => (
                     <Button
                       key={choix.jours}
@@ -232,10 +244,10 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
                       onClose();
                     }}
                   >
-                    Retirer du planning
+                    {T.feuille.retirer}
                   </Button>
                   <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmationSuppression(false)}>
-                    Annuler
+                    {SOCLE.commun.annuler}
                   </Button>
                 </div>
               ) : (
@@ -245,7 +257,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
                   onClick={() => setConfirmationSuppression(true)}
                   className="w-full text-danger"
                 >
-                  Retirer du planning
+                  {T.feuille.retirer}
                 </Button>
               )}
             </>

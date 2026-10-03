@@ -112,4 +112,15 @@ describe('libelleModification', () => {
   it('ajoute l’année quand elle diffère', () => {
     assert.match(libelleModification('2024-03-05T10:00:00Z', MAINTENANT), /2024/);
   });
+
+  it('suit les mêmes paliers en anglais', () => {
+    const ago = (ecart) =>
+      libelleModification(new Date(MAINTENANT - ecart).toISOString(), MAINTENANT, 'en');
+
+    assert.equal(ago(0), 'just now');
+    assert.equal(ago(5 * MINUTE), '5 min ago');
+    assert.equal(ago(3 * HEURE), '3 h ago');
+    assert.equal(ago(25 * HEURE), 'yesterday');
+    assert.match(ago(72 * HEURE), /^on \d+ \p{L}+$/u);
+  });
 });

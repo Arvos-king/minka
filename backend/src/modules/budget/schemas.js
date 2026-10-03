@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
 import { isoDate } from '../../lib/schemas.js';
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
 
 const label = z
   .string()
   .trim()
-  .min(1, 'Le libellé est requis.')
-  .max(120, 'Le libellé est trop long.');
+  .min(1, T.schemas.libelleRequis)
+  .max(120, T.schemas.libelleTropLong);
 
 /**
  * Montant en centimes, toujours entier.
@@ -18,16 +20,16 @@ const label = z
  */
 const amountCents = z
   .number()
-  .int('Le montant doit être un nombre entier de centimes.')
-  .min(1, 'Le montant doit être supérieur à zéro.')
-  .max(100_000_000, 'Ce montant est hors de proportion.');
+  .int(T.schemas.montantEntier)
+  .min(1, T.schemas.montantPositif)
+  .max(100_000_000, T.schemas.montantDemesure);
 
 /** NULL = catégorie suivie sans objectif de dépense. */
 const monthlyBudgetCents = z
   .number()
   .int()
   .min(0)
-  .max(100_000_000, 'Ce plafond est hors de proportion.')
+  .max(100_000_000, T.schemas.plafondDemesure)
   .nullable();
 
 /** NULL = le foyer, sans plus de précision. */
@@ -51,7 +53,7 @@ export const updateExpenseSchema = z
     personId: personId.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const createCategorySchema = z.object({
@@ -65,7 +67,7 @@ export const updateCategorySchema = z
     monthlyBudgetCents: monthlyBudgetCents.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const periodQuerySchema = z.object({

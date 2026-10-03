@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { personExists } from '../../lib/people.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
+import { T as SOCLE } from '../../textes.js';
 import {
   countExpensesInCategory,
   createCategory,
@@ -25,22 +26,20 @@ import {
   updateCategorySchema,
   updateExpenseSchema,
 } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const expenseNotFound = () =>
-  new AppError(404, 'EXPENSE_NOT_FOUND', "Cette dépense n'existe plus.");
-const categoryNotFound = () =>
-  new AppError(404, 'CATEGORY_NOT_FOUND', "Cette catégorie n'existe plus.");
-const labelTaken = () =>
-  new AppError(409, 'CATEGORY_LABEL_TAKEN', 'Une catégorie porte déjà ce nom.');
+const expenseNotFound = () => new AppError(404, 'EXPENSE_NOT_FOUND', T.depenseIntrouvable);
+const categoryNotFound = () => new AppError(404, 'CATEGORY_NOT_FOUND', T.categorieIntrouvable);
+const labelTaken = () => new AppError(409, 'CATEGORY_LABEL_TAKEN', T.categorieDejaPrise);
 
 /** Les références sortantes sont vérifiées ici, pas laissées à SQLite : le
  *  message d'une contrainte violée n'aiderait personne. */
 function verifierReferences({ categoryId, personId }) {
   if (categoryId != null && !getCategory(categoryId)) throw categoryNotFound();
   if (personId != null && !personExists(personId)) {
-    throw new AppError(400, 'PERSON_NOT_FOUND', "Cette personne n'existe plus.");
+    throw new AppError(400, 'PERSON_NOT_FOUND', SOCLE.erreurs.personneDisparue);
   }
 }
 

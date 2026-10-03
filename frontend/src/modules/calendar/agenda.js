@@ -3,31 +3,24 @@
  */
 
 import { aujourdhui, decalerJours, joursEntre, versJourUtc } from '../../lib/dates.js';
+import { LANGUE, formateurDate, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
-const formatJourComplet = new Intl.DateTimeFormat('fr-FR', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-});
-
-const formatJourAvecAnnee = new Intl.DateTimeFormat('fr-FR', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
+const FORMAT_JOUR_COMPLET = { weekday: 'long', day: 'numeric', month: 'long' };
+const FORMAT_JOUR_AVEC_ANNEE = { ...FORMAT_JOUR_COMPLET, year: 'numeric' };
 
 /** « Aujourd'hui », « Demain », sinon « lundi 24 août ». */
-export function libelleJour(date) {
+export function libelleJour(date, langue = LANGUE) {
+  const t = textes(TEXTES, langue).agenda;
   const ecart = joursEntre(aujourdhui(), date);
-  if (ecart === 0) return "Aujourd'hui";
-  if (ecart === 1) return 'Demain';
+  if (ecart === 0) return t.aujourdhui;
+  if (ecart === 1) return t.demain;
 
   // Midi plutôt que minuit : à minuit, un fuseau en retard afficherait la
   // veille.
   const objet = new Date(`${date}T12:00:00`);
-  const format = ecart > 300 || ecart < -300 ? formatJourAvecAnnee : formatJourComplet;
-  return format.format(objet);
+  const format = ecart > 300 || ecart < -300 ? FORMAT_JOUR_AVEC_ANNEE : FORMAT_JOUR_COMPLET;
+  return formateurDate(format, langue).format(objet);
 }
 
 /** Dernier jour couvert par un événement. */
@@ -72,8 +65,8 @@ export function grouperParJour(events, { depuis = aujourdhui(), jusqua } = {}) {
 }
 
 /** « 14:30 », « 14:30 → 15:15 », ou « Journée ». */
-export function libelleHoraire(event) {
-  if (!event.startsAt) return 'Journée';
+export function libelleHoraire(event, langue = LANGUE) {
+  if (!event.startsAt) return textes(TEXTES, langue).agenda.journee;
   if (!event.endsAt) return event.startsAt;
   return `${event.startsAt} → ${event.endsAt}`;
 }

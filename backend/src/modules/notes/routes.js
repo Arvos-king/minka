@@ -4,10 +4,11 @@ import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
 import { createNote, deleteNote, getNote, listNotes, updateNote } from './service.js';
 import { createNoteSchema, noteParamsSchema, updateNoteSchema } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const noteNotFound = () => new AppError(404, 'NOTE_NOT_FOUND', "Cette note n'existe plus.");
+const noteNotFound = () => new AppError(404, 'NOTE_NOT_FOUND', T.introuvable);
 
 router.get('/items', (req, res) => {
   res.json({ notes: listNotes() });
@@ -44,11 +45,7 @@ router.patch(
      * texte, et perdre trois lignes sans le savoir serait pire que de devoir
      * choisir.
      */
-    throw new AppError(
-      409,
-      'NOTE_CONFLICT',
-      'Cette note a été modifiée entre-temps.',
-    );
+    throw new AppError(409, 'NOTE_CONFLICT', T.conflit);
   },
 );
 

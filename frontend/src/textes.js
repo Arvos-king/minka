@@ -15,6 +15,14 @@ export const TEXTES = {
     commun: {
       fermer: 'Fermer',
       enregistrer: 'Enregistrer',
+      annuler: 'Annuler',
+      supprimer: 'Supprimer',
+      ajouter: 'Ajouter',
+      gerer: 'Gérer',
+      tout: 'Tout',
+      date: 'Date',
+      note: 'Note',
+      noteFacultative: 'Note (facultative)',
     },
 
     slogan: 'La maison, en un seul endroit.',
@@ -101,6 +109,14 @@ export const TEXTES = {
     commun: {
       fermer: 'Close',
       enregistrer: 'Save',
+      annuler: 'Cancel',
+      supprimer: 'Delete',
+      ajouter: 'Add',
+      gerer: 'Manage',
+      tout: 'All',
+      date: 'Date',
+      note: 'Note',
+      noteFacultative: 'Note (optional)',
     },
 
     slogan: 'Your home, all in one place.',

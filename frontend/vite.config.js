@@ -25,6 +25,16 @@ if (!/^[A-Z]{3}$/.test(DEVISE)) {
       '/ Expected an ISO 4217 code (EUR, GBP, USD…).',
   );
 }
+// Le budget compte en centièmes d'unité : une monnaie sans décimales (JPY) ou à
+// trois (TND) afficherait des montants faux d'un facteur cent ou dix.
+const decimalesDevise = new Intl.NumberFormat('en', { style: 'currency', currency: DEVISE })
+  .resolvedOptions().maximumFractionDigits;
+if (decimalesDevise !== 2) {
+  throw new Error(
+    `MINKA_CURRENCY="${DEVISE}" : seules les monnaies à deux décimales sont prises en charge. ` +
+      '/ Only currencies with two decimal places are supported.',
+  );
+}
 
 const PRESENTATION = {
   fr: { description: 'La maison, en un seul endroit' },

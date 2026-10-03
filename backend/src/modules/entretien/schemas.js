@@ -1,25 +1,27 @@
 import { z } from 'zod';
 
 import { isoDate } from '../../lib/schemas.js';
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
 
 const label = z
   .string()
   .trim()
-  .min(1, 'Le libellé est requis.')
-  .max(160, 'Le libellé est trop long.');
+  .min(1, T.schemas.libelleRequis)
+  .max(160, T.schemas.libelleTropLong);
 
 /**
  * Pas de « quotidien » ici : un geste qu'on refait chaque jour n'est pas de
  * l'entretien, c'est du ménage courant — il a sa place dans les tâches.
  */
 const recurrence = z.enum(['weekly', 'monthly', 'quarterly', 'biannual', 'yearly'], {
-  message: 'Rythme inconnu.',
+  message: T.schemas.rythmeInconnu,
 });
 
 /** NULL = intervention qui ne se range dans aucune pièce, comme les vitres. */
 const zoneId = z.number().int().positive().nullable();
 const assigneeId = z.number().int().positive().nullable();
-const note = z.string().trim().max(500, 'La note est trop longue.').nullable();
+const note = z.string().trim().max(500, T.schemas.noteTropLongue).nullable();
 
 export const createTaskSchema = z.object({
   label,
@@ -40,7 +42,7 @@ export const updateTaskSchema = z
     note: note.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 /** Le jour du geste : aujourd'hui par défaut, hier si on le déclare après coup. */
@@ -52,8 +54,8 @@ export const snoozeSchema = z.object({
   days: z
     .number()
     .int()
-    .min(1, 'Il faut repousser d’au moins un jour.')
-    .max(365, 'Au-delà d’un an, mieux vaut changer le rythme.'),
+    .min(1, T.schemas.repousserMin)
+    .max(365, T.schemas.repousserMax),
 });
 
 export const zoneBodySchema = z.object({ label });

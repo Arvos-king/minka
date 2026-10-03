@@ -1,6 +1,7 @@
 import { CheckIcon } from '../../../components/icons.jsx';
 import { couleurPersonne, nomPersonne } from '../../../lib/people.js';
 import { libelleRythme, statutEcheance, STYLES_ECHEANCE } from '../echeances.js';
+import { T } from '../textes.js';
 
 /**
  * Une intervention du planning.
@@ -45,7 +46,7 @@ export function MaintenanceRow({ tache, people, onFaite, onOuvrir }) {
       <button
         type="button"
         onClick={() => onFaite(tache)}
-        aria-label={`Marquer « ${tache.label} » comme fait`}
+        aria-label={T.marquerFait(tache.label)}
         className="grid min-h-14 w-14 shrink-0 place-items-center rounded-r-2xl text-sand-400 active:bg-brand-50 active:text-accent"
       >
         <span className="grid size-7 place-items-center rounded-full border-2 border-current">

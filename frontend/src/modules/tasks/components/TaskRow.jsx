@@ -1,6 +1,8 @@
 import { CheckIcon } from '../../../components/icons.jsx';
 import { couleurPersonne, nomPersonne } from '../../../lib/people.js';
+import { T as SOCLE } from '../../../textes.js';
 import { STYLES_ECHEANCE, libelleRythme, statutEcheance } from '../echeance.js';
+import { T } from '../textes.js';
 
 /**
  * Une tâche.
@@ -24,7 +26,7 @@ export function TaskRow({ task, people, onToggle, onEdit }) {
         type="button"
         onClick={() => onToggle(task)}
         aria-pressed={task.done}
-        aria-label={task.done ? `Décocher ${task.title}` : `Cocher ${task.title}`}
+        aria-label={task.done ? T.decocher(task.title) : T.cocher(task.title)}
         className="grid min-h-14 w-12 shrink-0 place-items-center rounded-l-2xl active:bg-sand-50"
       >
         <span
@@ -64,7 +66,7 @@ export function TaskRow({ task, people, onToggle, onEdit }) {
 
         <span className="mt-0.5 flex items-center gap-1.5 text-sm text-sand-500">
           <span className={`size-2 rounded-full ${couleur.pastille}`} aria-hidden="true" />
-          {nomPersonne(task.assigneeId, people, 'Tout le monde')}
+          {nomPersonne(task.assigneeId, people, SOCLE.membres.toutLeMonde)}
           {rythme && task.recurrence && <span>· {rythme.toLowerCase()}</span>}
         </span>
       </button>
