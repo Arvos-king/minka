@@ -177,3 +177,108 @@ Faire bouillir`);
     assert.deepEqual(textes(recette.steps), ['Faire bouillir']);
   });
 });
+
+describe('en anglais', () => {
+  const en = (ligne) => lireIngredient(ligne, 'en');
+
+  describe('lireIngredient', () => {
+    it('lit la quantité écrite devant, unités anglaises comprises', () => {
+      assert.deepEqual(en('- 600 g courgettes'), { name: 'Courgettes', quantity: '600 g' });
+      assert.deepEqual(en('2 cloves of garlic'), { name: 'Garlic', quantity: '2 cloves' });
+      assert.deepEqual(en('1 tbsp olive oil'), { name: 'Olive oil', quantity: '1 tbsp' });
+      assert.deepEqual(en('200g plain flour'), { name: 'Plain flour', quantity: '200g' });
+    });
+
+    it('lit les fractions et les fourchettes', () => {
+      assert.deepEqual(en('½ lemon'), { name: 'Lemon', quantity: '½' });
+      assert.deepEqual(en('1½ cups milk'), { name: 'Milk', quantity: '1½ cups' });
+      assert.deepEqual(en('2-3 tbsp olive oil'), { name: 'Olive oil', quantity: '2-3 tbsp' });
+    });
+
+    it('accepte les quantités en toutes lettres', () => {
+      assert.deepEqual(en('a pinch of salt'), { name: 'Salt', quantity: 'a pinch' });
+      assert.deepEqual(en('a few sprigs of thyme'), { name: 'Thyme', quantity: 'a few sprigs' });
+    });
+
+    it('range la taille dans la quantité', () => {
+      // La liste de courses réunit ainsi les oignons de deux recettes.
+      assert.deepEqual(en('2 large onions'), { name: 'Onions', quantity: '2 large' });
+    });
+
+    it('ne prend pas l’article pour une quantité', () => {
+      // « a » ne vaut quantité que suivi d'une unité : « a pinch », pas « a little ».
+      assert.deepEqual(en('a little milk'), { name: 'a little milk', quantity: null });
+    });
+
+    it('garde le format de Minka', () => {
+      assert.deepEqual(en('Butter: 30 g'), { name: 'Butter', quantity: '30 g' });
+    });
+  });
+
+  describe('analyserRecette', () => {
+    it('lit une recette complète', () => {
+      const { recette, avertissements } = analyserRecette(
+        `## Lemon drizzle cake
+Serves 8
+Tags: baking, sweet
+
+Ingredients
+- 225 g softened butter
+- 4 eggs
+
+Method
+1. Heat the oven to 180 °C
+2. Bake for 45 minutes`,
+        'en',
+      );
+
+      assert.equal(recette.title, 'Lemon drizzle cake');
+      assert.equal(recette.servings, 8);
+      assert.deepEqual(recette.tags, ['baking', 'sweet']);
+      assert.deepEqual(recette.ingredients, [
+        { name: 'Softened butter', quantity: '225 g' },
+        { name: 'Eggs', quantity: '4' },
+      ]);
+      assert.deepEqual(textes(recette.steps), ['Heat the oven to 180 °C', 'Bake for 45 minutes']);
+      assert.deepEqual(avertissements, []);
+    });
+
+    it('reconnaît les façons anglaises d’annoncer les parts', () => {
+      const parts = (ligne) => analyserRecette(`Pie\n${ligne}\n- Pastry`, 'en').recette.servings;
+
+      assert.equal(parts('Serves 4'), 4);
+      assert.equal(parts('Makes 12'), 12);
+      assert.equal(parts('For 6 people'), 6);
+      assert.equal(parts('4 servings'), 4);
+      assert.equal(parts('Yield: 2'), 2);
+    });
+
+    it('lit les « Step 1 » des sites, seuls sur leur ligne ou en tête', () => {
+      const { recette } = analyserRecette(
+        `Flapjacks
+- 250 g oats
+STEP 1
+Heat the oven to 180 °C.
+Step 2: Melt the butter.`,
+        'en',
+      );
+
+      assert.deepEqual(textes(recette.steps), ['Heat the oven to 180 °C.', 'Melt the butter.']);
+    });
+
+    it('prévient en anglais de ce qu’il n’a pas compris', () => {
+      const { avertissements } = analyserRecette('- 600 g courgettes', 'en');
+      assert.ok(avertissements.some((m) => m.startsWith('No title found')));
+
+      const sansIngredient = analyserRecette('Gratin\n1. Bake', 'en').avertissements;
+      assert.ok(sansIngredient.some((m) => m.startsWith('No ingredients')));
+    });
+
+    it('ne touche pas aux « Étape 1 » français', () => {
+      // La règle des sites anglais ne s'applique qu'à l'anglais : en français,
+      // la ligne reste une étape comme avant.
+      const { recette } = analyserRecette('Tarte\n- Pâte\n1. Étaler\nÉtape 2', 'fr');
+      assert.deepEqual(textes(recette.steps), ['Étaler', 'Étape 2']);
+    });
+  });
+});

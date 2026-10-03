@@ -1,21 +1,9 @@
 import { useMemo, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { analyserRecette } from '../importation.js';
-
-const EXEMPLE = `Gratin de courgettes
-Pour 4 personnes
-Étiquettes : végétarien, four
-
-Ingrédients
-- 600 g de courgettes
-- 20 cl de crème fraîche
-- 2 gousses d'ail
-
-Préparation
-1. Préchauffer le four à 180 °C
-2. Émincer les courgettes
-3. Enfourner 35 minutes`;
+import { T } from '../textes.js';
 
 /**
  * Import d'une recette écrite en texte.
@@ -51,25 +39,27 @@ export function ImportSheet({ onImporter, onClose }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Importer une recette"
+        aria-label={T.importation.titre}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Importer une recette</h2>
-        <p className="mt-1 text-sm text-sand-500">
-          Colle la recette telle que tu l'as trouvée. Le titre en première ligne, les ingrédients à
-          la ligne précédés d'un tiret, les étapes numérotées.
-        </p>
+        <h2 className="text-lg font-semibold text-sand-900">{T.importation.titre}</h2>
+        <p className="mt-1 text-sm text-sand-500">{T.importation.aide}</p>
 
         <textarea
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
-          placeholder={EXEMPLE}
-          aria-label="Recette à importer"
+          placeholder={T.importation.exemple}
+          aria-label={T.importation.champ}
           rows={10}
           className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
         />
@@ -84,12 +74,12 @@ export function ImportSheet({ onImporter, onClose }) {
 
         {complete && (
           <div className="mt-4">
-            <p className="mb-2 text-sm font-medium text-sand-700">Ce qui sera enregistré</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.importation.apercu}</p>
 
             <div className="rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-200">
               <p className="font-semibold text-sand-900">{recette.title}</p>
               {recette.servings && (
-                <p className="text-sm text-sand-500">Pour {recette.servings}</p>
+                <p className="text-sm text-sand-500">{T.pour(recette.servings)}</p>
               )}
 
               {recette.tags.length > 0 && (
@@ -144,7 +134,7 @@ export function ImportSheet({ onImporter, onClose }) {
 
         <div className="mt-5 flex gap-2 pb-4">
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-            Annuler
+            {SOCLE.commun.annuler}
           </Button>
           <Button
             type="button"
@@ -153,7 +143,7 @@ export function ImportSheet({ onImporter, onClose }) {
             disabled={!complete}
             className="flex-1"
           >
-            Créer la recette
+            {T.importation.creer}
           </Button>
         </div>
       </div>

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { CheckIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { menusApi } from '../api.js';
+import { T } from '../textes.js';
 
 /**
  * Envoi des ingrédients de la semaine dans la liste de courses.
@@ -82,15 +84,20 @@ export function ShoppingSheet({ recipeIds, onClose }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Envoyer les ingrédients dans la liste de courses"
+        aria-label={T.courses.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Ingrédients de la semaine</h2>
+        <h2 className="text-lg font-semibold text-sand-900">{T.courses.titre}</h2>
 
         {resultat !== null ? (
           <div className="py-6 text-center">
@@ -98,30 +105,29 @@ export function ShoppingSheet({ recipeIds, onClose }) {
               <CheckIcon className="size-6" strokeWidth={2.5} />
             </span>
             <p className="mt-3 font-medium text-sand-900">
-              {resultat === 1 ? '1 article ajouté' : `${resultat} articles ajoutés`}
+              {T.courses.ajoutes(resultat)}
             </p>
-            <p className="mt-1 text-sm text-sand-500">Ils t'attendent dans la liste de courses.</p>
+            <p className="mt-1 text-sm text-sand-500">{T.courses.attendent}</p>
             <Button type="button" onClick={onClose} className="mt-5 w-full">
-              Fermer
+              {SOCLE.commun.fermer}
             </Button>
           </div>
         ) : (
           <>
             {ingredients === null && !erreur && (
-              <p className="py-8 text-center text-sm text-sand-500">Chargement…</p>
+              <p className="py-8 text-center text-sm text-sand-500">{SOCLE.chargement}</p>
             )}
 
             {ingredients?.length === 0 && (
               <p className="mt-4 rounded-xl border border-dashed border-sand-300 px-4 py-8 text-center text-sm text-sand-500">
-                Aucun ingrédient cette semaine. Pose des recettes dans le planning, leurs
-                ingrédients apparaîtront ici.
+                {T.courses.aucunIngredient}
               </p>
             )}
 
             {ingredients && ingredients.length > 0 && (
               <>
                 <p className="mt-1 text-sm text-sand-500">
-                  Décoche ce que tu as déjà. Le texte est celui qui arrivera dans la liste.
+                  {T.courses.decocher}
                 </p>
 
                 <ul className="mt-3 space-y-1.5">
@@ -177,7 +183,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
 
             <div className="mt-5 flex gap-2 pb-4">
               <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                Annuler
+                {SOCLE.commun.annuler}
               </Button>
               <Button
                 type="button"
@@ -186,7 +192,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
                 disabled={retenus.length === 0}
                 className="flex-1"
               >
-                {retenus.length === 1 ? 'Envoyer 1 article' : `Envoyer ${retenus.length} articles`}
+                {T.courses.envoyer(retenus.length)}
               </Button>
             </div>
           </>

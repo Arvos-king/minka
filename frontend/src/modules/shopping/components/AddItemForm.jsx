@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 
 import { PlusIcon } from '../../../components/icons.jsx';
+import { T as SOCLE } from '../../../textes.js';
+import { T } from '../textes.js';
 
 /**
  * Champ d'ajout, ancré en bas de l'écran.
@@ -41,8 +43,8 @@ export function AddItemForm({ onAdd }) {
           ref={inputRef}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Ajouter un article…"
-          aria-label="Nom de l'article à ajouter"
+          placeholder={T.formulaire.placeholder}
+          aria-label={T.formulaire.nom}
           enterKeyHint="done"
           autoCapitalize="sentences"
           autoComplete="off"
@@ -51,7 +53,7 @@ export function AddItemForm({ onAdd }) {
         <button
           type="submit"
           disabled={name.trim() === ''}
-          aria-label="Ajouter"
+          aria-label={SOCLE.commun.ajouter}
           className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
         >
           <PlusIcon className="size-6" />

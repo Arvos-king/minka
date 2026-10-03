@@ -15,6 +15,7 @@ import {
   resumerDeplacement,
 } from './reorganisation.js';
 import { debutSemaine, decalerSemaine, finSemaine } from './semaine.js';
+import { T } from './textes.js';
 
 /**
  * Planning des repas de la semaine.
@@ -267,9 +268,7 @@ export function useMenus() {
     } catch (apiError) {
       setElements((precedents) => appliquerCases(precedents, releves, periode.current));
       signalerErreur(
-        apiError.status === 409
-          ? "Impossible d'annuler : le planning a changé entre-temps."
-          : apiError.message,
+        apiError.status === 409 ? T.page.annulationImpossible : apiError.message,
       );
       refresh({ silent: true });
       return undefined;

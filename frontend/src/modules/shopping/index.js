@@ -1,5 +1,6 @@
 import { CartIcon } from '../../components/icons.jsx';
 import { ShoppingPage } from './ShoppingPage.jsx';
+import { T } from './textes.js';
 
 /**
  * Déclaration du module pour le registre : c'est ce fichier, et lui seul, qui
@@ -7,11 +8,10 @@ import { ShoppingPage } from './ShoppingPage.jsx';
  */
 export default {
   id: 'shopping',
-  label: 'Liste de courses',
-  // Le libellé complet ne tient pas sous une icône d'onglet.
-  shortLabel: 'Courses',
+  label: T.module.label,
+  shortLabel: T.module.shortLabel,
   tabOrder: 1,
-  description: "Ce qu'il faut acheter",
+  description: T.module.description,
   path: '/courses',
   Icon: CartIcon,
   Component: ShoppingPage,

@@ -7,6 +7,8 @@
  * avec le répertoire — voir `listRecipes` côté serveur.
  */
 
+import { LOCALE } from '../../lib/langue.js';
+
 /** Sans casse ni accents : on tape « creme » et on trouve « Crème ». */
 export function normaliser(texte) {
   return (texte ?? '')
@@ -33,7 +35,7 @@ export function etiquettesDe(recettes) {
     }
   }
 
-  return [...parCle.values()].sort((a, b) => a.localeCompare(b, 'fr'));
+  return [...parCle.values()].sort((a, b) => a.localeCompare(b, LOCALE));
 }
 
 /**

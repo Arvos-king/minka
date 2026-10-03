@@ -2,10 +2,12 @@ import { useState } from 'react';
 
 import { CartIcon, ChevronDownIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../textes.js';
 import { AddItemForm } from './components/AddItemForm.jsx';
 import { ItemRow } from './components/ItemRow.jsx';
 import { RayonSheet } from './components/RayonSheet.jsx';
 import { grouperParRayon } from './rayons.js';
+import { T } from './textes.js';
 import { useShoppingList } from './useShoppingList.js';
 
 export function ShoppingPage() {
@@ -53,28 +55,24 @@ export function ShoppingPage() {
             onClick={dismissError}
             className="text-sm font-medium text-danger underline"
           >
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && (
         <>
           <p className="mb-3 text-sm font-medium text-sand-600">
-            {counts.pending === 0
-              ? 'Rien à acheter'
-              : `${counts.pending} article${counts.pending > 1 ? 's' : ''} à acheter`}
+            {counts.pending === 0 ? T.rienAAcheter : T.aAcheter(counts.pending)}
           </p>
 
           {pending.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
               <CartIcon className="mx-auto size-8 text-sand-400" />
-              <p className="mt-3 text-sm font-medium text-sand-700">La liste est vide</p>
-              <p className="mt-1 text-sm text-sand-500">
-                Ajoute un article avec le champ en bas de l'écran.
-              </p>
+              <p className="mt-3 text-sm font-medium text-sand-700">{T.listeVide}</p>
+              <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>
           ) : (
             <>
@@ -101,9 +99,7 @@ export function ShoppingPage() {
                 remarque un article égaré, et le haut de l'écran appartient au
                 décompte.
               */}
-              <p className="mb-6 text-xs text-sand-500">
-                Mal rangé&nbsp;? Appuie longuement sur l'article pour changer son rayon.
-              </p>
+              <p className="mb-6 text-xs text-sand-500">{T.malRange}</p>
             </>
           )}
 
@@ -118,7 +114,7 @@ export function ShoppingPage() {
                 <ChevronDownIcon
                   className={`size-4 transition-transform ${showCompleted ? '' : '-rotate-90'}`}
                 />
-                Déjà pris ({completed.length})
+                {T.dejaPris(completed.length)}
               </button>
 
               {showCompleted && (
@@ -141,17 +137,15 @@ export function ShoppingPage() {
                             setShowCompleted(false);
                           }}
                         >
-                          {completed.length > 1
-                            ? `Supprimer les ${completed.length} articles`
-                            : "Supprimer l'article"}
+                          {T.supprimerPris(completed.length)}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setConfirmingPurge(false)}>
-                          Annuler
+                          {SOCLE.commun.annuler}
                         </Button>
                       </div>
                     ) : (
                       <Button size="sm" variant="secondary" onClick={() => setConfirmingPurge(true)}>
-                        Vider les articles achetés
+                        {T.viderPris}
                       </Button>
                     )}
                   </div>

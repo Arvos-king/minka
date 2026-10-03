@@ -14,10 +14,11 @@ import {
   updateItem,
 } from './service.js';
 import { createItemSchema, itemParamsSchema, listQuerySchema, updateItemSchema } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const itemNotFound = () => new AppError(404, 'ITEM_NOT_FOUND', "Cet article n'existe plus.");
+const itemNotFound = () => new AppError(404, 'ITEM_NOT_FOUND', T.introuvable);
 
 /*
  * Les rayons voyagent avec les articles qu'ils ordonnent, plutôt que par une

@@ -68,7 +68,11 @@ main, en marchant dans les rayons :
 - le classement se fait **côté serveur, à l'ajout**, d'après un dictionnaire
   d'environ quatre cents produits courants livré avec le code
   (`modules/shopping/rayons.js`) : les articles poussés par le frigo et par les
-  menus arrivent donc rangés eux aussi, sans rien savoir des rayons ;
+  menus arrivent donc rangés eux aussi, sans rien savoir des rayons. Une
+  instance anglaise a le sien (`rayons.en.js`, à côté de `rayons.fr.js`), lu
+  dans l'autre sens — le nom principal vient en dernier en anglais, « apple
+  juice » est du jus — et avec quelques mots qui décident seuls : « frozen
+  peas » est au surgelé, « tinned tomatoes » en épicerie ;
 - un **appui long** sur une ligne — ou un clic droit — ouvre « Ranger dans… ».
   La correction **est retenue** sous une forme normalisée du nom (« Lait de
   coco », « 2 laits de coco » et « lait de coco (400 ml) » n'en font qu'une), et
@@ -1174,9 +1178,10 @@ servent : les tâches, qui replanifient depuis l'échéance, et l'entretien, qui
 repart du jour du geste. Également `modules/shopping/rayons.js`, le classement
 d'un nom d'article en rayon : la normalisation qui réunit « Œufs », « oeufs » et
 « 2 œufs », les pièges du français que le dictionnaire doit tenir — le lait de
-coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson — et
-l'invariant qui vérifie que chacun de ses quatre cents termes se range là où il
-est déclaré. Puis `modules/menus/reorganisation.js`, la règle « insérer et
+coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson —, ceux de
+l'anglais pour l'instance anglaise — le « peanut butter » n'est pas du beurre,
+les « hot dogs » ne vont pas à l'animalerie —, et l'invariant qui vérifie que
+chaque terme de chaque dictionnaire se range là où il est déclaré. Puis `modules/menus/reorganisation.js`, la règle « insérer et
 pousser » qui réorganise le planning : la poussée jusqu'à la première case
 libre, la chaîne qui tourne quand un repas y remonte, le débordement sur la
 semaine suivante. Et `modules/recipes/resolution.js` avec `lib/titres.js`, la

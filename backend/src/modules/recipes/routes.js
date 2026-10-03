@@ -18,10 +18,11 @@ import {
   resolveSchema,
   updateRecipeSchema,
 } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const recipeNotFound = () => new AppError(404, 'RECIPE_NOT_FOUND', "Cette recette n'existe plus.");
+const recipeNotFound = () => new AppError(404, 'RECIPE_NOT_FOUND', T.introuvable);
 
 router.get('/items', (req, res) => {
   res.json({ recipes: listRecipes() });

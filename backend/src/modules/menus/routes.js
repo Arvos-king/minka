@@ -19,6 +19,7 @@ import {
   planQuerySchema,
   setEntrySchema,
 } from './schemas.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
@@ -71,7 +72,7 @@ router.post('/plan/deplacer', validate({ body: deplacerSchema }), (req, res) => 
   const { de, vers } = req.valid.body;
 
   const cases = deplacerRepas(de, vers);
-  if (!cases) throw planModifie("Ce repas n'est plus à sa place : le planning a changé entre-temps.");
+  if (!cases) throw planModifie(T.repasDeplace);
 
   res.json({ cases });
 });
@@ -85,7 +86,7 @@ router.post('/plan/deplacer', validate({ body: deplacerSchema }), (req, res) => 
  */
 router.patch('/plan', validate({ body: fixerCasesSchema }), (req, res) => {
   const cases = fixerCases(req.valid.body.cases);
-  if (!cases) throw planModifie('Le planning a changé entre-temps.');
+  if (!cases) throw planModifie(T.planningChange);
 
   res.json({ cases });
 });

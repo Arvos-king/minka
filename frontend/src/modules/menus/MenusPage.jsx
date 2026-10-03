@@ -4,6 +4,7 @@ import { ChevronRightIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
 import { aujourdhui } from '../../lib/dates.js';
 import { useServerModule } from '../../lib/serverModules.js';
+import { T as SOCLE } from '../../textes.js';
 import { BandeauAnnulation } from './components/BandeauAnnulation.jsx';
 import { BandeauPlacement } from './components/BandeauPlacement.jsx';
 import { DayRow } from './components/DayRow.jsx';
@@ -15,6 +16,7 @@ import { MenusIcon } from './MenusIcon.jsx';
 import { PoigneeIcon } from './PoigneeIcon.jsx';
 import { contenuDe, decrireDepot } from './reorganisation.js';
 import { joursDeLaSemaine, libelleSemaine } from './semaine.js';
+import { T } from './textes.js';
 import { useGlisser } from './useGlisser.js';
 import { useMenus } from './useMenus.js';
 
@@ -105,7 +107,7 @@ export function MenusPage() {
 
   const issueDuDepot = glisse?.vers
     ? decrireDepot(glisse.vers, intituleDe(repasDe(glisse.vers.date, glisse.vers.slot)))
-    : 'Vers quelle case ?';
+    : T.page.versQuelleCase;
 
   /*
    * Un seul bandeau à la fois au-dessus des onglets. Celui d'annulation attend
@@ -171,7 +173,7 @@ export function MenusPage() {
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
           <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
@@ -182,7 +184,7 @@ export function MenusPage() {
         <button
           type="button"
           onClick={semainePrecedente}
-          aria-label="Semaine précédente"
+          aria-label={T.page.semainePrecedente}
           className="grid size-11 shrink-0 place-items-center rounded-full text-sand-600 active:bg-sand-200"
         >
           <ChevronRightIcon className="size-5 rotate-180" />
@@ -195,13 +197,13 @@ export function MenusPage() {
           onClick={() => setImportOuvert(true)}
           className="min-h-11 shrink-0 px-2 text-sm font-medium text-accent"
         >
-          Importer
+          {T.page.importer}
         </button>
 
         <button
           type="button"
           onClick={semaineSuivante}
-          aria-label="Semaine suivante"
+          aria-label={T.page.semaineSuivante}
           className="grid size-11 shrink-0 place-items-center rounded-full text-sand-600 active:bg-sand-200"
         >
           <ChevronRightIcon className="size-5" />
@@ -211,12 +213,12 @@ export function MenusPage() {
       {!semaineCourante && (
         <div className="mb-4 text-center">
           <Button size="sm" variant="secondary" onClick={revenirALaSemaineCourante}>
-            Revenir à cette semaine
+            {T.page.revenirACetteSemaine}
           </Button>
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && (
         <>
@@ -248,9 +250,9 @@ export function MenusPage() {
             <p className="mt-3 text-xs text-sand-500">
               {/* Les marges négatives rattrapent le vide que le dessin laisse de
                   part et d'autre de ses points. */}
-              Pour déplacer un repas, fais glisser sa poignée{' '}
-              <PoigneeIcon className="-mx-1 inline size-4 align-[-3px]" />, ou touche-la puis choisis
-              la case. Sur un repas déjà prévu, il s'insère et pousse la suite d'un jour.
+              {T.page.aideDeplacer.avant}{' '}
+              <PoigneeIcon className="-mx-1 inline size-4 align-[-3px]" />
+              {T.page.aideDeplacer.apres}
             </p>
           )}
 
@@ -267,11 +269,11 @@ export function MenusPage() {
                 disabled={recettesDeLaSemaine.length === 0}
                 className="w-full"
               >
-                Envoyer les ingrédients dans les courses
+                {T.page.envoyerAuxCourses}
               </Button>
               {recettesDeLaSemaine.length === 0 && (
                 <p className="mt-2 text-center text-sm text-sand-500">
-                  Aucune recette posée cette semaine pour l'instant.
+                  {T.page.aucuneRecettePosee}
                 </p>
               )}
             </div>
@@ -280,10 +282,8 @@ export function MenusPage() {
           {repasPrevus === 0 && (
             <div className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
               <MenusIcon className="mx-auto size-8 text-sand-400" />
-              <p className="mt-3 text-sm font-medium text-sand-700">Semaine vide</p>
-              <p className="mt-1 text-sm text-sand-500">
-                Touche un midi ou un soir pour y poser un repas.
-              </p>
+              <p className="mt-3 text-sm font-medium text-sand-700">{T.page.semaineVide}</p>
+              <p className="mt-1 text-sm text-sand-500">{T.page.aideVide}</p>
             </div>
           )}
         </>

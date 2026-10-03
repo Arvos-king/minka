@@ -16,28 +16,58 @@
  * ingrédients, il reste un texte libre — à moins qu'une recette du même nom
  * existe déjà, auquel cas elle est réutilisée. C'est ce qui permet d'écrire
  * « Soir : Gratin de courgettes » sans recopier sa liste à chaque fois.
+ *
+ * Les noms des jours et des moments sont ceux de la langue de l'instance
+ * (`REGLES`) ; le reste du format ne change pas d'une langue à l'autre.
  */
 
-const JOURS = [
-  ['lundi', 'lun'],
-  ['mardi', 'mar'],
-  ['mercredi', 'mer'],
-  ['jeudi', 'jeu'],
-  ['vendredi', 'ven'],
-  ['samedi', 'sam'],
-  ['dimanche', 'dim'],
-];
+import { LANGUE, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
-const CRENEAUX = [
-  ['midi', ['midi', 'dejeuner', 'déjeuner']],
-  ['soir', ['soir', 'diner', 'dîner', 'souper']],
-];
+const REGLES = {
+  fr: {
+    /** Du lundi au dimanche : le nom que citent les avertissements, puis les formes reconnues. */
+    jours: [
+      ['lundi', 'lun'],
+      ['mardi', 'mar'],
+      ['mercredi', 'mer'],
+      ['jeudi', 'jeu'],
+      ['vendredi', 'ven'],
+      ['samedi', 'sam'],
+      ['dimanche', 'dim'],
+    ].map((formes) => ({ nom: formes[0], formes })),
+
+    /** Les moments, par leur clé d'API, avec le nom que citent les avertissements. */
+    creneaux: [
+      { cle: 'midi', nom: 'midi', formes: ['midi', 'dejeuner', 'déjeuner'] },
+      { cle: 'soir', nom: 'soir', formes: ['soir', 'diner', 'dîner', 'souper'] },
+    ],
+  },
+
+  en: {
+    jours: [
+      { nom: 'Monday', formes: ['monday', 'mon'] },
+      { nom: 'Tuesday', formes: ['tuesday', 'tue', 'tues'] },
+      { nom: 'Wednesday', formes: ['wednesday', 'wed'] },
+      { nom: 'Thursday', formes: ['thursday', 'thu', 'thur', 'thurs'] },
+      { nom: 'Friday', formes: ['friday', 'fri'] },
+      { nom: 'Saturday', formes: ['saturday', 'sat'] },
+      { nom: 'Sunday', formes: ['sunday', 'sun'] },
+    ],
+
+    // « Tea » est le repas du soir dans une bonne partie du Royaume-Uni.
+    creneaux: [
+      { cle: 'midi', nom: 'lunch', formes: ['lunch', 'midday', 'noon'] },
+      { cle: 'soir', nom: 'dinner', formes: ['dinner', 'supper', 'evening', 'tea'] },
+    ],
+  },
+};
 
 /** Sans accents ni casse : « Déjeuner » et « dejeuner » désignent la même chose. */
 const aplatir = (texte) =>
   texte
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim();
 
@@ -51,7 +81,7 @@ function nettoyer(ligne) {
 }
 
 /** @returns {number|null} rang du jour dans la semaine, 0 = lundi. */
-function rangDuJour(ligne) {
+function rangDuJour(ligne, regles) {
   // Comparaison sur le premier mot plutôt qu'une expression régulière : cela
   // tolère « Lundi », « lun. », « LUNDI : » et « lundi 31 août » sans avoir à
   // échapper quoi que ce soit.
@@ -59,21 +89,21 @@ function rangDuJour(ligne) {
     .replace(/^[-*•]\s*/, '')
     .split(/[\s.:,]+/)[0];
 
-  const rang = JOURS.findIndex(([long, court]) => premierMot === long || premierMot === court);
+  const rang = regles.jours.findIndex(({ formes }) => formes.includes(premierMot));
   return rang === -1 ? null : rang;
 }
 
-/** @returns {{creneau: string, reste: string}|null} */
-function creneauEtReste(ligne) {
+/** @returns {{creneau: object, reste: string}|null} */
+function creneauEtReste(ligne, regles) {
   const nue = ligne.replace(/^\s*[-*•]\s*/, '');
   const separateur = nue.search(/[:–—]/);
   if (separateur === -1) return null;
 
   const gauche = aplatir(nue.slice(0, separateur));
-  const trouve = CRENEAUX.find(([, formes]) => formes.some((f) => aplatir(f) === gauche));
+  const trouve = regles.creneaux.find(({ formes }) => formes.some((f) => aplatir(f) === gauche));
   if (!trouve) return null;
 
-  return { creneau: trouve[0], reste: nue.slice(separateur + 1).trim() };
+  return { creneau: trouve, reste: nue.slice(separateur + 1).trim() };
 }
 
 /** « Courgettes : 600 g » → `{ name, quantity }` ; « Sel » → quantité nulle. */
@@ -102,7 +132,10 @@ const estDetail = (ligneBrute) => /^(\s{2,}|\t|\s*[-*•])/.test(ligneBrute);
  *   `avertissements` : ce qui n'a pas été compris, pour le dire avant d'appliquer
  *   plutôt que de laisser deviner ce qui manque.
  */
-export function analyserMenus(texte, debutSemaine) {
+export function analyserMenus(texte, debutSemaine, langue = LANGUE) {
+  const regles = REGLES[langue] ?? REGLES.fr;
+  const t = textes(TEXTES, langue).importation;
+
   const repas = [];
   const avertissements = [];
   const vus = new Set();
@@ -121,37 +154,37 @@ export function analyserMenus(texte, debutSemaine) {
     if (ligne.trim() === '') continue;
 
     // Un détail ne peut qu'appartenir au plat en cours.
-    if (courant && estDetail(ligneBrute) && !creneauEtReste(ligne)) {
+    if (courant && estDetail(ligneBrute) && !creneauEtReste(ligne, regles)) {
       const lu = ingredient(ligne);
       if (lu) courant.ingredients.push(lu);
       continue;
     }
 
-    const rang = rangDuJour(ligne);
+    const rang = rangDuJour(ligne, regles);
     if (rang !== null) {
       cloturer();
       rangJour = rang;
       continue;
     }
 
-    const creneau = creneauEtReste(ligne);
-    if (creneau) {
+    const lu = creneauEtReste(ligne, regles);
+    if (lu) {
       cloturer();
 
       if (rangJour === null) {
-        avertissements.push(`« ${ligne.trim()} » : aucun jour n'a été annoncé avant.`);
-        continue;
-      }
-      if (creneau.reste === '') {
-        avertissements.push(`${JOURS[rangJour][0]} ${creneau.creneau} : aucun plat indiqué.`);
+        avertissements.push(t.aucunJour(ligne.trim()));
         continue;
       }
 
-      const cle = `${rangJour}-${creneau.creneau}`;
+      const jour = regles.jours[rangJour].nom;
+      if (lu.reste === '') {
+        avertissements.push(t.aucunPlat(jour, lu.creneau.nom));
+        continue;
+      }
+
+      const cle = `${rangJour}-${lu.creneau.cle}`;
       if (vus.has(cle)) {
-        avertissements.push(
-          `${JOURS[rangJour][0]} ${creneau.creneau} est indiqué deux fois ; le dernier l'emporte.`,
-        );
+        avertissements.push(t.deuxFois(jour, lu.creneau.nom));
         const doublon = repas.findIndex((r) => r.cle === cle);
         if (doublon !== -1) repas.splice(doublon, 1);
       }
@@ -160,20 +193,20 @@ export function analyserMenus(texte, debutSemaine) {
       courant = {
         cle,
         onDate: decalerDepuis(debutSemaine, rangJour),
-        slot: creneau.creneau,
-        title: creneau.reste,
+        slot: lu.creneau.cle,
+        title: lu.reste,
         ingredients: [],
       };
       continue;
     }
 
-    avertissements.push(`Ligne ignorée : « ${ligne.trim()} ».`);
+    avertissements.push(t.ligneIgnoree(ligne.trim()));
   }
 
   cloturer();
 
   if (repas.length === 0 && (texte ?? '').trim() !== '') {
-    avertissements.push("Aucun repas reconnu. Chaque jour s'annonce sur sa propre ligne, puis « Midi : … » et « Soir : … ».");
+    avertissements.push(t.aucunRepas);
   }
 
   return { repas: repas.map(({ cle, ...repasNet }) => repasNet), avertissements };

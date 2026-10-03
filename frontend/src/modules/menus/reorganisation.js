@@ -18,7 +18,9 @@
 
 import { identifiantProvisoire } from '../../lib/collection.js';
 import { decalerJours } from '../../lib/dates.js';
-import { CRENEAUX, libelleJour } from './semaine.js';
+import { LANGUE, textes } from '../../lib/langue.js';
+import { creneaux, libelleJour } from './semaine.js';
+import { TEXTES } from './textes.js';
 
 const lendemain = (date) => decalerJours(date, 1);
 
@@ -166,13 +168,14 @@ export function casesDAnnulation(cases) {
   }));
 }
 
-/** « jeudi 20 soir » */
-function libelleCase({ onDate, slot }) {
-  const creneau = CRENEAUX.find((c) => c.valeur === slot)?.libelle ?? slot;
-  return `${libelleJour(onDate)} ${creneau.toLocaleLowerCase('fr')}`;
+/** « jeudi 20 soir », « dinner on Thursday 20 ». */
+function libelleCase({ onDate, slot }, langue) {
+  const creneau = creneaux(langue).find((c) => c.valeur === slot)?.libelle ?? slot;
+  return textes(TEXTES, langue).deplacement.caseDuPlan(
+    libelleJour(onDate, langue),
+    creneau.toLocaleLowerCase(langue),
+  );
 }
-
-const guillemets = (texte) => `« ${texte} »`;
 
 /**
  * Le geste en une phrase, pour le bandeau d'annulation et le panneau :
@@ -189,15 +192,17 @@ const guillemets = (texte) => `« ${texte} »`;
  * @param {(contenu: object) => string} titre  l'intitulé à afficher : la page
  *   préfère celui du répertoire à la copie que porte la case.
  */
-export function resumerDeplacement(cases, vers, titre) {
+export function resumerDeplacement(cases, vers, titre, langue = LANGUE) {
+  const t = textes(TEXTES, langue).deplacement;
   const visee = { onDate: vers.date, slot: vers.slot };
   const arrivee = cases.find((touchee) => memeCase(touchee, visee));
   const pousses = cases.filter((touchee) => touchee.apres && !memeCase(touchee, visee));
 
-  const phrase = `${guillemets(titre(arrivee.apres))} passe au ${libelleCase(visee)}`;
-  if (pousses.length === 0) return `${phrase}.`;
-  if (pousses.length === 1) return `${phrase}, et pousse ${guillemets(titre(arrivee.avant))} d'un jour.`;
-  return `${phrase}, et pousse ${pousses.length} repas d'un jour.`;
+  const deplace = titre(arrivee.apres);
+  const ou = libelleCase(visee, langue);
+  if (pousses.length === 0) return t.seul(deplace, ou);
+  if (pousses.length === 1) return t.pousseUn(deplace, ou, titre(arrivee.avant));
+  return t.pousseN(deplace, ou, pousses.length);
 }
 
 /**
@@ -210,7 +215,7 @@ export function resumerDeplacement(cases, vers, titre) {
  * @param {{date: string, slot: string}} vers
  * @param {string|null} occupant  l'intitulé du repas en place, s'il y en a un
  */
-export function decrireDepot(vers, occupant) {
-  const ou = libelleCase({ onDate: vers.date, slot: vers.slot });
-  return occupant ? `${ou} · pousse ${guillemets(occupant)}` : ou;
+export function decrireDepot(vers, occupant, langue = LANGUE) {
+  const ou = libelleCase({ onDate: vers.date, slot: vers.slot }, langue);
+  return textes(TEXTES, langue).deplacement.depot(ou, occupant);
 }

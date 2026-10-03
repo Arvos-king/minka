@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeftIcon, CheckIcon, ChevronDownIcon } from '../../../components/icons.jsx';
 import { useEcranAllume } from '../ecran.js';
 import { ecrireProgression, effacerProgression, lireProgression } from '../progression.js';
+import { T } from '../textes.js';
 
 /**
  * Suivre une recette pendant qu'on la cuisine.
@@ -59,13 +60,13 @@ export function CookingMode({ recette, onClose }) {
   const termine = faites === total;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={`Cuisiner ${recette.title}`} className="fixed inset-0 z-40 flex flex-col bg-surface">
+    <div role="dialog" aria-modal="true" aria-label={T.cuisine.dialogue(recette.title)} className="fixed inset-0 z-40 flex flex-col bg-surface">
       <header className="pt-safe shrink-0 bg-surface-haute shadow-sm">
         <div className="mx-auto flex min-h-14 w-full max-w-2xl items-center gap-2 px-2">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Quitter le mode cuisine"
+            aria-label={T.cuisine.quitter}
             className="grid size-11 shrink-0 place-items-center rounded-full text-sand-600 active:bg-sand-200"
           >
             <ArrowLeftIcon className="size-5" />
@@ -83,7 +84,7 @@ export function CookingMode({ recette, onClose }) {
               onClick={recommencer}
               className="min-h-11 shrink-0 px-2 text-sm font-medium text-accent"
             >
-              Recommencer
+              {T.cuisine.recommencer}
             </button>
           )}
         </div>
@@ -108,7 +109,7 @@ export function CookingMode({ recette, onClose }) {
             className="flex min-h-12 w-full items-center gap-2 rounded-xl bg-surface-haute px-4 text-left ring-1 ring-sand-200 active:bg-sand-100"
           >
             <span className="flex-1 font-medium text-sand-700">
-              Ingrédients
+              {T.fiche.ingredients}
               <span className="ml-1.5 font-normal text-sand-500">
                 ({recette.ingredients.length})
               </span>
@@ -173,7 +174,7 @@ export function CookingMode({ recette, onClose }) {
 
           {termine && (
             <div className="mt-4 rounded-xl bg-brand-50 px-4 py-5 text-center">
-              <p className="font-medium text-accent">C'est prêt.</p>
+              <p className="font-medium text-accent">{T.cuisine.pret}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -182,14 +183,14 @@ export function CookingMode({ recette, onClose }) {
                 }}
                 className="mt-2 min-h-11 text-sm font-medium text-accent underline"
               >
-                Terminer et fermer
+                {T.cuisine.terminer}
               </button>
             </div>
           )}
 
           {recette.notes && (
             <div className="mt-6">
-              <p className="text-sm font-medium text-sand-700">Remarques</p>
+              <p className="text-sm font-medium text-sand-700">{T.fiche.remarques}</p>
               <p className="mt-2 rounded-xl bg-surface-haute px-4 py-3 text-sand-800 ring-1 ring-sand-200 whitespace-pre-line">
                 {recette.notes}
               </p>
@@ -201,9 +202,7 @@ export function CookingMode({ recette, onClose }) {
               téléphone, et mieux vaut le savoir avant d'avoir les mains
               pleines. */}
           <p className="mt-6 text-center text-xs text-sand-500">
-            {ecranAllume
-              ? "L'écran reste allumé tant que cette page est ouverte."
-              : "L'écran suit le réglage du téléphone : il peut s'éteindre tout seul."}
+            {ecranAllume ? T.cuisine.ecranAllume : T.cuisine.ecranLibre}
           </p>
         </div>
       </div>
