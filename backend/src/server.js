@@ -36,7 +36,18 @@ async function main() {
 
   const app = createApp(modules);
 
-  const server = app.listen(config.port, () => {
+  // Express 5 ne lève plus les erreurs d'écoute (port occupé, port réservé) :
+  // il les passe en premier argument à ce rappel. Les ignorer, c'est annoncer
+  // un serveur qui n'écoute pas, puis laisser le processus sortir en code 0 —
+  // un démarrage raté que Docker ou un script prendraient pour un arrêt normal.
+  const server = app.listen(config.port, (error) => {
+    if (error) {
+      const raison =
+        error.code === 'EADDRINUSE' ? `le port ${config.port} est déjà occupé` : error.message;
+      console.error(`[server] Démarrage impossible : ${raison}`);
+      closeDatabase();
+      process.exit(1);
+    }
     console.log(`[server] Minka écoute sur le port ${config.port} (${config.env}).`);
   });
 
