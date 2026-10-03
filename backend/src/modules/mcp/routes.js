@@ -99,7 +99,17 @@ async function repondre(reponse, res) {
     res.setHeader(nom, valeur);
   }
   if (!reponse.body) return res.end();
-  return pipeline(Readable.fromWeb(reponse.body), res);
+
+  try {
+    await pipeline(Readable.fromWeb(reponse.body), res);
+  } catch (erreur) {
+    // Claude a raccroché avant la fin — conversation arrêtée, délai dépassé.
+    // Ce n'est pas un bug, et le gestionnaire du socle en ferait une trace
+    // complète. L'outil, lui, n'est pas arrêté : ce qu'il écrit est écrit, et
+    // cette ligne dit pourquoi Claude n'en a rien su.
+    if (erreur.code !== 'ERR_STREAM_PREMATURE_CLOSE') throw erreur;
+    console.warn('[mcp] Claude est parti avant la fin de la réponse.');
+  }
 }
 
 /** Le connecteur éteint : dire pourquoi, plutôt qu'un 404 qui laisserait chercher. */
