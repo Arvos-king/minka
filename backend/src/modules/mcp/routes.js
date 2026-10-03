@@ -75,12 +75,41 @@ function requeteWeb(req, ressource) {
   return new Request(new URL(req.originalUrl, ressource), { method: req.method, headers: entetes });
 }
 
-/** La réponse web du SDK, rendue par Express — en flux, le SDK pouvant répondre en SSE. */
+/**
+ * La réponse web du SDK, rendue par Express — en flux : les clients de 2025
+ * reçoivent un flux SSE.
+ *
+ * Ni les en-têtes de connexion ni la longueur ne passent. La réponse du SDK
+ * n'a voyagé sur aucun fil ; celle d'Express part sur la connexion ouverte par
+ * nginx, et c'est à Node de la découper et de dire si elle reste ouverte.
+ * Recopié, le `Connection: keep-alive` du flux SSE gardait ouverte la
+ * connexion que nginx demande de fermer.
+ *
+ * Le reste passe tel quel. `X-Accel-Buffering: no` fait livrer le flux par le
+ * nginx du stack sans tampon ; nginx le garde pour lui, NPMplus ne le voit
+ * pas. `Cache-Control: no-cache, no-transform` ne remplace aucune règle :
+ * l'API ne pose de `Cache-Control` nulle part, aucun cache ne garde la réponse
+ * à un POST porteur d'un jeton, et `no-transform` demande aux intermédiaires
+ * de ne pas retoucher le flux.
+ */
 async function repondre(reponse, res) {
   res.status(reponse.status);
-  reponse.headers.forEach((valeur, nom) => res.setHeader(nom, valeur));
+  for (const [nom, valeur] of reponse.headers) {
+    if (['connection', 'keep-alive', 'transfer-encoding', 'upgrade', 'content-length'].includes(nom)) continue;
+    res.setHeader(nom, valeur);
+  }
   if (!reponse.body) return res.end();
-  return pipeline(Readable.fromWeb(reponse.body), res);
+
+  try {
+    await pipeline(Readable.fromWeb(reponse.body), res);
+  } catch (erreur) {
+    // Claude a raccroché avant la fin — conversation arrêtée, délai dépassé.
+    // Ce n'est pas un bug, et le gestionnaire du socle en ferait une trace
+    // complète. L'outil, lui, n'est pas arrêté : ce qu'il écrit est écrit, et
+    // cette ligne dit pourquoi Claude n'en a rien su.
+    if (erreur.code !== 'ERR_STREAM_PREMATURE_CLOSE') throw erreur;
+    console.warn('[mcp] Claude est parti avant la fin de la réponse.');
+  }
 }
 
 /** Le connecteur éteint : dire pourquoi, plutôt qu'un 404 qui laisserait chercher. */
@@ -106,10 +135,19 @@ export function routeurConnecteur(configuration) {
   const verifier = creerVerificateur({ ...configuration, cles: clesDePocketId(configuration) });
 
   /*
-   * Le SDK sert aussi bien les clients d'aujourd'hui que ceux du protocole de
-   * 2025 — Claude compris —, chacun par une instance neuve. Réponses JSON plutôt
-   * qu'en flux : aucun outil ne parle avant d'avoir fini, et nginx tamponne les
-   * réponses de `/api/` de toute façon.
+   * Le SDK sert les deux générations du protocole, chaque requête par une
+   * instance neuve, et c'est celle du client qui décide de la forme de la
+   * réponse :
+   *
+   *   — un client de 2025, comme claude.ai aujourd'hui, reçoit toujours un
+   *     flux SSE (`event: message`), fermé sur la dernière réponse ;
+   *   — un client du protocole 2026-07-28 reçoit du JSON tant qu'aucun outil
+   *     ne parle avant d'avoir fini — aucun ne le fait —, un flux SSE sinon :
+   *     c'est le mode `auto`, par défaut.
+   *
+   * `responseMode` ne règle que ce second cas, et `'json'` n'y ferait que
+   * taire ce qu'un outil dirait en cours de route ; le SDK en avertit par un
+   * `console.warn` à chaque démarrage. L'option n'a donc pas sa place ici.
    */
   const mcp = createMcpHandler(
     async ({ authInfo }) => {
@@ -121,7 +159,6 @@ export function routeurConnecteur(configuration) {
       return serveur;
     },
     {
-      responseMode: 'json',
       onerror: (erreur) => console.error('[mcp]', erreur),
     },
   );
