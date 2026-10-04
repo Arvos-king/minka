@@ -1,5 +1,8 @@
 # Minka
 
+> **English:** to deploy an English-speaking instance, see
+> [README.en.md](README.en.md).
+
 Plateforme familiale privée, auto-hébergée sur unRAID. Deux comptes, un tableau
 de bord, et des modules qu'on ajoute au fil des besoins.
 
@@ -982,6 +985,11 @@ Les variables `MCP_*` du connecteur Claude sont décrites avec lui, dans
 [Mettre le connecteur en service](#mettre-le-connecteur-en-service) ;
 `MINKA_LANG` et `MINKA_CURRENCY` dans [Langue](#langue).
 
+Le modèle a un jumeau anglais, [`.env.example.en`](.env.example.en), débarrassé
+de ce qui est propre à ce serveur : mêmes variables, dans le même ordre. Une
+variable ajoutée à l'un s'ajoute à l'autre — et au guide anglais,
+[`README.en.md`](README.en.md), quand elle touche au déploiement.
+
 ### ⚠️ `SESSION_COOKIE_SECURE` et l'accès direct par IP
 
 Avec `SESSION_COOKIE_SECURE=true`, **la connexion ne fonctionne pas via
@@ -1013,6 +1021,10 @@ Minka parle **une langue par instance** : `fr` (par défaut) ou `en`, fixée par
 l'API, ses journaux, le connecteur Claude. La monnaie du budget se règle à
 côté, par `MINKA_CURRENCY` (code ISO 4217, `EUR` par défaut). L'anglais de
 Minka est britannique : le jour avant le mois, « Monday 5 October ».
+
+Une instance anglaise se déploie avec [`README.en.md`](README.en.md), guide en
+anglais qui ne suppose ni unRAID ni Nginx Proxy Manager, et le modèle
+[`.env.example.en`](.env.example.en).
 
 L'interface est **compilée** dans la langue de l'instance : le manifeste de la
 PWA et `<html lang>` en dépendent, et ne sauraient attendre une réponse du
@@ -1536,6 +1548,11 @@ exactes les routes des modules, et `/recettes/12` retomberait sur l'accueil.
       et pose la semaine préparée ensemble, recettes entières comprises — sans
       copier-coller. L'accès est délivré par Pocket-ID, et le connecteur ne
       parle aux autres modules que par leurs routes HTTP.
+- [x] **Instance anglaise** : une langue par instance (`MINKA_LANG`), que
+      suivent l'interface, l'API, ses journaux et le connecteur Claude ;
+      rangement par rayon, import de recette et import de semaine en anglais ;
+      monnaie du budget au choix ; guide de déploiement anglais
+      ([README.en.md](README.en.md)).
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :
