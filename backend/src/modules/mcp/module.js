@@ -1,6 +1,7 @@
 import { stmt } from '../../db/index.js';
 import { lireConfiguration } from './config.js';
 import { routeurConnecteur, routeurEteint } from './routes.js';
+import { T } from './textes.js';
 
 /**
  * Le connecteur Claude : un serveur MCP qui laisse Claude lire le planning, le
@@ -28,7 +29,7 @@ function init() {
   if (erreur) throw new Error(`[mcp] ${erreur.message}`);
 
   if (!configuration.actif) {
-    console.log('[mcp] connecteur Claude éteint (aucune variable MCP_*).');
+    console.log(T.journal.eteint);
     return;
   }
 
@@ -36,14 +37,11 @@ function init() {
   // connexion de Claude, refusée sans qu'on comprenne pourquoi.
   for (const identifiant of configuration.comptes.values()) {
     if (!stmt('SELECT 1 FROM users WHERE username = ?').get(identifiant)) {
-      console.warn(`[mcp] MCP_USERS désigne « ${identifiant} », qui n'est pas un compte Minka.`);
+      console.warn(T.journal.compteInconnu(identifiant));
     }
   }
 
-  console.log(
-    `[mcp] connecteur Claude actif sur ${configuration.ressource}, ` +
-      `jetons de ${configuration.emetteur}, ${configuration.comptes.size} compte(s).`,
-  );
+  console.log(T.journal.actif(configuration.ressource, configuration.emetteur, configuration.comptes.size));
 }
 
 export default {

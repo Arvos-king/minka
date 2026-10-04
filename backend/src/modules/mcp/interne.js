@@ -18,6 +18,7 @@
 
 import { config } from '../../config/index.js';
 import { signSessionToken } from '../../lib/tokens.js';
+import { T } from './textes.js';
 
 const BASE = `http://127.0.0.1:${config.port}/api`;
 
@@ -36,10 +37,10 @@ export class ErreurMinka extends Error {
  */
 function messageDErreur(statut, corps) {
   const erreur = corps?.error;
-  if (!erreur) return `Minka a répondu ${statut}.`;
+  if (!erreur) return T.refus.minkaARepondu(statut);
 
   const details = Array.isArray(erreur.details)
-    ? erreur.details.map((detail) => `${detail.champ} : ${detail.message}`)
+    ? erreur.details.map((detail) => T.refus.detail(detail.champ, detail.message))
     : [];
   return [erreur.message, ...details].join(' — ');
 }

@@ -641,6 +641,14 @@ pour y ajouter sa préparation.
 Module sans interface, comme la sauvegarde. Un outil n'est proposé que si le
 module dont il dépend est monté : sans frigo, Claude ne voit pas `lire_frigo`.
 
+Sur une instance anglaise ([Langue](#langue)), les outils portent des noms
+anglais — `read_meal_plan`, `list_recipes`, `read_recipe`, `read_fridge`,
+`plan_meals`, `save_recipe`, `edit_recipe` — et leurs descriptions comme les
+instructions sont en anglais. Les champs JSON échangés, eux, restent ceux de
+l'API du connecteur (`plat`, `creneau`, `aPreparation`…) : les instructions
+anglaises les expliquent. En français, noms, descriptions et instructions sont
+ceux qu'un projet Claude connaît déjà ; un test les fige.
+
 **Les garde-fous de l'écriture.** Claude propose d'abord la semaine dans la
 conversation, et n'écrit qu'une fois d'accord — c'est la consigne de ses
 instructions, et claude.ai demande par défaut l'autorisation avant de se servir
@@ -688,9 +696,9 @@ claude.ai compris.
 
 **Deux textes, deux rôles.** Ce que le connecteur dit de lui-même à chaque
 conversation — comment lire Minka, comment y écrire — vit dans
-`modules/mcp/instructions.js`, à côté des outils qu'il décrit, pour ne jamais
-s'en écarter. Les goûts du foyer — qui mange, ce qu'on évite, le temps qu'on a,
-la cantine — sont les instructions du projet Claude :
+`modules/mcp/instructions.js`, une version par langue, à côté des outils qu'il
+décrit, pour ne jamais s'en écarter. Les goûts du foyer — qui mange, ce qu'on
+évite, le temps qu'on a, la cantine — sont les instructions du projet Claude :
 [`docs/prompt-menus.md`](docs/prompt-menus.md).
 
 #### Mettre le connecteur en service

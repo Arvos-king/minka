@@ -21,6 +21,8 @@
 
 import { errors, jwtVerify } from 'jose';
 
+import { T } from './textes.js';
+
 /** Refus d'un jeton : `statut` dit si l'on redemande une connexion (401) ou une permission (403). */
 export class JetonRefuse extends Error {
   constructor(statut, raison) {
@@ -65,7 +67,7 @@ const TOLERANCE_HORLOGE = 30;
  */
 export function creerVerificateur({ emetteur, ressource, permission, cles }) {
   return async function verifier(jeton) {
-    if (!jeton) throw new JetonRefuse(401, 'jeton absent');
+    if (!jeton) throw new JetonRefuse(401, T.jeton.absent);
 
     let payload;
     try {
@@ -79,10 +81,10 @@ export function creerVerificateur({ emetteur, ressource, permission, cles }) {
     }
 
     if (typeof payload.sub !== 'string' || payload.sub === '') {
-      throw new JetonRefuse(401, 'jeton sans sujet');
+      throw new JetonRefuse(401, T.jeton.sansSujet);
     }
     if (permission && !permissionsDu(payload).includes(permission)) {
-      throw new JetonRefuse(403, `permission « ${permission} » absente`);
+      throw new JetonRefuse(403, T.jeton.permissionAbsente(permission));
     }
 
     return payload;
@@ -94,16 +96,16 @@ export function creerVerificateur({ emetteur, ressource, permission, cles }) {
  * service, quand l'audience ne correspond pas à la lettre près.
  */
 function raisonDuRefus(erreur) {
-  if (erreur instanceof errors.JWTExpired) return 'jeton expiré';
+  if (erreur instanceof errors.JWTExpired) return T.jeton.expire;
   if (erreur instanceof errors.JWTClaimValidationFailed) {
-    return `réclamation « ${erreur.claim} » refusée (${erreur.reason})`;
+    return T.jeton.reclamation(erreur.claim, erreur.reason);
   }
-  if (erreur instanceof errors.JWSSignatureVerificationFailed) return 'signature invalide';
-  if (erreur instanceof errors.JWKSNoMatchingKey) return 'clé de signature inconnue';
-  if (erreur instanceof errors.JOSEError) return `jeton illisible (${erreur.code})`;
+  if (erreur instanceof errors.JWSSignatureVerificationFailed) return T.jeton.signature;
+  if (erreur instanceof errors.JWKSNoMatchingKey) return T.jeton.cleInconnue;
+  if (erreur instanceof errors.JOSEError) return T.jeton.illisible(erreur.code);
   // Clés injoignables, réponse de Pocket-ID mal formée : ce n'est pas la faute
   // du jeton, mais il ne peut pas être accepté pour autant.
-  return `vérification impossible (${erreur.message})`;
+  return T.jeton.impossible(erreur.message);
 }
 
 /** `Authorization: Bearer <jeton>` → le jeton, ou `null`. */

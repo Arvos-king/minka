@@ -29,6 +29,11 @@ describe('les dates', () => {
     assert.equal(nomDuJour('2026-10-11'), 'dimanche');
   });
 
+  it('nomme le jour en anglais sur une instance anglaise', () => {
+    assert.equal(nomDuJour('2026-10-05', 'en'), 'Monday');
+    assert.equal(nomDuJour('2026-10-11', 'en'), 'Sunday');
+  });
+
   it('retrouve le lundi de la semaine', () => {
     assert.equal(lundiDe('2026-10-05'), '2026-10-05');
     assert.equal(lundiDe('2026-10-03'), '2026-09-28');
@@ -144,6 +149,12 @@ describe('libelleCase', () => {
   it('dit une case comme on la dit', () => {
     assert.equal(libelleCase('2026-10-05', 'soir'), 'lundi 5 octobre soir');
     assert.equal(libelleCase('2026-08-01', 'midi'), 'samedi 1 août midi');
+  });
+
+  it('la dit en anglais sur une instance anglaise', () => {
+    // Le créneau garde sa clé d'API (« soir ») mais se lit « dinner ».
+    assert.equal(libelleCase('2026-10-05', 'soir', 'en'), 'Monday 5 October, dinner');
+    assert.equal(libelleCase('2026-08-01', 'midi', 'en'), 'Saturday 1 August, lunch');
   });
 });
 
@@ -332,5 +343,54 @@ describe('bilanDePose', () => {
 
     assert.equal(bilan.recettes, undefined);
     assert.match(bilan.avertissements[0], /texte libre/);
+  });
+
+  it('écrit en anglais sur une instance anglaise, sous les mêmes clés', () => {
+    const bilan = bilanDePose({
+      repas,
+      resolus,
+      recettes: { creees: [], completees: [], conservees: ['Chili sin carne'], reutilisees: [], inconnues: [] },
+      langue: 'en',
+    });
+
+    assert.equal(bilan.cases[0].case, 'Monday 5 October, dinner');
+    assert.match(bilan.avertissements[0], /kept as they were: Chili sin carne/);
+    // Le renvoi vers un autre outil le nomme dans la langue de l'instance.
+    assert.match(bilan.avertissements[0], /read_recipe/);
+  });
+});
+
+describe('en anglais', () => {
+  it('nomme les jours du planning', () => {
+    const planning = planningLisible({
+      du: '2026-10-05',
+      au: '2026-10-06',
+      entrees: [],
+      aujourdhui: '2026-10-05',
+      langue: 'en',
+    });
+
+    assert.deepEqual(
+      planning.jours.map((jour) => jour.jour),
+      ['Monday', 'Tuesday'],
+    );
+  });
+
+  it('nomme les cases en double et celles déjà prises', () => {
+    const repas = [
+      { date: '2026-10-05', creneau: 'soir', plat: 'Pizza' },
+      { date: '2026-10-05', creneau: 'soir', plat: 'Soup' },
+    ];
+    assert.deepEqual(casesEnDouble(repas, 'en'), ['Monday 5 October, dinner']);
+
+    const planning = [{ onDate: '2026-10-05', slot: 'soir', title: 'Roast potatoes', recipeId: null }];
+    assert.deepEqual(casesEnConflit([{ date: '2026-10-05', creneau: 'soir', plat: 'Pizza' }], planning, 'en'), [
+      { case: 'Monday 5 October, dinner', occupeePar: 'Roast potatoes' },
+    ]);
+    // Le même plat au pluriel près n'est pas un conflit, en anglais aussi.
+    assert.deepEqual(
+      casesEnConflit([{ date: '2026-10-05', creneau: 'soir', plat: 'Roast potato' }], planning, 'en'),
+      [],
+    );
   });
 });
