@@ -48,6 +48,28 @@ describe('statutEcheance', () => {
   });
 });
 
+describe('statutEcheance en anglais', () => {
+  const statut = (jours) => statutEcheance(dans(jours), LE_JOUR, 'en').libelle;
+
+  it('nomme les échéances proches', () => {
+    assert.equal(statut(0), 'Today');
+    assert.equal(statut(1), 'Tomorrow');
+    assert.equal(statut(7), 'In 7 days');
+  });
+
+  it('compte le retard en jours, en semaines puis en mois', () => {
+    assert.equal(statut(-1), 'Yesterday');
+    assert.equal(statut(-5), '5 days overdue');
+    assert.equal(statut(-21), '3 weeks overdue');
+    assert.equal(statut(-87), '3 months overdue');
+  });
+
+  it('nomme les rythmes', () => {
+    assert.equal(libelleRythme('quarterly', 'en'), 'Every three months');
+    assert.equal(libelleRythme('daily', 'en'), null);
+  });
+});
+
 describe('grouperParUrgence', () => {
   const tache = (id, jours) => ({ id, dueOn: dans(jours) });
 

@@ -19,6 +19,7 @@ import { config } from './config/index.js';
 import { closeDatabase } from './db/index.js';
 import { runMigrations } from './db/migrate.js';
 import { loadModules } from './modules/loader.js';
+import { T } from './textes.js';
 
 const srcDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,19 +43,18 @@ async function main() {
   // un démarrage raté que Docker ou un script prendraient pour un arrêt normal.
   const server = app.listen(config.port, (error) => {
     if (error) {
-      const raison =
-        error.code === 'EADDRINUSE' ? `le port ${config.port} est déjà occupé` : error.message;
-      console.error(`[server] Démarrage impossible : ${raison}`);
+      const raison = error.code === 'EADDRINUSE' ? T.serveur.portOccupe(config.port) : error.message;
+      console.error(T.serveur.demarrageImpossible(raison));
       closeDatabase();
       process.exit(1);
     }
-    console.log(`[server] Minka écoute sur le port ${config.port} (${config.env}).`);
+    console.log(T.serveur.ecoute(config.port, config.env));
   });
 
   // Arrêt propre : sans cela, `docker compose down` coupe le processus au bout
   // de dix secondes et la base peut rester avec un journal WAL non consolidé.
   const shutdown = (signal) => {
-    console.log(`[server] ${signal} reçu, arrêt en cours…`);
+    console.log(T.serveur.arret(signal));
     server.close(() => {
       closeDatabase();
       process.exit(0);
@@ -66,6 +66,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('[server] Démarrage impossible :', error);
+  console.error(T.serveur.echecDemarrage, error);
   process.exit(1);
 });

@@ -8,6 +8,7 @@
  */
 
 import { stmt } from '../db/index.js';
+import { T } from '../textes.js';
 
 function toPublicPerson(row) {
   if (!row) return null;
@@ -74,6 +75,6 @@ export function syncAccountsAsPeople() {
   `).run().changes;
 
   if (ajoutes > 0) {
-    console.log(`[people] ${ajoutes} compte(s) ajouté(s) aux membres du foyer.`);
+    console.log(T.membres.comptesAjoutes(ajoutes));
   }
 }

@@ -12,6 +12,8 @@
  * courgettes ».
  */
 
+import { LANGUE } from '../../lib/langue.js';
+
 /**
  * Sans casse, sans accents, sans espaces superflus.
  *
@@ -44,8 +46,8 @@ function adoucir(tag) {
   const propre = tag.trim().replace(/\s+/g, ' ');
   const lettres = propre.replace(/[^\p{L}]/gu, '');
 
-  return lettres.length > 1 && propre === propre.toLocaleUpperCase('fr')
-    ? propre.toLocaleLowerCase('fr')
+  return lettres.length > 1 && propre === propre.toLocaleUpperCase(LANGUE)
+    ? propre.toLocaleLowerCase(LANGUE)
     : propre;
 }
 

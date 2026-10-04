@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
 import { isoDate } from '../../lib/schemas.js';
+import { T } from './textes.js';
 
 export const slot = z.enum(['midi', 'soir'], {
-  message: 'Le moment doit être « midi » ou « soir ».',
+  message: T.schemas.moment,
 });
 
 export const planParamsSchema = z.object({
@@ -20,8 +21,8 @@ export const planParamsSchema = z.object({
 const title = z
   .string()
   .trim()
-  .min(1, 'Indique ce qui est prévu.')
-  .max(120, 'Ce texte est trop long.');
+  .min(1, T.schemas.intituleRequis)
+  .max(120, T.schemas.texteTropLong);
 
 /**
  * Contenu d'une case.
@@ -56,7 +57,7 @@ const caseDuPlan = z.object({ date: isoDate, slot });
 export const deplacerSchema = z
   .object({ de: caseDuPlan, vers: caseDuPlan })
   .refine(({ de, vers }) => de.date !== vers.date || de.slot !== vers.slot, {
-    message: 'Le repas est déjà dans cette case.',
+    message: T.schemas.dejaDansCetteCase,
     path: ['vers'],
   });
 
@@ -81,10 +82,10 @@ export const fixerCasesSchema = z.object({
         attendu: setEntrySchema.nullable().optional(),
       }),
     )
-    .min(1, 'Aucune case à fixer.')
-    .max(400, 'Trop de cases d’un coup.')
+    .min(1, T.schemas.aucuneCase)
+    .max(400, T.schemas.tropDeCases)
     .refine((cases) => new Set(cases.map((c) => `${c.onDate}|${c.slot}`)).size === cases.length, {
-      message: 'Une même case figure deux fois.',
+      message: T.schemas.caseEnDouble,
     }),
 });
 
@@ -104,6 +105,6 @@ export const importSchema = z.object({
         title,
       }),
     )
-    .min(1, 'Aucun repas à importer.')
-    .max(14, 'Une semaine compte au plus quatorze repas.'),
+    .min(1, T.schemas.aucunRepas)
+    .max(14, T.schemas.quatorzeRepas),
 });

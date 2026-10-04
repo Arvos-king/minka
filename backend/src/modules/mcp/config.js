@@ -13,6 +13,8 @@
  * Fonction pure, l'environnement en paramètre : c'est ce qui la rend testable.
  */
 
+import { T } from './textes.js';
+
 const OBLIGATOIRES = ['MCP_RESOURCE_URL', 'MCP_ISSUER', 'MCP_USERS'];
 const FACULTATIVES = ['MCP_JWKS_URL', 'MCP_PERMISSION'];
 
@@ -27,12 +29,12 @@ function lireAdresse(nom, brut) {
   try {
     adresse = new URL(brut);
   } catch {
-    throw new Error(`${nom} n'est pas une adresse valide (reçu : "${brut}").`);
+    throw new Error(T.configuration.adresseInvalide(nom, brut));
   }
 
   const locale = ['localhost', '127.0.0.1', '[::1]'].includes(adresse.hostname);
   if (adresse.protocol !== 'https:' && !(adresse.protocol === 'http:' && locale)) {
-    throw new Error(`${nom} doit être une adresse HTTPS (reçu : "${brut}").`);
+    throw new Error(T.configuration.httpsRequis(nom, brut));
   }
 
   return adresse.href.replace(/\/+$/, '');
@@ -57,12 +59,12 @@ function lireComptes(brut) {
     const identifiant = egal === -1 ? '' : entree.slice(egal + 1).trim().toLowerCase();
 
     if (sujet === '' || identifiant === '') {
-      throw new Error(`MCP_USERS : « ${entree} » n'a pas la forme <sub>=<identifiant>.`);
+      throw new Error(T.configuration.formeDesComptes(entree));
     }
     comptes.set(sujet, identifiant);
   }
 
-  if (comptes.size === 0) throw new Error('MCP_USERS ne désigne aucun compte.');
+  if (comptes.size === 0) throw new Error(T.configuration.aucunCompte);
   return comptes;
 }
 
@@ -80,15 +82,12 @@ export function lireConfiguration(env) {
 
   const manquantes = OBLIGATOIRES.filter((nom) => valeur(nom) === '');
   if (manquantes.length > 0) {
-    throw new Error(
-      `connecteur Claude à moitié configuré : ${manquantes.join(', ')} ` +
-        `manque${manquantes.length > 1 ? 'nt' : ''} (voir .env.example).`,
-    );
+    throw new Error(T.configuration.aMoitie(manquantes));
   }
 
   const permission = valeur('MCP_PERMISSION');
   if (/\s/.test(permission)) {
-    throw new Error(`MCP_PERMISSION est une seule permission, sans espace (reçu : "${permission}").`);
+    throw new Error(T.configuration.permissionUnique(permission));
   }
 
   return {

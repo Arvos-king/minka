@@ -12,6 +12,7 @@
  * lecture seule et toute affectation lève une erreur.
  */
 
+import { T } from '../textes.js';
 import { AppError } from './errorHandler.js';
 
 const SOURCES = ['body', 'query', 'params'];
@@ -30,7 +31,7 @@ export function validate(schemas) {
           champ: issue.path.join('.') || source,
           message: issue.message,
         }));
-        return next(new AppError(400, 'VALIDATION_ERROR', 'Données invalides.', details));
+        return next(new AppError(400, 'VALIDATION_ERROR', T.erreurs.donneesInvalides, details));
       }
 
       req.valid[source] = result.data;

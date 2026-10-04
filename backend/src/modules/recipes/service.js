@@ -3,6 +3,7 @@
  */
 
 import { db, stmt } from '../../db/index.js';
+import { LANGUE, LOCALE } from '../../lib/langue.js';
 import { libelleCourse } from './courses.js';
 import { aligner } from './etiquettes.js';
 import { champsACompleter, choisirRecette, sortDuPlat } from './resolution.js';
@@ -257,14 +258,14 @@ export function listGroupedIngredients(ids) {
 
   lignes.sort(
     (a, b) =>
-      a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }) ||
+      a.name.localeCompare(b.name, LOCALE, { sensitivity: 'base' }) ||
       rang.get(a.recipe_id) - rang.get(b.recipe_id),
   );
 
   const parNom = new Map();
 
   for (const ligne of lignes) {
-    const cle = ligne.name.toLocaleLowerCase('fr');
+    const cle = ligne.name.toLocaleLowerCase(LANGUE);
     if (!parNom.has(cle)) {
       parNom.set(cle, { name: ligne.name, quantities: [], recipes: [] });
     }

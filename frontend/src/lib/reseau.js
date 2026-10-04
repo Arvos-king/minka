@@ -12,6 +12,9 @@
 
 import { useEffect, useState } from 'react';
 
+import { TEXTES } from '../textes.js';
+import { LANGUE, textes } from './langue.js';
+
 const CLE = 'minka:derniere-synchro';
 
 /**
@@ -49,20 +52,22 @@ export function derniereSynchro() {
  * l'information date de la matinée ou de la semaine dernière, pas à la minute
  * près.
  */
-export function libelleAnciennete(horodatage, maintenant = Date.now()) {
+export function libelleAnciennete(horodatage, maintenant = Date.now(), langue = LANGUE) {
   if (horodatage === null || horodatage === undefined) return null;
 
+  const t = textes(TEXTES, langue).anciennete;
+
   const minutes = Math.floor((maintenant - horodatage) / 60_000);
-  if (minutes < 0) return "à l'instant"; // horloge reculée : rien de mieux à dire
-  if (minutes < 2) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 0) return t.instant; // horloge reculée : rien de mieux à dire
+  if (minutes < 2) return t.instant;
+  if (minutes < 60) return t.minutes(minutes);
 
   const heures = Math.floor(minutes / 60);
-  if (heures < 24) return `il y a ${heures} h`;
+  if (heures < 24) return t.heures(heures);
 
   const jours = Math.floor(heures / 24);
-  if (jours === 1) return 'hier';
-  return `il y a ${jours} j`;
+  if (jours === 1) return t.hier;
+  return t.jours(jours);
 }
 
 /** Suit l'état de la connexion, pour l'afficher. */

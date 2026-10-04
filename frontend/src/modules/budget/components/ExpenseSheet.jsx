@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
 import { couleurPersonne } from '../../../lib/people.js';
-import { analyserMontant, formaterMontant } from '../montants.js';
+import { T as SOCLE } from '../../../textes.js';
+import { analyserMontant, montantEditable } from '../montants.js';
+import { T } from '../textes.js';
 
 /**
  * Détail d'une dépense, glissé depuis le bas.
@@ -12,9 +14,7 @@ import { analyserMontant, formaterMontant } from '../montants.js';
  * catégorie restant une dépense comptée.
  */
 export function ExpenseSheet({ expense, categories, people, onSave, onDelete, onClose }) {
-  const [montant, setMontant] = useState(() =>
-    formaterMontant(expense.amountCents).replace(/[^\d,]/g, ''),
-  );
+  const [montant, setMontant] = useState(() => montantEditable(expense.amountCents));
   const [label, setLabel] = useState(expense.label);
   const [spentOn, setSpentOn] = useState(expense.spentOn);
   const [categoryId, setCategoryId] = useState(expense.categoryId);
@@ -42,7 +42,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
   async function soumettre(evenement) {
     evenement.preventDefault();
     if (centimes === null || centimes <= 0) {
-      setErreur('Ce montant ne se lit pas.');
+      setErreur(T.depense.montantIllisible);
       return;
     }
 
@@ -57,26 +57,31 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
     }
   }
 
-  const choixPersonnes = [{ id: null, displayName: 'Le foyer' }, ...people];
+  const choixPersonnes = [{ id: null, displayName: T.depense.leFoyer }, ...people];
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Modifier la dépense"
+        aria-label={T.depense.modifier}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Modifier la dépense</h2>
+        <h2 className="text-lg font-semibold text-sand-900">{T.depense.modifier}</h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
           <div className="flex gap-2">
             <input
               value={montant}
               onChange={(e) => setMontant(e.target.value)}
-              aria-label="Montant"
+              aria-label={T.saisie.montant}
               inputMode="decimal"
               required
               className="min-h-12 w-28 shrink-0 rounded-xl bg-surface px-3 text-right tabular-nums ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
@@ -85,7 +90,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
               ref={champLibelle}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              aria-label="Ce que c'était"
+              aria-label={T.saisie.ceQueCEtait}
               required
               maxLength={120}
               className="min-h-12 min-w-0 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
@@ -93,7 +98,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
           </div>
 
           <label className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 ring-1 ring-sand-200">
-            <span className="text-sm font-medium text-sand-700">Date</span>
+            <span className="text-sm font-medium text-sand-700">{SOCLE.commun.date}</span>
             <input
               type="date"
               value={spentOn}
@@ -104,9 +109,9 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
           </label>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Catégorie</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.depense.categorie}</p>
             <div className="flex flex-wrap gap-2">
-              {[{ id: null, label: 'Sans catégorie' }, ...categories].map((categorie) => {
+              {[{ id: null, label: T.sansCategorie }, ...categories].map((categorie) => {
                 const actif = categoryId === categorie.id;
                 return (
                   <button
@@ -129,7 +134,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Qui a payé&nbsp;?</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.depense.quiAPaye}</p>
             <div className="flex flex-wrap gap-2">
               {choixPersonnes.map((personne) => {
                 const actif = personId === personne.id;
@@ -163,10 +168,10 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Annuler
+              {SOCLE.commun.annuler}
             </Button>
             <Button type="submit" loading={enregistrement} className="flex-1">
-              Enregistrer
+              {SOCLE.commun.enregistrer}
             </Button>
           </div>
 
@@ -181,10 +186,10 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
                   onClose();
                 }}
               >
-                Supprimer la dépense
+                {T.depense.supprimer}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmationSuppression(false)}>
-                Annuler
+                {SOCLE.commun.annuler}
               </Button>
             </div>
           ) : (
@@ -194,7 +199,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
               onClick={() => setConfirmationSuppression(true)}
               className="w-full text-danger"
             >
-              Supprimer la dépense
+              {T.depense.supprimer}
             </Button>
           )}
         </form>

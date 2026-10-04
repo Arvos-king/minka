@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
+import { LANGUE } from '../../../lib/langue.js';
+import { T as SOCLE } from '../../../textes.js';
 import { CRENEAUX, libelleJour } from '../semaine.js';
+import { T } from '../textes.js';
 
 /**
  * Choix du repas d'une case, glissé depuis le bas.
@@ -68,14 +71,14 @@ export function MealSheet({
   }, [onClose]);
 
   const texte = saisie.trim();
-  const terme = texte.toLocaleLowerCase('fr');
+  const terme = texte.toLocaleLowerCase(LANGUE);
   const visibles = terme
-    ? recipes.filter((recette) => recette.title.toLocaleLowerCase('fr').includes(terme))
+    ? recipes.filter((recette) => recette.title.toLocaleLowerCase(LANGUE).includes(terme))
     : recipes;
 
   // Une recette porte déjà exactement ce nom : proposer de la créer ferait
   // doublon, et le serveur la retrouverait de toute façon.
-  const dejaAuRepertoire = recipes.some((recette) => recette.title.toLocaleLowerCase('fr') === terme);
+  const dejaAuRepertoire = recipes.some((recette) => recette.title.toLocaleLowerCase(LANGUE) === terme);
 
   const libelleCreneau = CRENEAUX.find((c) => c.valeur === creneau)?.libelle ?? creneau;
 
@@ -118,23 +121,28 @@ export function MealSheet({
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={`Repas du ${libelleJour(date)}, ${libelleCreneau}`}
+        aria-label={T.repas.dialogue(libelleJour(date), libelleCreneau)}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900 first-letter:uppercase">
           {libelleJour(date)} — {libelleCreneau}
         </h2>
-        {intitule && <p className="mt-0.5 text-sm text-sand-500">Actuellement : {intitule}</p>}
+        {intitule && <p className="mt-0.5 text-sm text-sand-500">{T.repas.actuellement(intitule)}</p>}
 
         {decalage ? (
           <div role="status" className="mt-3 flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3">
             <p className="flex-1 text-sm text-sand-800">
-              {decalage === 'envoi' ? 'Décalage…' : decalage.resume}
+              {decalage === 'envoi' ? T.repas.decalage : decalage.resume}
             </p>
             {/* L'annulation n'est offerte que tant qu'elle tient : poser un
                 repas dans la case vidée l'efface. */}
@@ -142,10 +150,10 @@ export function MealSheet({
               <button
                 type="button"
                 onClick={annulerDecalage}
-                aria-label="Annuler le décalage"
+                aria-label={T.repas.annulerDecalage}
                 className="shrink-0 text-sm font-medium text-accent underline"
               >
-                Annuler
+                {T.repas.annuler}
               </button>
             )}
           </div>
@@ -156,10 +164,10 @@ export function MealSheet({
           !repas.pending && (
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="secondary" onClick={onDeplacer} className="flex-1">
-                Déplacer…
+                {T.repas.deplacer}
               </Button>
               <Button size="sm" variant="secondary" onClick={decaler} className="flex-1">
-                Décaler d'un jour
+                {T.repas.decaler}
               </Button>
             </div>
           )
@@ -167,14 +175,14 @@ export function MealSheet({
 
         <form onSubmit={poserTexteLibre} className="mt-4">
           <label htmlFor="menus-saisie" className="text-sm font-medium text-sand-700">
-            Ce qui est prévu
+            {T.repas.prevu}
           </label>
           <input
             id="menus-saisie"
             ref={champ}
             value={saisie}
             onChange={(e) => setSaisie(e.target.value)}
-            placeholder={recettesDisponibles ? 'Chercher, ou écrire…' : 'Restes, resto…'}
+            placeholder={recettesDisponibles ? T.repas.chercherOuEcrire : T.repas.exempleLibre}
             maxLength={120}
             className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
@@ -182,23 +190,23 @@ export function MealSheet({
           {texte !== '' ? (
             <div className="mt-2 flex gap-2">
               <Button type="submit" variant="secondary" className="flex-1">
-                Poser tel quel
+                {T.repas.poserTelQuel}
               </Button>
               {recettesDisponibles && !dejaAuRepertoire && (
                 <Button type="button" onClick={creerRecette} loading={creation} className="flex-1">
-                  En faire une recette
+                  {T.repas.enFaireUneRecette}
                 </Button>
               )}
             </div>
           ) : (
             // Les pastilles de « Ranger dans… » des courses : même forme, même
             // geste — un tap, et le panneau se referme.
-            <div role="group" aria-label="Raccourcis" className="mt-2 flex flex-wrap gap-1.5">
+            <div role="group" aria-label={T.repas.raccourcis} className="mt-2 flex flex-wrap gap-1.5">
               {raccourcis.map((raccourci) => {
                 const pose =
                   repas !== null &&
                   !repas.recipeId &&
-                  repas.title.toLocaleLowerCase('fr') === raccourci.toLocaleLowerCase('fr');
+                  repas.title.toLocaleLowerCase(LANGUE) === raccourci.toLocaleLowerCase(LANGUE);
 
                 return (
                   <button
@@ -226,13 +234,11 @@ export function MealSheet({
 
         {recettesDisponibles && (
           <div className="mt-6">
-            <p className="text-sm font-medium text-sand-700">Mes recettes</p>
+            <p className="text-sm font-medium text-sand-700">{T.repas.mesRecettes}</p>
 
             {visibles.length === 0 ? (
               <p className="mt-2 rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
-                {recipes.length === 0
-                  ? 'Aucune recette pour le moment.'
-                  : 'Aucune recette ne correspond.'}
+                {recipes.length === 0 ? T.repas.aucuneRecette : T.repas.aucuneCorrespondance}
               </p>
             ) : (
               <ul className="mt-2 space-y-1.5">
@@ -264,7 +270,7 @@ export function MealSheet({
                         </span>
                         {recette.servings && (
                           <span className="shrink-0 text-sm text-sand-500">
-                            {recette.servings} parts
+                            {T.repas.parts(recette.servings)}
                           </span>
                         )}
                       </button>
@@ -281,7 +287,7 @@ export function MealSheet({
               fait. « Annuler » ici laisserait croire qu'il se défait en
               refermant, quand c'est le lien sous l'intitulé qui s'en charge. */}
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-            {decalage ? 'Fermer' : 'Annuler'}
+            {decalage ? SOCLE.commun.fermer : SOCLE.commun.annuler}
           </Button>
           {repas && (
             <Button
@@ -293,7 +299,7 @@ export function MealSheet({
               }}
               className="flex-1 text-danger"
             >
-              Vider la case
+              {T.repas.vider}
             </Button>
           )}
         </div>

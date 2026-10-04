@@ -1,10 +1,11 @@
 import { NotesIcon } from './NotesIcon.jsx';
 import { NotesPage } from './NotesPage.jsx';
+import { T } from './textes.js';
 
 export default {
   id: 'notes',
-  label: 'Notes',
-  description: 'Ce qu’on ne veut pas oublier',
+  label: T.module.label,
+  description: T.module.description,
   path: '/notes',
   Icon: NotesIcon,
   Component: NotesPage,

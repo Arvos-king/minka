@@ -1,4 +1,5 @@
 import { formaterMontantCourt, partConsommee } from '../montants.js';
+import { T } from '../textes.js';
 
 /**
  * Une catégorie et sa consommation du mois.
@@ -30,7 +31,7 @@ export function CategoryBar({ label, spentCents, budgetCents, onOuvrir }) {
           aria-valuenow={Math.round(part * 100)}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${label} : ${Math.round(part * 100)} % du plafond`}
+          aria-label={T.partDuPlafond(label, Math.round(part * 100))}
         >
           <div
             className={`h-full rounded-full transition-all ${depasse ? 'bg-red-500' : 'bg-brand-500'}`}

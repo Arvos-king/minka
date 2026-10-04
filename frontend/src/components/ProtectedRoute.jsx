@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
+import { T } from '../textes.js';
 import { HouseIcon } from './icons.jsx';
 
 /**
@@ -19,7 +20,7 @@ export function ProtectedRoute() {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <HouseIcon className="size-10 animate-pulse text-accent" />
-        <span className="sr-only">Chargement…</span>
+        <span className="sr-only">{T.chargement}</span>
       </div>
     );
   }

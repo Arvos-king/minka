@@ -5,6 +5,7 @@ import { HouseIcon } from '../components/icons.jsx';
 import { Button } from '../components/ui/Button.jsx';
 import { TextField } from '../components/ui/TextField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { T } from '../textes.js';
 
 export function LoginPage() {
   const { status, login } = useAuth();
@@ -45,12 +46,12 @@ export function LoginPage() {
           <HouseIcon className="size-9" />
         </div>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-sand-900">Minka</h1>
-        <p className="mt-1 text-sm text-sand-600">La maison, en un seul endroit.</p>
+        <p className="mt-1 text-sm text-sand-600">{T.slogan}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <TextField
-          label="Identifiant"
+          label={T.connexion.identifiant}
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           // Indispensables pour que les gestionnaires de mots de passe
@@ -65,7 +66,7 @@ export function LoginPage() {
         />
 
         <TextField
-          label="Mot de passe"
+          label={T.connexion.motDePasse}
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -81,12 +82,12 @@ export function LoginPage() {
         )}
 
         <Button type="submit" loading={submitting} className="w-full">
-          Se connecter
+          {T.connexion.seConnecter}
         </Button>
       </form>
 
       <p className="mt-8 text-center text-xs text-sand-500">
-        Espace privé. Les comptes sont créés depuis le serveur.
+        {T.connexion.espacePrive}
       </p>
     </main>
   );

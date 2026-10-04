@@ -1,20 +1,23 @@
 import { z } from 'zod';
 
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
+
 const title = z
   .string()
   .trim()
-  .min(1, "L'intitulé de la recette est requis.")
-  .max(120, "L'intitulé est trop long.");
+  .min(1, T.schemas.intituleRequis)
+  .max(120, T.schemas.intituleTropLong);
 
 /** NULL = non précisé. Une recette n'a pas à déclarer pour combien elle est. */
 const servings = z
   .number()
-  .int('Le nombre de parts doit être un entier.')
-  .min(1, 'Il faut au moins une part.')
-  .max(50, 'Ce nombre de parts est déraisonnable.')
+  .int(T.schemas.partsEntier)
+  .min(1, T.schemas.partsMin)
+  .max(50, T.schemas.partsMax)
   .nullable();
 
-const notes = z.string().trim().max(4000, 'Ces remarques sont trop longues.').nullable();
+const notes = z.string().trim().max(4000, T.schemas.remarquesTropLongues).nullable();
 
 /**
  * Une étape de la préparation.
@@ -26,11 +29,11 @@ const step = z.object({
   text: z
     .string()
     .trim()
-    .min(1, 'Une étape ne peut pas être vide.')
-    .max(500, 'Cette étape est trop longue ; coupe-la en deux.'),
+    .min(1, T.schemas.etapeVide)
+    .max(500, T.schemas.etapeTropLongue),
 });
 
-const steps = z.array(step).max(60, 'Cette recette a trop d’étapes.').default([]);
+const steps = z.array(step).max(60, T.schemas.tropDEtapes).default([]);
 
 /**
  * Une étiquette : « végétarien », « rapide », « les enfants aiment ».
@@ -41,10 +44,10 @@ const steps = z.array(step).max(60, 'Cette recette a trop d’étapes.').default
 const tag = z
   .string()
   .trim()
-  .min(1, 'Une étiquette ne peut pas être vide.')
-  .max(30, 'Cette étiquette est trop longue.');
+  .min(1, T.schemas.etiquetteVide)
+  .max(30, T.schemas.etiquetteTropLongue);
 
-const tags = z.array(tag).max(12, 'Cette recette a trop d’étiquettes.').default([]);
+const tags = z.array(tag).max(12, T.schemas.tropDEtiquettes).default([]);
 
 /**
  * Un ingrédient : un nom, et une quantité en texte libre.
@@ -53,13 +56,13 @@ const tags = z.array(tag).max(12, 'Cette recette a trop d’étiquettes.').defau
  * migration. « Un filet » doit passer.
  */
 const ingredient = z.object({
-  name: z.string().trim().min(1, "Le nom de l'ingrédient est requis.").max(120, 'Ce nom est trop long.'),
-  quantity: z.string().trim().max(60, 'Cette quantité est trop longue.').nullable().default(null),
+  name: z.string().trim().min(1, T.schemas.ingredientRequis).max(120, T.schemas.nomTropLong),
+  quantity: z.string().trim().max(60, T.schemas.quantiteTropLongue).nullable().default(null),
 });
 
 const ingredients = z
   .array(ingredient)
-  .max(60, 'Cette recette a trop d’ingrédients.')
+  .max(60, T.schemas.tropDIngredients)
   .default([]);
 
 export const createRecipeSchema = z.object({
@@ -83,7 +86,7 @@ export const updateRecipeSchema = z
     tags: z.array(tag).max(12).optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const recipeParamsSchema = z.object({
@@ -111,12 +114,12 @@ export const ingredientsQuerySchema = z.object({
     // Le format est vérifié sur la chaîne brute, avant toute conversion : sinon
     // « abc » ressort en NaN et c'est zod qui rédige le message, en anglais.
     .refine((valeur) => valeur === '' || LISTE_IDS.test(valeur), {
-      message: 'Les identifiants doivent être des nombres séparés par des virgules.',
+      message: T.schemas.identifiants,
     })
     .transform((valeur) =>
       valeur === '' ? [] : valeur.split(',').map((part) => Number(part.trim())),
     )
-    .pipe(z.array(z.number().int().positive()).max(120, 'Trop de recettes demandées d’un coup.')),
+    .pipe(z.array(z.number().int().positive()).max(120, T.schemas.tropDeRecettes)),
 });
 
 /**
@@ -145,6 +148,6 @@ export const resolveSchema = z.object({
         tags,
       }),
     )
-    .min(1, 'Aucun plat à retrouver.')
-    .max(50, 'Trop de plats d’un coup.'),
+    .min(1, T.schemas.aucunPlat)
+    .max(50, T.schemas.tropDePlats),
 });

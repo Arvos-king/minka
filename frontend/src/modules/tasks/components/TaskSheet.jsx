@@ -3,13 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '../../../components/ui/Button.jsx';
 import { aujourdhui, decalerJours } from '../../../lib/dates.js';
 import { couleurPersonne } from '../../../lib/people.js';
+import { T as SOCLE } from '../../../textes.js';
 import { RYTHMES } from '../echeance.js';
+import { T } from '../textes.js';
 
 const RACCOURCIS_DATE = [
-  { libelle: 'Sans date', jours: null },
-  { libelle: "Aujourd'hui", jours: 0 },
-  { libelle: 'Demain', jours: 1 },
-  { libelle: '1 sem.', jours: 7 },
+  { libelle: T.feuille.raccourcis.sansDate, jours: null },
+  { libelle: T.feuille.raccourcis.aujourdhui, jours: 0 },
+  { libelle: T.feuille.raccourcis.demain, jours: 1 },
+  { libelle: T.feuille.raccourcis.semaine, jours: 7 },
 ];
 
 /**
@@ -73,20 +75,25 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
     }
   }
 
-  const choixPersonnes = [{ id: null, displayName: 'Tout le monde' }, ...people];
+  const choixPersonnes = [{ id: null, displayName: SOCLE.membres.toutLeMonde }, ...people];
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={enEdition ? 'Modifier la tâche' : 'Nouvelle tâche'}
+        aria-label={enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
-          {enEdition ? 'Modifier la tâche' : 'Nouvelle tâche'}
+          {enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         </h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
@@ -94,15 +101,15 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             ref={champTitre}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Que faut-il faire ?"
-            aria-label="Intitulé"
+            placeholder={T.feuille.placeholder}
+            aria-label={T.feuille.intitule}
             required
             maxLength={160}
             className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
 
           <div className="rounded-xl bg-surface p-3 ring-1 ring-sand-200">
-            <p className="text-sm font-medium text-sand-700">À faire pour</p>
+            <p className="text-sm font-medium text-sand-700">{T.feuille.aFairePour}</p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {RACCOURCIS_DATE.map(({ libelle, jours }) => {
                 const valeur = jours === null ? null : decalerJours(aujourdhui(), jours);
@@ -129,13 +136,13 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                 type="date"
                 value={dueOn ?? ''}
                 onChange={(e) => setDueOn(e.target.value || null)}
-                aria-label="Échéance précise"
+                aria-label={T.feuille.echeancePrecise}
                 className="rounded-full bg-sand-50 px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
 
             <p className="mt-4 border-t border-sand-100 pt-3 text-sm font-medium text-sand-700">
-              Se répète
+              {T.feuille.seRepete}
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {RYTHMES.map(({ valeur, libelle }) => {
@@ -158,13 +165,13 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             </div>
             {recurrence && (
               <p className="mt-2 text-xs text-sand-500">
-                Une fois cochée, la tâche reviendra à l'échéance suivante au lieu d'être terminée.
+                {T.feuille.explicationRythme}
               </p>
             )}
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Pour qui&nbsp;?</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.feuille.pourQui}</p>
             <div className="flex flex-wrap gap-2">
               {choixPersonnes.map((personne) => {
                 const actif = assigneeId === personne.id;
@@ -193,8 +200,8 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Note (facultative)"
-            aria-label="Note"
+            placeholder={SOCLE.commun.noteFacultative}
+            aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
             className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -208,10 +215,10 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Annuler
+              {SOCLE.commun.annuler}
             </Button>
             <Button type="submit" loading={enregistrement} className="flex-1">
-              Enregistrer
+              {SOCLE.commun.enregistrer}
             </Button>
           </div>
 
@@ -225,7 +232,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
               }}
               className="w-full text-danger"
             >
-              Supprimer la tâche
+              {T.feuille.supprimer}
             </Button>
           )}
         </form>

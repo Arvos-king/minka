@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button.jsx';
 import { TextField } from '../components/ui/TextField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/apiClient.js';
+import { T } from '../textes.js';
 
 /**
  * Compte de l'utilisateur connecté.
@@ -48,7 +49,7 @@ export function AccountPage() {
       </section>
 
       <section className="rounded-2xl bg-surface p-4 ring-1 ring-sand-200">
-        <h2 className="font-medium text-sand-900">Changer de mot de passe</h2>
+        <h2 className="font-medium text-sand-900">{T.compte.changerMotDePasse}</h2>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           {/* Champ caché : indique aux gestionnaires de mots de passe à quel
@@ -56,7 +57,7 @@ export function AccountPage() {
           <input type="text" name="username" autoComplete="username" value={user?.username ?? ''} readOnly hidden />
 
           <TextField
-            label="Mot de passe actuel"
+            label={T.compte.motDePasseActuel}
             type="password"
             value={currentPassword}
             onChange={(event) => setCurrentPassword(event.target.value)}
@@ -65,12 +66,12 @@ export function AccountPage() {
           />
 
           <TextField
-            label="Nouveau mot de passe"
+            label={T.compte.nouveauMotDePasse}
             type="password"
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
             autoComplete="new-password"
-            hint="8 caractères minimum."
+            hint={T.compte.huitCaracteres}
             required
           />
 
@@ -82,19 +83,19 @@ export function AccountPage() {
 
           {state.status === 'done' && (
             <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
-              Mot de passe mis à jour.
+              {T.compte.motDePasseMisAJour}
             </p>
           )}
 
           <Button type="submit" loading={state.status === 'saving'} className="w-full">
-            Enregistrer
+            {T.commun.enregistrer}
           </Button>
         </form>
       </section>
 
       <Button variant="secondary" onClick={logout} className="w-full">
         <LogOutIcon className="size-5" />
-        Se déconnecter
+        {T.compte.seDeconnecter}
       </Button>
     </div>
   );

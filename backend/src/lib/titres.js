@@ -9,6 +9,31 @@
  * copies qui divergeraient feraient refuser par l'un ce que l'autre a accepté.
  */
 
+import { LANGUE } from './langue.js';
+
+/**
+ * Le singulier approximatif de chaque langue — de quoi comparer, pas écrire.
+ *
+ * En français, le pluriel n'est retiré que des mots de plus de trois lettres :
+ * « aux », « des », « riz » restent ce qu'ils sont.
+ *
+ * L'anglais demande davantage : « tomatoes », « berries », « peaches » ne
+ * retrouvent pas leur singulier en ôtant un « s ». Plutôt que de deviner le
+ * singulier, on réduit les deux formes à une même racine — sans « s », sans
+ * « e » final, « y » changé en « i » : « berry » et « berries » donnent tous
+ * deux « berri », « cookie » et « cookies » « cooki ». « glass », « hummus »
+ * gardent leur « s ».
+ */
+const SINGULIERS = {
+  fr: (mot) => (mot.length > 3 ? mot.replace(/[sx]$/, '') : mot),
+  en: (mot) => {
+    if (mot.length <= 3) return mot;
+    let racine = /(ss|us|is)$/.test(mot) ? mot : mot.replace(/s$/, '');
+    if (racine.length > 3) racine = racine.replace(/e$/, '').replace(/y$/, 'i');
+    return racine;
+  },
+};
+
 /**
  * La clé sous laquelle deux titres désignent le même plat.
  *
@@ -18,12 +43,12 @@
  * proposition écrite un peu autrement, et la recette relue la semaine dernière
  * reste à l'écart.
  *
- * Le pluriel n'est retiré que des mots de plus de trois lettres : « aux »,
- * « des », « riz » restent ce qu'ils sont. La règle est grossière — « noix »
- * devient « noi » — mais elle l'est des deux côtés, et c'est tout ce qu'on lui
- * demande : comparer, pas écrire.
+ * Le pluriel tombe selon la langue de l'instance (voir `SINGULIERS`). La règle
+ * est grossière — « noix » devient « noi » — mais elle l'est des deux côtés,
+ * et c'est tout ce qu'on lui demande : comparer, pas écrire.
  */
-export function cleTitre(titre) {
+export function cleTitre(titre, langue = LANGUE) {
+  const singulier = SINGULIERS[langue] ?? SINGULIERS.fr;
   return (titre ?? '')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -34,9 +59,10 @@ export function cleTitre(titre) {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
     .split(' ')
-    .map((mot) => (mot.length > 3 ? mot.replace(/[sx]$/, '') : mot))
+    .map(singulier)
     .join(' ');
 }
 
 /** Vrai si les deux titres désignent le même plat. */
-export const memePlat = (a, b) => cleTitre(a) !== '' && cleTitre(a) === cleTitre(b);
+export const memePlat = (a, b, langue = LANGUE) =>
+  cleTitre(a, langue) !== '' && cleTitre(a, langue) === cleTitre(b, langue);

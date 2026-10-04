@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 
 import { TrashIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
-import { analyserMontant, formaterMontantCourt } from '../montants.js';
+import { T as SOCLE } from '../../../textes.js';
+import { analyserMontant, formaterMontantCourt, separateurDecimal } from '../montants.js';
+import { T } from '../textes.js';
 
 /**
  * Gestion des catégories, glissée depuis le bas.
@@ -37,7 +39,7 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
 
     const centimes = lirePlafond(plafondVoulu);
     if (plafondVoulu.trim() !== '' && centimes === null) {
-      setErreur('Ce plafond ne se lit pas.');
+      setErreur(T.categories.plafondIllisible);
       return;
     }
 
@@ -58,7 +60,7 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
     setPlafond(
       categorie.monthlyBudgetCents === null
         ? ''
-        : String(categorie.monthlyBudgetCents / 100).replace('.', ','),
+        : String(categorie.monthlyBudgetCents / 100).replace('.', separateurDecimal()),
     );
     setErreur(null);
   }
@@ -67,18 +69,21 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Gérer les catégories"
+        aria-label={T.categories.gerer}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Catégories</h2>
-        <p className="mt-1 text-sm text-sand-500">
-          Le plafond est facultatif&nbsp;: sans lui, la catégorie compte sans juger.
-        </p>
+        <h2 className="text-lg font-semibold text-sand-900">{T.categories.titre}</h2>
+        <p className="mt-1 text-sm text-sand-500">{T.categories.intro}</p>
 
         <ul className="mt-4 space-y-2">
           {categories.map((categorie) => {
@@ -91,25 +96,25 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
                     <input
                       value={libelle}
                       onChange={(e) => setLibelle(e.target.value)}
-                      aria-label="Nom de la catégorie"
+                      aria-label={T.categories.nom}
                       maxLength={120}
                       className={`${champ} min-w-0 flex-1`}
                     />
                     <input
                       value={plafond}
                       onChange={(e) => setPlafond(e.target.value)}
-                      placeholder="Plafond"
-                      aria-label="Plafond mensuel (facultatif)"
+                      placeholder={T.categories.plafond}
+                      aria-label={T.categories.plafondMensuel}
                       inputMode="decimal"
                       className={`${champ} w-24 text-right tabular-nums`}
                     />
                   </div>
                   <div className="mt-2 flex gap-2">
                     <Button size="sm" onClick={() => enregistrer(categorie, libelle, plafond)}>
-                      Enregistrer
+                      {SOCLE.commun.enregistrer}
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => setEnEdition(null)}>
-                      Annuler
+                      {SOCLE.commun.annuler}
                     </Button>
                   </div>
                 </li>
@@ -125,16 +130,16 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
                 >
                   <span className="block text-sand-900">{categorie.label}</span>
                   <span className="block text-xs text-sand-500">
-                    {formaterMontantCourt(depense)} ce mois-ci
+                    {T.categories.ceMoisCi(formaterMontantCourt(depense))}
                     {categorie.monthlyBudgetCents !== null &&
-                      ` · plafond ${formaterMontantCourt(categorie.monthlyBudgetCents)}`}
+                      T.categories.plafondDe(formaterMontantCourt(categorie.monthlyBudgetCents))}
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setASupprimer(categorie)}
-                  aria-label={`Supprimer ${categorie.label}`}
+                  aria-label={T.categories.supprimerNommee(categorie.label)}
                   className="grid min-h-12 w-12 shrink-0 place-items-center rounded-r-xl text-sand-400 active:bg-sand-100"
                 >
                   <TrashIcon className="size-5" />
@@ -146,10 +151,7 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
 
         {aSupprimer && (
           <div role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3">
-            <p className="text-sm text-danger">
-              Supprimer «&nbsp;{aSupprimer.label}&nbsp;»&nbsp;? Ses dépenses restent comptées, mais
-              perdent leur étiquette.
-            </p>
+            <p className="text-sm text-danger">{T.categories.confirmerSuppression(aSupprimer.label)}</p>
             <div className="mt-3 flex gap-2">
               <Button
                 size="sm"
@@ -159,10 +161,10 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
                   setASupprimer(null);
                 }}
               >
-                Supprimer
+                {SOCLE.commun.supprimer}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setASupprimer(null)}>
-                Annuler
+                {SOCLE.commun.annuler}
               </Button>
             </div>
           </div>
@@ -175,26 +177,26 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
           }}
           className="mt-4 border-t border-sand-200 pt-4"
         >
-          <p className="mb-2 text-sm font-medium text-sand-700">Nouvelle catégorie</p>
+          <p className="mb-2 text-sm font-medium text-sand-700">{T.categories.nouvelle}</p>
           <div className="flex gap-2">
             <input
               value={nouveauLibelle}
               onChange={(e) => setNouveauLibelle(e.target.value)}
-              placeholder="Restaurants"
-              aria-label="Nom de la nouvelle catégorie"
+              placeholder={T.categories.exemple}
+              aria-label={T.categories.nomNouvelle}
               maxLength={120}
               className={`${champ} min-w-0 flex-1`}
             />
             <input
               value={nouveauPlafond}
               onChange={(e) => setNouveauPlafond(e.target.value)}
-              placeholder="Plafond"
-              aria-label="Plafond mensuel (facultatif)"
+              placeholder={T.categories.plafond}
+              aria-label={T.categories.plafondMensuel}
               inputMode="decimal"
               className={`${champ} w-24 text-right tabular-nums`}
             />
             <Button type="submit" size="sm" disabled={nouveauLibelle.trim() === ''}>
-              Ajouter
+              {SOCLE.commun.ajouter}
             </Button>
           </div>
         </form>
@@ -207,7 +209,7 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
 
         <div className="py-4">
           <Button type="button" variant="secondary" onClick={onClose} className="w-full">
-            Fermer
+            {SOCLE.commun.fermer}
           </Button>
         </div>
       </div>

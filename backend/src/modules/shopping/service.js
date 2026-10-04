@@ -4,6 +4,7 @@
 
 import { db, stmt } from '../../db/index.js';
 import { choisirRayon, cleDeNom, RAYON_PAR_DEFAUT } from './rayons.js';
+import { T } from './textes.js';
 
 /**
  * Traduit une ligne SQLite en objet destiné au client : camelCase, et
@@ -218,5 +219,5 @@ export function classerArticlesSansRayon() {
     for (const { id, name } of aRanger) ranger.run(rayonPour(name), id);
   })();
 
-  console.log(`[shopping] ${aRanger.length} article(s) rangés au rayon.`);
+  console.log(T.journal.articlesRanges(aRanger.length));
 }

@@ -11,6 +11,7 @@
  */
 
 import { config } from '../config/index.js';
+import { T } from '../textes.js';
 import { AppError } from './errorHandler.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -25,13 +26,13 @@ export function originGuard(req, res, next) {
   try {
     originHost = new URL(origin).host;
   } catch {
-    return next(new AppError(403, 'BAD_ORIGIN', 'En-tête Origin invalide.'));
+    return next(new AppError(403, 'BAD_ORIGIN', T.erreurs.origineInvalide));
   }
 
   // Liste explicite, si elle a été renseignée.
   if (config.allowedOrigins.length > 0) {
     if (config.allowedOrigins.includes(origin)) return next();
-    return next(new AppError(403, 'BAD_ORIGIN', 'Origine non autorisée.'));
+    return next(new AppError(403, 'BAD_ORIGIN', T.erreurs.origineNonAutorisee));
   }
 
   // Sinon : l'origine doit correspondre à l'hôte appelé. Sous Express 5,
@@ -40,11 +41,5 @@ export function originGuard(req, res, next) {
   // couvre le sous-domaine de production comme le serveur Vite en dev.
   if (originHost === req.host) return next();
 
-  return next(
-    new AppError(
-      403,
-      'BAD_ORIGIN',
-      "L'origine de la requête ne correspond pas au domaine de l'application.",
-    ),
-  );
+  return next(new AppError(403, 'BAD_ORIGIN', T.erreurs.origineEtrangere));
 }

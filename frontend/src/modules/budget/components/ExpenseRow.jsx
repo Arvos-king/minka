@@ -1,7 +1,8 @@
+import { formateurDate } from '../../../lib/langue.js';
 import { couleurPersonne, nomPersonne } from '../../../lib/people.js';
 import { formaterMontant } from '../montants.js';
 
-const formatJour = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
+const formatJour = formateurDate({ day: 'numeric', month: 'short' });
 
 /**
  * Une ligne de dépense.

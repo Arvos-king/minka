@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PlusIcon } from '../../components/icons.jsx';
 import { Button } from '../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../textes.js';
 import { recipesApi } from './api.js';
 import { CookingMode } from './components/CookingMode.jsx';
 import { ImportSheet } from './components/ImportSheet.jsx';
@@ -10,15 +11,14 @@ import { RecipeForm } from './components/RecipeForm.jsx';
 import { RecipeSheet } from './components/RecipeSheet.jsx';
 import { chercherRecettes, etiquettesDe } from './recherche.js';
 import { RecipesIcon } from './RecipesIcon.jsx';
+import { T } from './textes.js';
 import { useRecipes } from './useRecipes.js';
 
 /** « 4 parts · 6 ingrédients » — assez pour choisir sans ouvrir la fiche. */
 function resume({ servings, ingredients }) {
   const morceaux = [];
-  if (servings) morceaux.push(`${servings} parts`);
-  if (ingredients.length > 0) {
-    morceaux.push(`${ingredients.length} ingrédient${ingredients.length > 1 ? 's' : ''}`);
-  }
+  if (servings) morceaux.push(T.resume.parts(servings));
+  if (ingredients.length > 0) morceaux.push(T.resume.ingredients(ingredients.length));
   return morceaux.join(' · ');
 }
 
@@ -138,12 +138,12 @@ export function RecipesPage() {
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
           <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && !vide && (
         <>
@@ -152,8 +152,8 @@ export function RecipesPage() {
               type="search"
               value={terme}
               onChange={(e) => setTerme(e.target.value)}
-              placeholder="Chercher un plat, un ingrédient…"
-              aria-label="Chercher une recette"
+              placeholder={T.chercher.placeholder}
+              aria-label={T.chercher.label}
               className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
             <button
@@ -161,7 +161,7 @@ export function RecipesPage() {
               onClick={() => setImportOuvert(true)}
               className="min-h-11 shrink-0 px-2 text-sm font-medium text-accent"
             >
-              Importer
+              {T.importer}
             </button>
           </div>
 
@@ -198,7 +198,7 @@ export function RecipesPage() {
 
           {resultats.length === 0 ? (
             <p className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center text-sm text-sand-500">
-              Aucune recette ne correspond.
+              {T.aucuneCorrespondance}
             </p>
           ) : (
             <ul className="space-y-1.5">
@@ -235,17 +235,14 @@ export function RecipesPage() {
       {status === 'ready' && vide && (
         <div className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
           <RecipesIcon className="mx-auto size-8 text-sand-400" />
-          <p className="mt-3 text-sm font-medium text-sand-700">Aucune recette</p>
-          <p className="mt-1 text-sm text-sand-500">
-            Note celles qui reviennent : elles se posent ensuite dans les menus d'un tap, leurs
-            ingrédients partent dans les courses, et leurs étapes se cochent pendant la cuisine.
-          </p>
+          <p className="mt-3 text-sm font-medium text-sand-700">{T.aucuneRecette}</p>
+          <p className="mt-1 text-sm text-sand-500">{T.aideVide}</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button type="button" onClick={() => setEnEdition({})}>
-              Écrire une recette
+              {T.ecrire}
             </Button>
             <Button type="button" variant="secondary" onClick={() => setImportOuvert(true)}>
-              Coller un texte
+              {T.coller}
             </Button>
           </div>
         </div>
@@ -254,7 +251,7 @@ export function RecipesPage() {
       <button
         type="button"
         onClick={() => setEnEdition({})}
-        aria-label="Nouvelle recette"
+        aria-label={T.nouvelle}
         className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />

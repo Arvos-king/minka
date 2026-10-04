@@ -53,3 +53,31 @@ describe('memePlat', () => {
     assert.equal(memePlat('', ' — '), false);
   });
 });
+
+describe('en anglais', () => {
+  const meme = (a, b) => memePlat(a, b, 'en');
+
+  it('réunit le singulier et le pluriel, même irréguliers', () => {
+    // Ôter un « s » ne suffit pas : « tomatoes », « berries », « peaches ».
+    assert.equal(meme('Roast potatoes', 'Roast potato'), true);
+    assert.equal(meme('Berries crumble', 'Berry crumble'), true);
+    assert.equal(meme('Peach cobbler', 'Peaches cobbler'), true);
+    assert.equal(meme('Chocolate chip cookies', 'Chocolate chip cookie'), true);
+    assert.equal(meme('Fish pie', 'Fish pies'), true);
+  });
+
+  it('garde les mots déjà au singulier', () => {
+    assert.equal(meme('Hummus', 'Hummu'), false);
+    assert.equal(cleTitre('Hummus', 'en'), 'hummus');
+  });
+
+  it('ne confond pas deux plats différents', () => {
+    assert.equal(meme('Apple pie', 'Apple tart'), false);
+    assert.equal(meme('Fish pie', 'Fish'), false);
+  });
+
+  it('laisse la règle française intacte', () => {
+    // La règle anglaise n'est appliquée qu'aux instances anglaises.
+    assert.equal(cleTitre('Gratin de courgettes'), 'gratin de courgette');
+  });
+});

@@ -2,16 +2,18 @@ import { useState } from 'react';
 
 import { PlusIcon } from '../../components/icons.jsx';
 import { usePeople } from '../../lib/people.js';
+import { T as SOCLE } from '../../textes.js';
 import { MaintenanceRow } from './components/MaintenanceRow.jsx';
 import { MaintenanceSheet } from './components/MaintenanceSheet.jsx';
 import { grouperParUrgence } from './echeances.js';
 import { EntretienIcon } from './EntretienIcon.jsx';
+import { T } from './textes.js';
 import { useEntretien } from './useEntretien.js';
 
 const SECTIONS = [
-  { cle: 'enRetard', titre: 'En retard' },
-  { cle: 'bientot', titre: 'Cette semaine' },
-  { cle: 'plusTard', titre: 'Plus tard' },
+  { cle: 'enRetard', titre: T.sections.enRetard },
+  { cle: 'bientot', titre: T.sections.bientot },
+  { cle: 'plusTard', titre: T.sections.plusTard },
 ];
 
 export function EntretienPage() {
@@ -41,7 +43,7 @@ export function EntretienPage() {
         <div role="alert" className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 px-4 py-3">
           <p className="flex-1 text-sm text-danger">{error}</p>
           <button type="button" onClick={dismissError} className="text-sm font-medium text-danger underline">
-            Fermer
+            {SOCLE.commun.fermer}
           </button>
         </div>
       )}
@@ -59,7 +61,7 @@ export function EntretienPage() {
               zoneFiltre === null ? 'bg-sand-900 text-fond' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
             ].join(' ')}
           >
-            Toute la maison
+            {T.touteLaMaison}
           </button>
 
           {zones.map((zone) => {
@@ -82,23 +84,21 @@ export function EntretienPage() {
         </div>
       )}
 
-      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">Chargement…</p>}
+      {status === 'loading' && <p className="py-10 text-center text-sm text-sand-500">{SOCLE.chargement}</p>}
 
       {status === 'ready' && (
         <>
           {total === 0 ? (
             <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
               <EntretienIcon className="mx-auto size-8 text-sand-400" />
-              <p className="mt-3 text-sm font-medium text-sand-700">Aucune intervention</p>
-              <p className="mt-1 text-sm text-sand-500">
-                Le planning de départ se pose au premier démarrage de l'API.
-              </p>
+              <p className="mt-3 text-sm font-medium text-sand-700">{T.aucuneIntervention}</p>
+              <p className="mt-1 text-sm text-sand-500">{T.aideVide}</p>
             </div>
           ) : (
             <>
               {groupes.enRetard.length === 0 && groupes.bientot.length === 0 && (
                 <p className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-center text-sm text-accent">
-                  Rien à faire cette semaine.
+                  {T.rienCetteSemaine}
                 </p>
               )}
 
@@ -125,7 +125,7 @@ export function EntretienPage() {
 
               {taches.length === 0 && (
                 <p className="rounded-xl border border-dashed border-sand-300 px-4 py-8 text-center text-sm text-sand-500">
-                  Rien de prévu dans cette pièce.
+                  {T.rienDansCettePiece}
                 </p>
               )}
             </>
@@ -136,7 +136,7 @@ export function EntretienPage() {
       <button
         type="button"
         onClick={() => setSaisie({})}
-        aria-label="Nouvelle intervention"
+        aria-label={T.nouvelle}
         className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />

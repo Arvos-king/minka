@@ -7,15 +7,13 @@
  */
 
 import { decalerJours, versJourUtc } from '../../lib/dates.js';
+import { LANGUE, formateurDate, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
-const formatJourMois = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' });
-const formatJourMoisAnnee = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
-const formatJourSeul = new Intl.DateTimeFormat('fr-FR', { day: 'numeric' });
-const formatJourSemaine = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric' });
+const JOUR_MOIS = { day: 'numeric', month: 'long' };
+const JOUR_MOIS_ANNEE = { day: 'numeric', month: 'long', year: 'numeric' };
+const JOUR_SEUL = { day: 'numeric' };
+const JOUR_SEMAINE = { weekday: 'long', day: 'numeric' };
 
 /* Midi plutôt que minuit : à minuit, un fuseau en retard afficherait la veille. */
 const aMidi = (date) => new Date(`${date}T12:00:00`);
@@ -49,27 +47,29 @@ export function decalerSemaine(debut, nombre) {
  * ne tombe pas dans l'année en cours — une semaine de janvier consultée en
  * décembre doit se distinguer de celle qui vient de passer.
  */
-export function libelleSemaine(debut) {
+export function libelleSemaine(debut, langue = LANGUE) {
   const fin = finSemaine(debut);
   const objetDebut = aMidi(debut);
   const objetFin = aMidi(fin);
 
   const memeAnneeQueMaintenant = objetFin.getFullYear() === new Date().getFullYear();
-  const formatFin = memeAnneeQueMaintenant ? formatJourMois : formatJourMoisAnnee;
+  const formatFin = formateurDate(memeAnneeQueMaintenant ? JOUR_MOIS : JOUR_MOIS_ANNEE, langue);
 
   const memeMois = debut.slice(0, 7) === fin.slice(0, 7);
-  const partieDebut = memeMois ? formatJourSeul.format(objetDebut) : formatJourMois.format(objetDebut);
+  const partieDebut = formateurDate(memeMois ? JOUR_SEUL : JOUR_MOIS, langue).format(objetDebut);
 
   return `${partieDebut} – ${formatFin.format(objetFin)}`;
 }
 
 /** « lundi 17 », pour l'en-tête d'une journée. */
-export function libelleJour(date) {
-  return formatJourSemaine.format(aMidi(date));
+export function libelleJour(date, langue = LANGUE) {
+  return formateurDate(JOUR_SEMAINE, langue).format(aMidi(date));
 }
 
 /** Les deux moments d'une journée, dans l'ordre où on les vit. */
-export const CRENEAUX = [
-  { valeur: 'midi', libelle: 'Midi' },
-  { valeur: 'soir', libelle: 'Soir' },
-];
+export function creneaux(langue = LANGUE) {
+  const libelles = textes(TEXTES, langue).creneaux;
+  return ['midi', 'soir'].map((valeur) => ({ valeur, libelle: libelles[valeur] }));
+}
+
+export const CRENEAUX = creneaux();

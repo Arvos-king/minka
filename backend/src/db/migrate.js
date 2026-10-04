@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { T } from '../textes.js';
 import { db } from './index.js';
 
 /**
@@ -58,12 +59,12 @@ export function runMigrations(sources) {
         markApplied.run(id);
       })();
 
-      console.log(`[migrate] appliquée : ${id}`);
+      console.log(T.migrations.appliquee(id));
       appliedCount += 1;
     }
   }
 
   if (appliedCount === 0) {
-    console.log('[migrate] schéma déjà à jour.');
+    console.log(T.migrations.aJour);
   }
 }

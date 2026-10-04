@@ -1,14 +1,16 @@
 import { z } from 'zod';
 
 import { isoDate, isoTime } from '../../lib/schemas.js';
+import { T as SOCLE } from '../../textes.js';
+import { T } from './textes.js';
 
 const title = z
   .string()
   .trim()
-  .min(1, "L'intitulé est requis.")
-  .max(120, "L'intitulé est trop long.");
+  .min(1, T.schemas.intituleRequis)
+  .max(120, T.schemas.intituleTropLong);
 
-const note = z.string().trim().max(500, 'La note est trop longue.').nullable();
+const note = z.string().trim().max(500, T.schemas.noteTropLongue).nullable();
 
 /** `null` = événement qui concerne tout le monde. */
 const ownerId = z.number().int().positive().nullable();
@@ -37,7 +39,7 @@ function verifierCoherence(valeur, ctx) {
     ctx.addIssue({
       code: 'custom',
       path: ['endsOn'],
-      message: 'La fin ne peut pas précéder le début.',
+      message: T.schemas.finAvantDebut,
     });
   }
 
@@ -48,7 +50,7 @@ function verifierCoherence(valeur, ctx) {
     ctx.addIssue({
       code: 'custom',
       path: ['endsAt'],
-      message: "L'heure de fin doit suivre l'heure de début.",
+      message: T.schemas.heureFinAvantDebut,
     });
   }
 
@@ -58,7 +60,7 @@ function verifierCoherence(valeur, ctx) {
     ctx.addIssue({
       code: 'custom',
       path: ['endsAt'],
-      message: "Indique une heure de début, ou retire l'heure de fin.",
+      message: T.schemas.heureFinSansDebut,
     });
   }
 }
@@ -85,7 +87,7 @@ export const updateEventSchema = z
     note: champs.note.optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const listQuerySchema = z.object({

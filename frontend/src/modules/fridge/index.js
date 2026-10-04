@@ -1,5 +1,6 @@
 import { FridgeIcon } from './FridgeIcon.jsx';
 import { FridgePage } from './FridgePage.jsx';
+import { T } from './textes.js';
 
 /*
  * Pas de `tabOrder` : c'est volontaire, pas un oubli. Les quatre places de la
@@ -9,8 +10,8 @@ import { FridgePage } from './FridgePage.jsx';
  */
 export default {
   id: 'fridge',
-  label: 'Frigo',
-  description: 'Ce qui reste, et ce qui périme',
+  label: T.module.label,
+  description: T.module.description,
   path: '/frigo',
   Icon: FridgeIcon,
   Component: FridgePage,

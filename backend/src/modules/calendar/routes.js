@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { personExists } from '../../lib/people.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { validate } from '../../middleware/validate.js';
+import { T as SOCLE } from '../../textes.js';
 import {
   createEventSchema,
   eventParamsSchema,
@@ -10,10 +11,11 @@ import {
   updateEventSchema,
 } from './schemas.js';
 import { createEvent, deleteEvent, getEvent, listEvents, updateEvent } from './service.js';
+import { T } from './textes.js';
 
 export const router = Router();
 
-const eventNotFound = () => new AppError(404, 'EVENT_NOT_FOUND', "Cet événement n'existe plus.");
+const eventNotFound = () => new AppError(404, 'EVENT_NOT_FOUND', T.introuvable);
 
 /** Décale une date AAAA-MM-JJ d'un nombre de jours, en restant en UTC. */
 function decalerJours(date, jours) {
@@ -28,7 +30,7 @@ function aujourdhui() {
 /** Refuse un membre inconnu, plutôt que d'enregistrer une attribution fantôme. */
 function verifierPersonne(ownerId) {
   if (ownerId !== undefined && ownerId !== null && !personExists(ownerId)) {
-    throw new AppError(400, 'UNKNOWN_PERSON', "Ce membre du foyer n'existe pas.");
+    throw new AppError(400, 'UNKNOWN_PERSON', SOCLE.erreurs.membreInconnu);
   }
 }
 
@@ -68,7 +70,7 @@ router.patch(
       throw new AppError(
         400,
         'VALIDATION_ERROR',
-        'Données invalides.',
+        SOCLE.erreurs.donneesInvalides,
         resultat.error.issues.map((issue) => ({
           champ: issue.path.join('.') || 'body',
           message: issue.message,

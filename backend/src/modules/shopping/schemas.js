@@ -1,19 +1,21 @@
 import { z } from 'zod';
 
+import { T as SOCLE } from '../../textes.js';
 import { CLES_RAYONS } from './rayons.js';
+import { T } from './textes.js';
 
 /** Quantité : un entier raisonnable, ajusté par les boutons − / + de l'interface. */
 const quantity = z
   .number()
-  .int('La quantité doit être un nombre entier.')
-  .min(1, 'La quantité doit être au moins de 1.')
-  .max(99, 'La quantité ne peut pas dépasser 99.');
+  .int(T.schemas.quantiteEntiere)
+  .min(1, T.schemas.quantiteMin)
+  .max(99, T.schemas.quantiteMax);
 
 const name = z
   .string()
   .trim()
-  .min(1, "Le nom de l'article est requis.")
-  .max(120, 'Le nom est trop long.');
+  .min(1, T.schemas.nomRequis)
+  .max(120, T.schemas.nomTropLong);
 
 export const listQuerySchema = z.object({
   status: z.enum(['pending', 'completed', 'all']).default('all'),
@@ -37,12 +39,12 @@ export const updateItemSchema = z
     // L'énumération est construite depuis `rayons.js`, jamais écrite à la
     // main : elle ne peut donc pas dériver du dictionnaire, et un rayon retiré
     // du code devient immédiatement refusé par l'API.
-    rayon: z.enum(CLES_RAYONS, { error: "Ce rayon n'existe pas." }).optional(),
+    rayon: z.enum(CLES_RAYONS, { error: T.schemas.rayonInconnu }).optional(),
   })
   // Un PATCH vide est probablement un bug côté client : mieux vaut le dire que
   // de répondre « c'est fait » sans avoir rien fait.
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'Aucune modification fournie.',
+    message: SOCLE.erreurs.aucuneModification,
   });
 
 export const itemParamsSchema = z.object({

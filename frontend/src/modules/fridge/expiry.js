@@ -6,6 +6,8 @@
  */
 
 import { aujourdhui, decalerJours, joursEntre } from '../../lib/dates.js';
+import { LANGUE, formateurDate, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
 /** Nombre de jours en deçà duquel un produit est signalé comme urgent. */
 const SEUIL_BIENTOT = 3;
@@ -14,30 +16,31 @@ export function joursRestants(expiresOn) {
   return joursEntre(aujourdhui(), expiresOn);
 }
 
-const formatCourt = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
+const FORMAT_COURT = { day: 'numeric', month: 'short' };
 
 /**
  * @returns {{ niveau: 'aucun'|'perime'|'aujourdhui'|'bientot'|'ok', libelle: string|null, jours: number|null }}
  */
-export function statutPeremption(expiresOn) {
+export function statutPeremption(expiresOn, langue = LANGUE) {
   if (!expiresOn) return { niveau: 'aucun', libelle: null, jours: null };
 
+  const t = textes(TEXTES, langue).peremption;
   const jours = joursRestants(expiresOn);
 
   if (jours < 0) {
     return {
       niveau: 'perime',
-      libelle: jours === -1 ? 'Périmé hier' : `Périmé depuis ${Math.abs(jours)} j`,
+      libelle: jours === -1 ? t.perimeHier : t.perimeDepuis(Math.abs(jours)),
       jours,
     };
   }
-  if (jours === 0) return { niveau: 'aujourdhui', libelle: "Aujourd'hui", jours };
-  if (jours === 1) return { niveau: 'bientot', libelle: 'Demain', jours };
-  if (jours <= SEUIL_BIENTOT) return { niveau: 'bientot', libelle: `Dans ${jours} j`, jours };
+  if (jours === 0) return { niveau: 'aujourdhui', libelle: t.aujourdhui, jours };
+  if (jours === 1) return { niveau: 'bientot', libelle: t.demain, jours };
+  if (jours <= SEUIL_BIENTOT) return { niveau: 'bientot', libelle: t.dans(jours), jours };
 
   return {
     niveau: 'ok',
-    libelle: formatCourt.format(new Date(`${expiresOn}T12:00:00`)),
+    libelle: formateurDate(FORMAT_COURT, langue).format(new Date(`${expiresOn}T12:00:00`)),
     jours,
   };
 }

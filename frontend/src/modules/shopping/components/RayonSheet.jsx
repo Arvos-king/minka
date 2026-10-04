@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
+import { T } from '../textes.js';
 
 /**
  * Choix du rayon d'un article, glissé depuis le bas.
@@ -35,17 +37,17 @@ export function RayonSheet({ item, rayons, onRanger, onClose }) {
       <button
         type="button"
         className="absolute inset-0 cursor-default"
-        aria-label="Fermer"
+        aria-label={SOCLE.commun.fermer}
         onClick={onClose}
       />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Ranger dans un rayon"
+        aria-label={T.rayon.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Ranger dans…</h2>
+        <h2 className="text-lg font-semibold text-sand-900">{T.rayon.titre}</h2>
         <p className="mt-1 truncate text-sm text-sand-500">{item.name}</p>
 
         <div className="mt-4 flex flex-wrap gap-1.5">
@@ -75,13 +77,11 @@ export function RayonSheet({ item, rayons, onRanger, onClose }) {
           })}
         </div>
 
-        <p className="mt-3 text-xs text-sand-500">
-          Le choix vaudra aussi pour les prochains «&nbsp;{item.name}&nbsp;».
-        </p>
+        <p className="mt-3 text-xs text-sand-500">{T.rayon.vaudraAussi(item.name)}</p>
 
         <div className="py-4">
           <Button type="button" variant="secondary" onClick={onClose} className="w-full">
-            Fermer
+            {SOCLE.commun.fermer}
           </Button>
         </div>
       </div>

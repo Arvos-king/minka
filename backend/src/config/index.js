@@ -12,13 +12,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { lireLangue } from '../lib/langue.js';
+import { T } from '../textes.js';
+
 const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 /** Arrête le démarrage en expliquant ce qu'il faut corriger. */
 function fail(message) {
-  console.error(`\n[config] Démarrage impossible : ${message}\n`);
+  console.error(`\n${T.config.demarrageImpossible(message)}\n`);
   process.exit(1);
 }
 
@@ -27,7 +30,7 @@ function readBoolean(name, fallback) {
   if (raw === '') return fallback;
   if (['true', '1', 'yes', 'on'].includes(raw)) return true;
   if (['false', '0', 'no', 'off'].includes(raw)) return false;
-  return fail(`${name} doit valoir true ou false (reçu : "${raw}").`);
+  return fail(T.config.booleen(name, raw));
 }
 
 function readInteger(name, fallback, { min = 1 } = {}) {
@@ -35,9 +38,24 @@ function readInteger(name, fallback, { min = 1 } = {}) {
   if (raw === '') return fallback;
   const value = Number(raw);
   if (!Number.isInteger(value) || value < min) {
-    return fail(`${name} doit être un entier ≥ ${min} (reçu : "${raw}").`);
+    return fail(T.config.entier(name, min, raw));
   }
   return value;
+}
+
+// --- Langue -----------------------------------------------------------------
+//
+// Lue par `lib/langue.js`, qui retombe sur le français faute de mieux : c'est
+// ici qu'une valeur inconnue arrête le démarrage. Le message ne peut pas
+// s'appuyer sur la langue demandée, puisqu'elle n'est pas comprise : il est
+// donné dans les deux.
+
+if (lireLangue() === null) {
+  console.error(
+    `\n[config] MINKA_LANG="${process.env.MINKA_LANG}" : valeurs possibles fr ou en. ` +
+      '/ Accepted values: fr or en.\n',
+  );
+  process.exit(1);
 }
 
 // --- Secret de session ------------------------------------------------------
@@ -47,20 +65,14 @@ let sessionSecret = (process.env.SESSION_SECRET ?? '').trim();
 
 if (sessionSecret === '') {
   if (isProduction) {
-    fail(
-      'SESSION_SECRET est absent. Génère-le avec « openssl rand -base64 48 » ' +
-        'et renseigne-le dans le fichier .env.',
-    );
+    fail(T.config.secretAbsent);
   }
   // En développement on préfère un secret jetable à un blocage : les sessions
   // ne survivront simplement pas à un redémarrage du serveur.
   sessionSecret = crypto.randomBytes(48).toString('base64');
-  console.warn(
-    '[config] SESSION_SECRET absent : secret temporaire généré pour le ' +
-      'développement. Les sessions seront invalidées à chaque redémarrage.',
-  );
+  console.warn(T.config.secretJetable);
 } else if (sessionSecret.length < MIN_SECRET_LENGTH) {
-  fail(`SESSION_SECRET fait ${sessionSecret.length} caractères, ${MIN_SECRET_LENGTH} au minimum sont requis.`);
+  fail(T.config.secretCourt(sessionSecret.length, MIN_SECRET_LENGTH));
 }
 
 // --- Proxies ----------------------------------------------------------------
@@ -73,11 +85,7 @@ if (sessionSecret === '') {
 
 const rawTrustProxy = (process.env.TRUST_PROXY ?? '2').trim();
 if (rawTrustProxy.toLowerCase() === 'true') {
-  fail(
-    'TRUST_PROXY=true fait aveuglément confiance à tous les en-têtes ' +
-      'X-Forwarded-For, ce qui permet de contourner le rate-limit. Indique le ' +
-      'nombre de proxies (2 derrière Nginx Proxy Manager, 1 en accès direct).',
-  );
+  fail(T.config.trustProxyAveugle);
 }
 const trustProxy = /^\d+$/.test(rawTrustProxy) ? Number(rawTrustProxy) : rawTrustProxy;
 
@@ -108,13 +116,10 @@ function readSeedUsers() {
     if (username === '' && password === '') continue;
 
     if (username === '') {
-      fail(`MINKA_USER${index}_PASSWORD est renseigné mais MINKA_USER${index}_USERNAME est vide.`);
+      fail(T.config.compteSansIdentifiant(index));
     }
     if (password.length < 8) {
-      fail(
-        `MINKA_USER${index}_PASSWORD doit faire au moins 8 caractères ` +
-          `(compte « ${username} »). Un compte sans mot de passe utilisable serait inaccessible.`,
-      );
+      fail(T.config.motDePasseCourt(index, username));
     }
     users.push({ username, password, displayName: displayName || username });
   }

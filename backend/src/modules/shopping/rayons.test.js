@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
+import { LANGUES } from '../../lib/langue.js';
 import {
   choisirRayon,
   classer,
   cleDeNom,
   CLES_RAYONS,
   DICTIONNAIRE,
+  dictionnaire,
   RAYONS,
   RAYON_PAR_DEFAUT,
+  rayons,
 } from './rayons.js';
 
 describe('cleDeNom', () => {
@@ -190,6 +193,150 @@ describe('le dictionnaire', () => {
     // Le repli n'a pas de termes : rien ne s'y range volontairement.
     assert.equal(DICTIONNAIRE[RAYON_PAR_DEFAUT], undefined);
   });
+});
+
+describe('en anglais', () => {
+  const en = (nom) => classer(nom, 'en');
+
+  describe('cleDeNom', () => {
+    it('efface la quantité, l’unité et le conditionnement de tête', () => {
+      assert.equal(cleDeNom('500 g of flour', 'en'), 'flour');
+      assert.equal(cleDeNom('Eggs x12', 'en'), 'egg');
+      assert.equal(cleDeNom('2 lbs of potatoes', 'en'), 'potato');
+    });
+
+    it('réunit le singulier et le pluriel, irréguliers compris', () => {
+      for (const [pluriel, singulier] of [
+        ['Tomatoes', 'Tomato'],
+        ['Berries', 'Berry'],
+        ['Peaches', 'Peach'],
+        ['Cookies', 'Cookie'],
+        ['Chillies', 'Chilli'],
+        ['Brioches', 'Brioche'],
+        ['Loaves', 'Loaf'],
+      ]) {
+        assert.equal(cleDeNom(pluriel, 'en'), cleDeNom(singulier, 'en'), pluriel);
+      }
+    });
+
+    it('laisse intacts les mots déjà au singulier', () => {
+      assert.equal(cleDeNom('Asparagus', 'en'), 'asparagus');
+      assert.equal(cleDeNom('Hummus', 'en'), 'hummus');
+      assert.equal(cleDeNom('Watercress', 'en'), 'watercress');
+    });
+  });
+
+  it('reconnaît un témoin de chaque rayon', () => {
+    const temoins = [
+      ['Tomatoes', 'fruits-legumes'],
+      ['Baguette', 'boulangerie'],
+      ['Chicken thighs', 'boucherie'],
+      ['Smoked salmon', 'poissonnerie'],
+      ['Ham', 'charcuterie-traiteur'],
+      ['Greek yoghurt', 'cremerie'],
+      ['Olive oil', 'epicerie-salee'],
+      ['Strawberry jam', 'epicerie-sucree'],
+      ['Beer', 'boissons'],
+      ['Vanilla ice cream', 'surgeles'],
+      ['Toothpaste', 'hygiene'],
+      ['Washing powder', 'entretien'],
+    ];
+
+    for (const [nom, rayon] of temoins) assert.equal(en(nom), rayon, nom);
+  });
+
+  it('lit le nom principal en dernier', () => {
+    // L'inverse du français : « apple juice » est du jus, « apple pie » une
+    // tarte, et le dernier mot reconnu l'emporte.
+    assert.equal(en('Apple juice'), 'boissons');
+    assert.equal(en('Apple pie'), 'boulangerie');
+    assert.equal(en('Chicken stock'), 'epicerie-salee');
+    assert.equal(en('Vanilla sugar'), 'epicerie-sucree');
+  });
+
+  describe('les pièges de l’anglais', () => {
+    it('ne prend pas le lait de coco ni le lait d’amande pour de la crémerie', () => {
+      assert.equal(en('Milk'), 'cremerie');
+      assert.equal(en('Coconut milk'), 'epicerie-salee');
+      assert.equal(en('Almond milk'), 'epicerie-sucree');
+    });
+
+    it('ne prend pas le beurre de cacahuète pour du beurre', () => {
+      assert.equal(en('Butter'), 'cremerie');
+      assert.equal(en('Peanut butter'), 'epicerie-sucree');
+    });
+
+    it('range la glace au congélateur et la crème au frais', () => {
+      assert.equal(en('Double cream'), 'cremerie');
+      assert.equal(en('Ice cream'), 'surgeles');
+      assert.equal(en('Sun cream'), 'hygiene');
+    });
+
+    it('ne prend pas le papier cuisson pour du papier toilette', () => {
+      assert.equal(en('Toilet paper'), 'hygiene');
+      assert.equal(en('Baking paper'), 'epicerie-salee');
+    });
+
+    it('ne prend pas les hot dogs pour de la nourriture pour chien', () => {
+      assert.equal(en('Dog food'), 'entretien');
+      assert.equal(en('Hot dogs'), 'charcuterie-traiteur');
+    });
+
+    it('distingue le torchon du thé', () => {
+      assert.equal(en('Tea bags'), 'epicerie-sucree');
+      assert.equal(en('Tea towel'), 'entretien');
+    });
+
+    it('distingue les courges du sirop à diluer', () => {
+      assert.equal(en('Butternut squash'), 'fruits-legumes');
+      assert.equal(en('Orange squash'), 'boissons');
+    });
+
+    it('ne prend pas « fillet » pour une découpe à part', () => {
+      assert.equal(en('Salmon fillets'), 'poissonnerie');
+      assert.equal(en('Fish fingers'), 'surgeles');
+    });
+  });
+
+  it('laisse les mots prioritaires décider seuls', () => {
+    assert.equal(en('Peas'), 'fruits-legumes');
+    assert.equal(en('Frozen peas'), 'surgeles');
+    assert.equal(en('Tinned tomatoes'), 'epicerie-salee');
+    assert.equal(en('Canned tuna'), 'epicerie-salee');
+  });
+
+  it('replie sur « Other » ce qu’il ne connaît pas', () => {
+    assert.equal(en('Gizmo'), RAYON_PAR_DEFAUT);
+    assert.equal(en('500 g'), RAYON_PAR_DEFAUT);
+  });
+
+  it('nomme les rayons dans sa langue, sur les mêmes clés', () => {
+    assert.deepEqual(
+      rayons('en').map((r) => r.cle),
+      CLES_RAYONS,
+    );
+    assert.equal(rayons('en')[0].libelle, 'Fruit and veg');
+    assert.equal(rayons('fr')[0].libelle, 'Fruits et légumes');
+  });
+});
+
+describe('les dictionnaires de chaque langue', () => {
+  for (const langue of LANGUES) {
+    const entrees = Object.entries(dictionnaire(langue)).flatMap(([rayon, termes]) =>
+      termes.map((terme) => ({ rayon, terme })),
+    );
+
+    it(`rangent chaque terme là où il est déclaré (${langue})`, () => {
+      for (const { rayon, terme } of entrees) assert.equal(classer(terme, langue), rayon, terme);
+    });
+
+    it(`ne rangent rien dans « Autres » ni ailleurs qu’un rayon connu (${langue})`, () => {
+      for (const rayon of Object.keys(dictionnaire(langue))) {
+        assert.ok(CLES_RAYONS.includes(rayon), rayon);
+        assert.notEqual(rayon, RAYON_PAR_DEFAUT);
+      }
+    });
+  }
 });
 
 describe('choisirRayon', () => {

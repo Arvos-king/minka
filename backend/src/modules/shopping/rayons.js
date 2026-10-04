@@ -4,13 +4,23 @@
  * Le regroupement par rayon tient en trois lignes ; ce qui coûte, c'est le
  * premier jour. Une liste où il faudrait étiqueter chaque article à la main ne
  * servirait jamais deux fois. Ce fichier est donc livré avec un dictionnaire
- * d'environ quatre cents produits courants, qui suffit à ranger la plupart des
- * ajouts sans rien demander à personne. Ses trous se rebouchent à l'usage, une
- * fois par produit : corriger un rangement l'apprend (voir `service.js`).
+ * d'environ quatre cents produits courants par langue, qui suffit à ranger la
+ * plupart des ajouts sans rien demander à personne. Ses trous se rebouchent à
+ * l'usage, une fois par produit : corriger un rangement l'apprend (voir
+ * `service.js`).
+ *
+ * Le moteur est ici ; ce qui tient à la langue — mots à ignorer, singulier,
+ * sens de lecture, dictionnaire — vit dans `rayons.fr.js` et `rayons.en.js`.
+ * Les rayons, eux, sont les mêmes partout : seuls leurs libellés se traduisent.
  *
  * Tout est pur ici — ni base, ni DOM — pour rester vérifiable par
  * `node --test`, comme `entretien/planning.js`.
  */
+
+import { LANGUE, textes } from '../../lib/langue.js';
+import { REGLES as REGLES_EN } from './rayons.en.js';
+import { REGLES as REGLES_FR } from './rayons.fr.js';
+import { TEXTES } from './textes.js';
 
 /**
  * Les rayons, dans l'ordre du parcours en magasin. « Autres » ferme la marche,
@@ -22,56 +32,32 @@
  * d'écrans pour une liste qui ne bouge pas d'une année sur l'autre et qui doit
  * surtout rester la même pour tout le monde.
  */
-export const RAYONS = [
-  { cle: 'fruits-legumes', libelle: 'Fruits et légumes' },
-  { cle: 'boulangerie', libelle: 'Boulangerie' },
-  { cle: 'boucherie', libelle: 'Boucherie et volaille' },
-  { cle: 'poissonnerie', libelle: 'Poissonnerie' },
-  { cle: 'charcuterie-traiteur', libelle: 'Charcuterie et traiteur' },
-  { cle: 'cremerie', libelle: 'Crémerie' },
-  { cle: 'epicerie-salee', libelle: 'Épicerie salée' },
-  { cle: 'epicerie-sucree', libelle: 'Épicerie sucrée' },
-  { cle: 'boissons', libelle: 'Boissons' },
-  { cle: 'surgeles', libelle: 'Surgelés' },
-  { cle: 'hygiene', libelle: 'Hygiène et beauté' },
-  { cle: 'entretien', libelle: 'Entretien et maison' },
-  { cle: 'autres', libelle: 'Autres' },
+export const CLES_RAYONS = [
+  'fruits-legumes',
+  'boulangerie',
+  'boucherie',
+  'poissonnerie',
+  'charcuterie-traiteur',
+  'cremerie',
+  'epicerie-salee',
+  'epicerie-sucree',
+  'boissons',
+  'surgeles',
+  'hygiene',
+  'entretien',
+  'autres',
 ];
 
 export const RAYON_PAR_DEFAUT = 'autres';
 
-export const CLES_RAYONS = RAYONS.map((rayon) => rayon.cle);
+/** Les rayons et leurs libellés, dans la langue demandée. */
+export function rayons(langue = LANGUE) {
+  const libelles = textes(TEXTES, langue).rayons;
+  return CLES_RAYONS.map((cle) => ({ cle, libelle: libelles[cle] }));
+}
 
-/**
- * Mots de liaison.
- *
- * Ils sont ignorés du balayage mot à mot, mais **gardés dans la phrase** :
- * c'est le « de » qui distingue « lait de coco » de « lait ». Les formes de
- * trois lettres ou moins figurent telles quelles, puisque `singulariser` les
- * laisse intactes — d'où « les » et « des » à côté de « le » et « de ».
- */
-const LIAISONS = new Set([
-  'de', 'du', 'des', 'd', 'le', 'la', 'les', 'l', 'un', 'une',
-  'au', 'aux', 'et', 'en', 'a', 'pour', 'sans', 'avec',
-]);
-
-/** Unités de mesure : aucune n'est un produit, elles disparaissent du nom. */
-const UNITES_MESURE = new Set([
-  'g', 'kg', 'mg', 'l', 'cl', 'ml', 'dl', 'cs', 'cc', 'gramme', 'kilo', 'litre',
-]);
-
-/**
- * Conditionnements et découpes, ignorés du balayage mot à mot.
- *
- * « filet » y figure, et c'est le cas qui justifie l'ensemble : sans lui,
- * « filet de poulet » cesserait d'être du poulet. Aucun de ces mots ne doit
- * apparaître dans le dictionnaire — un test le vérifie.
- */
-const CONDITIONNEMENTS = new Set([
-  'pot', 'boite', 'paquet', 'pack', 'sachet', 'bouteille', 'brique', 'barquette',
-  'botte', 'tranche', 'gousse', 'pincee', 'cuillere', 'bocal', 'rouleau', 'lot',
-  'filet', 'bouquet', 'piece', 'unite', 'morceau', 'part',
-]);
+/** Ceux de l'instance : ils voyagent avec les articles (voir `routes.js`). */
+export const RAYONS = rayons();
 
 /** « 500 », « x2 », « 2x » — jamais un produit. */
 const NOMBRES = /^x?\d+x?$/;
@@ -105,264 +91,151 @@ export function normaliser(nom) {
 }
 
 /**
- * Singulier approximatif.
+ * Le moteur d'une langue : sa clé de nom, et son classement.
  *
- * La règle est fausse en français — « ananas » devient « anana » — et c'est
- * sans importance : les termes du dictionnaire passent par la même fonction,
- * donc les deux côtés se trompent de la même façon et se retrouvent. C'est ce
- * qui permet d'écrire le dictionnaire en français normal plutôt qu'en formes
- * canoniques illisibles.
- *
- * « eaux » est traité avant « aux », sans quoi il deviendrait « eal ».
+ * Les deux index du dictionnaire sont bâtis au chargement, et toute
+ * incohérence arrête le démarrage plutôt que de s'écraser en silence — même
+ * parti pris que `verifierCollisions` dans le chargeur de modules. Un terme
+ * écrit dans deux rayons est une faute de saisie, jamais une nuance : le
+ * second gagnerait sans qu'on le sache.
  */
-function singulariser(mot) {
-  if (mot.length <= 3) return mot; // ail, riz, jus, thé, eau
-  if (mot.endsWith('eaux')) return mot.slice(0, -1); // gâteaux, eaux
-  if (mot.endsWith('aux')) return `${mot.slice(0, -3)}al`; // bocaux, journaux
-  if (mot.endsWith('x') || mot.endsWith('s')) return mot.slice(0, -1);
-  return mot;
-}
+function construireMoteur(regles, langue) {
+  const liaisons = new Set(regles.liaisons);
+  const unites = new Set(regles.unites);
+  const conditionnements = new Set(regles.conditionnements);
+  const prioritaires = new Map(Object.entries(regles.prioritaires));
 
-/**
- * La forme stable d'un nom d'article : celle que compare le dictionnaire, et
- * celle sous laquelle une correction est mémorisée.
- *
- *   « 500 g de farine »        → « farine »
- *   « Lait ×2 »                → « lait »
- *   « Courgettes (200 g + 2) » → « courgette »   ← le format des menus
- *   « Filet de poulet »        → « filet de poulet »
- *
- * Les liaisons de tête et de queue tombent — sans quoi « 500 g de farine »
- * donnerait « de farine », qui n'aurait plus rien à voir avec « Farine ».
- * Celles du milieu restent : elles portent le sens.
- */
-export function cleDeNom(nom) {
-  const mots = normaliser(nom)
-    .split(' ')
-    .filter((mot) => mot !== '' && !NOMBRES.test(mot))
-    .map(singulariser)
-    .filter((mot) => !UNITES_MESURE.has(mot));
+  /**
+   * La forme stable d'un nom d'article : celle que compare le dictionnaire, et
+   * celle sous laquelle une correction est mémorisée.
+   *
+   *   « 500 g de farine »        → « farine »
+   *   « Lait ×2 »                → « lait »
+   *   « Courgettes (200 g + 2) » → « courgette »   ← le format des menus
+   *   « Filet de poulet »        → « filet de poulet »
+   *
+   * Les liaisons de tête et de queue tombent — sans quoi « 500 g de farine »
+   * donnerait « de farine », qui n'aurait plus rien à voir avec « Farine ».
+   * Celles du milieu restent : elles portent le sens.
+   */
+  function cleDeNom(nom) {
+    const mots = normaliser(nom)
+      .split(' ')
+      .filter((mot) => mot !== '' && !NOMBRES.test(mot))
+      .map(regles.singulariser)
+      .filter((mot) => !unites.has(mot));
 
-  while (mots.length > 0 && LIAISONS.has(mots[0])) mots.shift();
-  while (mots.length > 0 && LIAISONS.has(mots.at(-1))) mots.pop();
+    while (mots.length > 0 && liaisons.has(mots[0])) mots.shift();
+    while (mots.length > 0 && liaisons.has(mots.at(-1))) mots.pop();
 
-  return mots.join(' ');
-}
+    return mots.join(' ');
+  }
 
-/**
- * Le dictionnaire, un bloc par rayon.
- *
- * Il s'écrit en français normal, accentué et au pluriel si c'est ainsi qu'on
- * dit : `cleDeNom` passe sur ces termes comme sur les noms d'articles, donc les
- * deux formes se rejoignent. Un terme qui contient une espace est traité comme
- * une expression, et l'emporte sur les mots isolés.
- *
- * **Une expression ne s'écrit que si elle change la réponse.** « pomme de
- * terre » n'a pas d'entrée : « pomme » l'envoie déjà au bon rayon. C'est cette
- * règle qui garde les expressions à une trentaine d'entrées, toutes
- * justifiables une par une, plutôt qu'à un catalogue de rayon.
- */
-export const DICTIONNAIRE = {
-  // Le frais qui s'achète au poids. Les fruits secs (amandes, dattes) sont en
-  // épicerie sucrée, où ils se trouvent réellement.
-  'fruits-legumes': [
-    'abricot', 'ail', 'ananas', 'aneth', 'artichaut', 'asperge', 'aubergine',
-    'avocat', 'banane', 'basilic', 'betterave', 'blette', 'brocoli', 'carotte',
-    'cassis', 'céleri', 'cerise', 'champignon', 'chou', 'ciboulette', 'citron',
-    'citrouille', 'clémentine', 'concombre', 'coriandre', 'courge', 'courgette',
-    'cresson', 'endive', 'estragon', 'fenouil', 'figue', 'fraise', 'framboise',
-    'fruit', 'gingembre', 'grenade', 'groseille', 'haricot', 'kiwi', 'laitue',
-    'laurier', 'litchi', 'légume', 'mandarine', 'mangue', 'mâche', 'melon',
-    'menthe', 'mûre', 'myrtille', 'navet', 'nectarine', 'oignon', 'orange',
-    'pamplemousse', 'panais', 'papaye', 'pastèque', 'patate', 'persil', 'pêche',
-    'poire', 'poireau', 'poivron', 'pomme', 'potiron', 'prune', 'radis',
-    'raisin', 'rhubarbe', 'romarin', 'roquette', 'salade', 'salsifis', 'thym',
-    'tomate', 'topinambour', 'échalote', 'épinards',
-    // « pois » seul ne peut pas être déclaré ici : il emmènerait les pois
-    // chiches, qui sont en épicerie.
-    'petits pois',
-  ],
+  const expressions = []; // [{ forme, poids, rayon }]
+  const mots = new Map(); // mot → rayon
 
-  // Ce qui se prend à la coupe, encore tiède. Le pain de mie et les biscottes
-  // se gardent des semaines : ils sont en épicerie sucrée, pas ici.
-  boulangerie: [
-    'baguette', 'brioche', 'chocolatine', 'croissant', 'fougasse', 'pain',
-    'viennoiserie',
-  ],
+  for (const [rayon, termes] of Object.entries(regles.dictionnaire)) {
+    if (!CLES_RAYONS.includes(rayon)) throw new Error(`Rayon inconnu (${langue}) : ${rayon}.`);
 
-  // « filet » étant un conditionnement, les découpes qui portent ce mot
-  // s'écrivent en toutes lettres.
-  boucherie: [
-    'agneau', 'bavette', 'brochette', 'bœuf', 'canard', 'chipolata', 'cuisse',
-    'côtelette', 'dinde', 'entrecôte', 'escalope', 'gigot', 'jarret', 'lapin',
-    'magret', 'merguez', 'mouton', 'paleron', 'pintade', 'porc', 'poulet',
-    'rosbif', 'rôti', 'saucisse', 'steak', 'tournedos', 'veau', 'viande',
-    'volaille',
-    'faux filet', 'filet mignon',
-  ],
+    for (const terme of termes) {
+      const forme = cleDeNom(terme);
+      if (forme === '') throw new Error(`Terme sans mot dans « ${rayon} » (${langue}) : ${terme}.`);
 
-  poissonnerie: [
-    'anchois', 'bar', 'bulot', 'cabillaud', 'calamar', 'colin', 'coquillage',
-    'crabe', 'crevette', 'daurade', 'dorade', 'encornet', 'gambas', 'hareng',
-    'homard', 'huître', 'langoustine', 'lotte', 'maquereau', 'merlan', 'morue',
-    'moule', 'poisson', 'rouget', 'sardine', 'saumon', 'seiche', 'sole', 'thon',
-    'truite', 'églefin',
-    'saint-jacques',
-  ],
+      const decoupe = forme.split(' ');
+      if (decoupe.length > 1) {
+        expressions.push({ forme, poids: decoupe.length, rayon });
+        continue;
+      }
 
-  // Le foie gras et les terrines voisinent avec le jambon, au rayon frais.
-  'charcuterie-traiteur': [
-    'andouille', 'bacon', 'boudin', 'cervelas', 'charcuterie', 'chorizo',
-    'coppa', 'foie', 'houmous', 'jambon', 'jambonneau', 'lardon', 'mortadelle',
-    'pancetta', 'rillettes', 'rosette', 'salami', 'saucisson', 'surimi',
-    'taboulé', 'tarama', 'terrine',
-    // « pâté » et « pâtes » se réduisent tous deux à « pate ». Le pluriel des
-    // pâtes étant bien plus fréquent sur une liste de courses, il garde le mot
-    // isolé, et le pâté s'écrit ici en entier.
-    'pâté de campagne', 'pâté en croûte', 'pâté de foie',
-  ],
+      // La garde attrape aussi « pomme » et « pommes » écrits dans deux rayons :
+      // les deux se réduisent à la même forme indexée.
+      const occupe = mots.get(forme);
+      if (occupe) {
+        throw new Error(`« ${terme} » est déclaré dans « ${occupe} » et « ${rayon} » (${langue}).`);
+      }
+      mots.set(forme, rayon);
+    }
+  }
 
-  // Le rayon réfrigéré. Les pâtes à dérouler y sont aussi, d'où leur présence
-  // à côté des fromages.
-  cremerie: [
-    'beurre', 'brie', 'camembert', 'cantal', 'chantilly', 'chèvre', 'comté',
-    'crème', 'emmental', 'feta', 'fromage', 'gruyère', 'lait', 'margarine',
-    'mascarpone', 'morbier', 'mozzarella', 'parmesan', 'raclette', 'reblochon',
-    'ricotta', 'roquefort', 'skyr', 'tomme', 'yaourt', 'œufs',
-    'petit-suisse', 'pâte brisée', 'pâte feuilletée', 'pâte à pizza',
-  ],
+  // Un mot prioritaire décide seul : il ne peut pas aussi appartenir à un
+  // rayon du dictionnaire, qu'il contredirait.
+  for (const [mot, rayon] of prioritaires) {
+    if (!CLES_RAYONS.includes(rayon)) throw new Error(`Rayon inconnu (${langue}) : ${rayon}.`);
+    if (mots.has(mot)) throw new Error(`« ${mot} » est à la fois prioritaire et au dictionnaire (${langue}).`);
+  }
 
-  // Le sec et les conserves. L'aluminium et le papier cuisson sont rangés ici
-  // avec le film alimentaire, malgré le mot « papier » qui les tirerait vers
-  // l'hygiène.
-  'epicerie-salee': [
-    'bouillon', 'boulgour', 'chips', 'conserve', 'cornichon', 'coulis',
-    'couscous', 'cumin', 'curcuma', 'curry', 'câpres', 'gnocchis', 'harissa',
-    'huile', 'ketchup', 'lasagnes', 'lentilles', 'maïs', 'mayonnaise',
-    'moutarde', 'nouilles', 'olive', 'origan', 'paprika', 'pesto', 'poivre',
-    'purée', 'pâtes', 'quinoa', 'raviolis', 'riz', 'safran', 'sauce', 'sel',
-    'semoule', 'soupe', 'spaghettis', 'tabasco', 'tagliatelles', 'tapenade',
-    'tortilla', 'vinaigre', 'vinaigrette', 'épices',
-    'pois chiches', 'haricots rouges', 'lait de coco', 'herbes de Provence',
-    'papier cuisson', 'papier aluminium', 'film alimentaire',
-  ],
+  // La plus longue expression est essayée d'abord, pour qu'une exception plus
+  // précise l'emporte sur une exception plus large.
+  expressions.sort((a, b) => b.poids - a.poids || b.forme.length - a.forme.length);
 
-  // Le petit-déjeuner et la pâtisserie, café et thé compris : c'est leur
-  // voisinage en magasin, alors que « boissons » ne tient que du liquide en
-  // bouteille.
-  'epicerie-sucree': [
-    'amande', 'barre', 'biscotte', 'biscuit', 'bonbon', 'cacahuètes', 'cacao',
-    'cannelle', 'cassonade', 'café', 'chocolat', 'compote', 'confiture',
-    'crêpe', 'céréales', 'datte', 'farine', 'gaufre', 'granola', 'gâteau',
-    'infusion', 'levure', 'madeleine', 'maïzena', 'miel', 'muesli', 'noisette',
-    'noix', 'nutella', 'pistache', 'pruneau', 'sablé', 'sucre', 'thé', 'tisane',
-    'vanille',
-    'chewing-gum', 'pain de mie', 'pain grillé', 'pâte à tartiner',
-    'beurre de cacahuète', 'crème de marron', 'sirop d’érable', 'lait d’amande',
-    'lait de soja', 'lait de riz', 'lait d’avoine',
-  ],
+  /**
+   * Le rayon d'un article, d'après le seul dictionnaire.
+   *
+   * Trois passes, dans cet ordre :
+   *   1. les mots prioritaires, qui décident seuls (« frozen peas ») ;
+   *   2. les expressions, qui sont les exceptions de la langue — « lait de
+   *      coco » n'est pas de la crémerie, « eau de javel » n'est pas une
+   *      boisson ;
+   *   3. les mots isolés, dans le sens de lecture de la langue : le premier
+   *      reconnu gagne. Le sens dit où se trouve le nom principal — en tête
+   *      en français, en queue en anglais.
+   */
+  function classer(nom) {
+    const cle = cleDeNom(nom);
+    if (cle === '') return RAYON_PAR_DEFAUT;
 
-  boissons: [
-    'apéritif', 'bière', 'champagne', 'cidre', 'coca', 'crémant', 'eau', 'jus',
-    'kombucha', 'limonade', 'pastis', 'prosecco', 'rhum', 'sirop', 'soda',
-    'tonic', 'vin', 'vodka', 'whisky',
-  ],
-
-  surgeles: [
-    'esquimau', 'frites', 'glace', 'nuggets', 'pizza', 'poêlée', 'sorbet',
-    'surgelé',
-    'poisson pané', 'cordon bleu', 'crème glacée',
-  ],
-
-  // Le bébé est ici : couches et lingettes voisinent avec la parapharmacie,
-  // qui apporte aussi les pansements et le paracétamol.
-  hygiene: [
-    'aspirine', 'brosse', 'coton', 'couche', 'dentifrice', 'douche',
-    'démaquillant', 'déodorant', 'gel', 'gommage', 'lingette', 'maquillage',
-    'mouchoir', 'pansement', 'papier', 'paracétamol', 'parfum', 'préservatif',
-    'rasoir', 'savon', 'serviette', 'shampoing', 'shampooing', 'tampon',
-    'vernis',
-    'coupe-ongles', 'eau de toilette', 'eau micellaire', 'crème solaire',
-    'crème à raser', 'fil dentaire',
-  ],
-
-  // L'animalerie est ici, pour la même raison : c'est là qu'on la croise.
-  entretien: [
-    'adoucissant', 'allumette', 'ampoule', 'anticalcaire', 'assouplissant',
-    'balai', 'bougie', 'chiffon', 'cirage', 'colle', 'croquettes', 'déboucheur',
-    'désodorisant', 'détergent', 'gant', 'insecticide', 'javel', 'lessive',
-    'litière', 'nettoyant', 'pile', 'poubelle', 'sac', 'scotch', 'serpillière',
-    'sopalin', 'torchon', 'vaisselle', 'éponge',
-    'essuie-tout', 'savon de Marseille', 'vinaigre blanc', 'eau de javel',
-  ],
-};
-
-/**
- * Les deux index construits au chargement.
- *
- * Ils sont bâtis une fois pour toutes, et toute incohérence du dictionnaire
- * arrête le démarrage plutôt que de s'écraser en silence — même parti pris que
- * `verifierCollisions` dans le chargeur de modules. Un terme écrit dans deux
- * rayons est une faute de saisie, jamais une nuance : le second gagnerait sans
- * qu'on le sache.
- */
-const EXPRESSIONS = []; // [{ forme, poids, rayon }]
-const MOTS = new Map(); // mot → rayon
-
-for (const [rayon, termes] of Object.entries(DICTIONNAIRE)) {
-  if (!CLES_RAYONS.includes(rayon)) throw new Error(`Rayon inconnu : ${rayon}.`);
-
-  for (const terme of termes) {
-    const forme = cleDeNom(terme);
-    if (forme === '') throw new Error(`Terme sans mot dans « ${rayon} » : ${terme}.`);
-
-    const mots = forme.split(' ');
-    if (mots.length > 1) {
-      EXPRESSIONS.push({ forme, poids: mots.length, rayon });
-      continue;
+    const decoupe = cle.split(' ');
+    for (const mot of decoupe) {
+      const rayon = prioritaires.get(mot);
+      if (rayon) return rayon;
     }
 
-    // La garde attrape aussi « pomme » et « pommes » écrits dans deux rayons :
-    // les deux se réduisent à la même forme indexée.
-    const occupe = MOTS.get(forme);
-    if (occupe) throw new Error(`« ${terme} » est déclaré dans « ${occupe} » et « ${rayon} ».`);
-    MOTS.set(forme, rayon);
+    const entoure = ` ${cle} `;
+    for (const { forme, rayon } of expressions) {
+      if (entoure.includes(` ${forme} `)) return rayon;
+    }
+
+    const ordre = regles.sens === 'droite' ? decoupe.reverse() : decoupe;
+    for (const mot of ordre) {
+      if (liaisons.has(mot) || conditionnements.has(mot)) continue;
+      const rayon = mots.get(mot);
+      if (rayon) return rayon;
+    }
+
+    return RAYON_PAR_DEFAUT;
   }
+
+  return { cleDeNom, classer, dictionnaire: regles.dictionnaire };
 }
 
-// La plus longue expression est essayée d'abord, pour qu'une exception plus
-// précise l'emporte sur une exception plus large.
-EXPRESSIONS.sort((a, b) => b.poids - a.poids || b.forme.length - a.forme.length);
+const MOTEURS = {
+  fr: construireMoteur(REGLES_FR, 'fr'),
+  en: construireMoteur(REGLES_EN, 'en'),
+};
+
+const moteur = (langue) => MOTEURS[langue] ?? MOTEURS.fr;
 
 /**
- * Le rayon d'un article, d'après le seul dictionnaire.
+ * La clé d'un nom d'article, dans la langue de l'instance par défaut.
  *
- * Deux passes, dans cet ordre :
- *   1. les expressions, qui sont les exceptions du français — « lait de coco »
- *      n'est pas de la crémerie, « eau de javel » n'est pas une boisson ;
- *   2. les mots isolés, **de gauche à droite**. En français, le nom principal
- *      d'un libellé de courses vient en premier et le reste le qualifie :
- *      « jus de pomme » est une boisson, « compote de pommes » de l'épicerie,
- *      « filet de poulet » de la boucherie. Le premier mot reconnu gagne, et
- *      c'est aussi ce qui range « sucre vanillé » sans avoir à l'écrire.
+ * C'est sous cette clé que le foyer retient ses corrections : elle ne doit
+ * donc pas changer de règles en cours de route. Une instance qui changerait de
+ * langue réapprendrait simplement ses rangements.
  */
-export function classer(nom) {
-  const cle = cleDeNom(nom);
-  if (cle === '') return RAYON_PAR_DEFAUT;
-
-  const entoure = ` ${cle} `;
-  for (const { forme, rayon } of EXPRESSIONS) {
-    if (entoure.includes(` ${forme} `)) return rayon;
-  }
-
-  for (const mot of cle.split(' ')) {
-    if (LIAISONS.has(mot) || CONDITIONNEMENTS.has(mot)) continue;
-    const rayon = MOTS.get(mot);
-    if (rayon) return rayon;
-  }
-
-  return RAYON_PAR_DEFAUT;
+export function cleDeNom(nom, langue = LANGUE) {
+  return moteur(langue).cleDeNom(nom);
 }
+
+export function classer(nom, langue = LANGUE) {
+  return moteur(langue).classer(nom);
+}
+
+/** Le dictionnaire d'une langue, un bloc par rayon — pour les tests. */
+export function dictionnaire(langue = LANGUE) {
+  return moteur(langue).dictionnaire;
+}
+
+export const DICTIONNAIRE = dictionnaire();
 
 /**
  * La règle de priorité : la correction du foyer d'abord, le dictionnaire
@@ -374,7 +247,7 @@ export function classer(nom) {
  * Un rayon appris qui n'existe plus dans le code est ignoré — c'est ce qui
  * permet d'en retirer un sans avoir à migrer quoi que ce soit.
  */
-export function choisirRayon(nom, rayonAppris) {
+export function choisirRayon(nom, rayonAppris, langue = LANGUE) {
   if (rayonAppris && CLES_RAYONS.includes(rayonAppris)) return rayonAppris;
-  return classer(nom);
+  return classer(nom, langue);
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
+import { T } from '../textes.js';
 
 /** Le temps de voir le résultat, et de changer d'avis. */
 const DUREE = 8000;
@@ -38,7 +39,7 @@ export function BandeauAnnulation({ annulation, onAnnuler, onFermer }) {
           {annulation.resume}
         </p>
         <Button size="sm" onClick={onAnnuler} className="shrink-0">
-          Annuler
+          {T.bandeaux.annuler}
         </Button>
       </div>
     </div>

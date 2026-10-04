@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 
 import { TrashIcon } from '../../../components/icons.jsx';
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { decouperEtapes, recoudreEtapes } from '../etapes.js';
 import { normaliser } from '../recherche.js';
+import { T } from '../textes.js';
 
 /** Une ligne vide de plus, pour enchaîner la saisie sans y penser. */
 const ligneVide = () => ({ cle: crypto.randomUUID(), name: '', quantity: '' });
@@ -139,16 +141,21 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={enEdition ? 'Modifier la recette' : 'Nouvelle recette'}
+        aria-label={enEdition ? T.formulaire.modifier : T.formulaire.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
         <h2 className="text-lg font-semibold text-sand-900">
-          {enEdition ? 'Modifier la recette' : 'Nouvelle recette'}
+          {enEdition ? T.formulaire.modifier : T.formulaire.nouvelle}
         </h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
@@ -156,8 +163,8 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
             ref={champTitre}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Nom de la recette"
-            aria-label="Nom de la recette"
+            placeholder={T.formulaire.nom}
+            aria-label={T.formulaire.nom}
             required
             maxLength={120}
             className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -165,8 +172,8 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
 
           <label className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 ring-1 ring-sand-200">
             <span className="text-sm font-medium text-sand-700">
-              Pour combien&nbsp;?
-              <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
+              {T.formulaire.pourCombien}
+              <span className="ml-1 font-normal text-sand-500">{T.formulaire.facultatif}</span>
             </span>
             <input
               type="number"
@@ -176,7 +183,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               value={servings}
               onChange={(e) => setServings(e.target.value)}
               placeholder="4"
-              aria-label="Nombre de parts"
+              aria-label={T.formulaire.nombreDeParts}
               className="min-h-10 w-20 rounded-lg bg-sand-50 px-3 text-center text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
             />
           </label>
@@ -187,8 +194,8 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               l'imposer. */}
           <div>
             <label htmlFor="recette-etiquette" className="text-sm font-medium text-sand-700">
-              Étiquettes
-              <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
+              {T.formulaire.etiquettes}
+              <span className="ml-1 font-normal text-sand-500">{T.formulaire.facultatif}</span>
             </label>
 
             {tags.length > 0 && (
@@ -198,7 +205,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                     <button
                       type="button"
                       onClick={() => setTags((precedents) => precedents.filter((t) => t !== tag))}
-                      aria-label={`Retirer l'étiquette ${tag}`}
+                      aria-label={T.formulaire.retirerEtiquette(tag)}
                       className="flex min-h-9 items-center gap-1.5 rounded-full bg-brand-50 pr-2.5 pl-3 text-sm text-accent ring-1 ring-brand-300"
                     >
                       {tag}
@@ -216,7 +223,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               value={saisieTag}
               onChange={(e) => setSaisieTag(e.target.value)}
               onKeyDown={surToucheTag}
-              placeholder="végétarien, rapide…"
+              placeholder={T.formulaire.etiquettesExemple}
               maxLength={30}
               className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
@@ -239,23 +246,23 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
           </div>
 
           <div>
-            <p className="mb-2 text-sm font-medium text-sand-700">Ingrédients</p>
+            <p className="mb-2 text-sm font-medium text-sand-700">{T.fiche.ingredients}</p>
             <ul className="space-y-2">
               {ingredients.map((ligne) => (
                 <li key={ligne.cle} className="flex gap-2">
                   <input
                     value={ligne.name}
                     onChange={(e) => modifierLigne(ligne.cle, 'name', e.target.value)}
-                    placeholder="Courgettes"
-                    aria-label="Nom de l'ingrédient"
+                    placeholder={T.formulaire.ingredientExemple}
+                    aria-label={T.formulaire.nomIngredient}
                     maxLength={120}
                     className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
                   />
                   <input
                     value={ligne.quantity}
                     onChange={(e) => modifierLigne(ligne.cle, 'quantity', e.target.value)}
-                    placeholder="200 g"
-                    aria-label="Quantité (texte libre)"
+                    placeholder={T.formulaire.quantiteExemple}
+                    aria-label={T.formulaire.quantite}
                     maxLength={60}
                     className="min-h-12 w-24 rounded-xl bg-surface px-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
                   />
@@ -269,7 +276,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                         return restants.length > 0 ? restants : [ligneVide()];
                       })
                     }
-                    aria-label={`Retirer ${ligne.name || 'cet ingrédient'}`}
+                    aria-label={T.formulaire.retirerIngredient(ligne.name || T.formulaire.cetIngredient)}
                     className="grid size-12 shrink-0 place-items-center rounded-xl text-sand-400 active:bg-sand-200"
                   >
                     <TrashIcon className="size-5" />
@@ -285,14 +292,14 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               onClick={() => setIngredients((precedents) => [...precedents, ligneVide()])}
               className="mt-2"
             >
-              Ajouter un ingrédient
+              {T.formulaire.ajouterIngredient}
             </Button>
           </div>
 
           <div>
             <label htmlFor="recette-preparation" className="text-sm font-medium text-sand-700">
-              Préparation
-              <span className="ml-1 font-normal text-sand-500">— une ligne, une étape</span>
+              {T.fiche.preparation}
+              <span className="ml-1 font-normal text-sand-500">{T.formulaire.uneLigneUneEtape}</span>
             </label>
 
             {/* Le champ « préparation » d'avant les étapes : un tap le recopie
@@ -301,10 +308,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                 étapes, et d'une consigne coupée en deux lignes deux étapes. */}
             {aConvertir && (
               <div className="mt-1.5 rounded-xl bg-amber-100 px-4 py-3">
-                <p className="text-sm text-amber-900">
-                  Cette recette a une préparation écrite d'un bloc. Elle peut devenir des étapes à
-                  cocher pendant la cuisine.
-                </p>
+                <p className="text-sm text-amber-900">{T.formulaire.aConvertir}</p>
                 <Button
                   type="button"
                   size="sm"
@@ -315,7 +319,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                   }}
                   className="mt-2"
                 >
-                  La découper en étapes
+                  {T.formulaire.decouper}
                 </Button>
               </div>
             )}
@@ -324,7 +328,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               id="recette-preparation"
               value={preparation}
               onChange={(e) => setPreparation(e.target.value)}
-              placeholder={"Préchauffer le four à 180 °C\nÉmincer les oignons\nFaire revenir 5 min"}
+              placeholder={T.formulaire.preparationExemple}
               rows={6}
               className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
@@ -332,14 +336,14 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
 
           <div>
             <label htmlFor="recette-remarques" className="text-sm font-medium text-sand-700">
-              Remarques
-              <span className="ml-1 font-normal text-sand-500">(facultatif)</span>
+              {T.fiche.remarques}
+              <span className="ml-1 font-normal text-sand-500">{T.formulaire.facultatif}</span>
             </label>
             <textarea
               id="recette-remarques"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Se congèle très bien. Recette de ma mère."
+              placeholder={T.formulaire.remarquesExemple}
               rows={3}
               maxLength={4000}
               className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
@@ -354,10 +358,10 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
 
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-              Annuler
+              {SOCLE.commun.annuler}
             </Button>
             <Button type="submit" loading={enregistrement} className="flex-1">
-              Enregistrer
+              {SOCLE.commun.enregistrer}
             </Button>
           </div>
 
@@ -367,10 +371,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                 {/* Les repas déjà prévus ne partent plus avec elle : ils
                     gardent son intitulé et perdent seulement leur fiche.
                     Ranger le répertoire ne doit pas trouer la semaine. */}
-                <p className="text-sm text-danger">
-                  Supprimer «&nbsp;{recette.title}&nbsp;»&nbsp;? Les repas déjà prévus la garderont
-                  comme intitulé, sans sa fiche.
-                </p>
+                <p className="text-sm text-danger">{T.formulaire.confirmerSuppression(recette.title)}</p>
                 <div className="mt-3 flex gap-2">
                   <Button
                     type="button"
@@ -381,7 +382,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                       onClose();
                     }}
                   >
-                    Supprimer
+                    {SOCLE.commun.supprimer}
                   </Button>
                   <Button
                     type="button"
@@ -389,7 +390,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                     variant="ghost"
                     onClick={() => setConfirmationSuppression(false)}
                   >
-                    Annuler
+                    {SOCLE.commun.annuler}
                   </Button>
                 </div>
               </div>
@@ -400,7 +401,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                 onClick={() => setConfirmationSuppression(true)}
                 className="w-full text-danger"
               >
-                Supprimer la recette
+                {T.formulaire.supprimer}
               </Button>
             ))}
         </form>

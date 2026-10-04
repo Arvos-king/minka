@@ -32,6 +32,7 @@ import { INSTRUCTIONS } from './instructions.js';
 import { modulesPresents } from './interne.js';
 import { JetonRefuse, creerVerificateur, jetonDeLaRequete, permissionsDu } from './jeton.js';
 import { enregistrerOutils } from './outils.js';
+import { T } from './textes.js';
 
 /**
  * Les clés publiques de Pocket-ID, cherchées au premier jeton puis gardées en
@@ -51,7 +52,7 @@ function clesDePocketId({ emetteur, jwks }) {
       let adresse = jwks;
       if (!adresse) {
         const reponse = await fetch(`${emetteur}/.well-known/openid-configuration`);
-        if (!reponse.ok) throw new Error(`découverte de Pocket-ID : ${reponse.status}`);
+        if (!reponse.ok) throw new Error(T.jeton.decouverte(reponse.status));
         adresse = (await reponse.json()).jwks_uri;
       }
       jeu = createRemoteJWKSet(new URL(adresse));
@@ -108,7 +109,7 @@ async function repondre(reponse, res) {
     // complète. L'outil, lui, n'est pas arrêté : ce qu'il écrit est écrit, et
     // cette ligne dit pourquoi Claude n'en a rien su.
     if (erreur.code !== 'ERR_STREAM_PREMATURE_CLOSE') throw erreur;
-    console.warn('[mcp] Claude est parti avant la fin de la réponse.');
+    console.warn(T.journal.claudeParti);
   }
 }
 
@@ -119,7 +120,7 @@ export function routeurEteint() {
     res.status(503).json({
       error: {
         code: 'MCP_DISABLED',
-        message: "Le connecteur Claude n'est pas configuré (variables MCP_* absentes, voir .env.example).",
+        message: T.http.eteint,
       },
     });
   });
@@ -184,7 +185,7 @@ export function routeurConnecteur(configuration) {
 
       // Le premier appel de Claude arrive toujours sans jeton : c'est la
       // poignée de main, pas un incident, et rien ne mérite d'être noté.
-      if (jeton) console.warn(`[mcp] jeton refusé : ${erreur.message}`);
+      if (jeton) console.warn(T.journal.jetonRefuse(erreur.message));
 
       const parametres =
         erreur.statut === 403
@@ -207,14 +208,12 @@ export function routeurConnecteur(configuration) {
       // C'est ainsi qu'on apprend son `sub` à la mise en service, sans le
       // chercher dans Pocket-ID.
       console.warn(
-        identifiant
-          ? `[mcp] MCP_USERS désigne « ${identifiant} », qui n'est pas un compte Minka.`
-          : `[mcp] sujet inconnu « ${payload.sub} » : ajoute-le à MCP_USERS pour lui ouvrir Minka.`,
+        identifiant ? T.journal.compteInconnu(identifiant) : T.journal.sujetInconnu(payload.sub),
       );
       // Un 403 sans `insufficient_scope` est définitif pour Claude : se
       // reconnecter ne changerait rien, et il l'affiche comme une erreur.
       res.status(403).json({
-        error: { code: 'MCP_FORBIDDEN', message: "Ce compte Pocket-ID n'a pas accès à Minka." },
+        error: { code: 'MCP_FORBIDDEN', message: T.http.sansAcces },
       });
       return;
     }
@@ -235,7 +234,7 @@ export function routeurConnecteur(configuration) {
   // Sans état, il n'y a ni flux à ouvrir ni session à fermer.
   router.all('/', (req, res) => {
     res.set('Allow', 'POST').status(405).json({
-      error: { code: 'METHOD_NOT_ALLOWED', message: 'Le connecteur ne répond qu’en POST.' },
+      error: { code: 'METHOD_NOT_ALLOWED', message: T.http.postSeulement },
     });
   });
 

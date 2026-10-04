@@ -69,6 +69,23 @@ describe('statutPeremption', () => {
   });
 });
 
+describe('statutPeremption en anglais', () => {
+  it('nomme les mêmes échéances', () => {
+    assert.equal(statutPeremption(dans(-1), 'en').libelle, 'Expired yesterday');
+    assert.equal(statutPeremption(dans(-3), 'en').libelle, 'Expired 3 days ago');
+    assert.equal(statutPeremption(dans(0), 'en').libelle, 'Today');
+    assert.equal(statutPeremption(dans(1), 'en').libelle, 'Tomorrow');
+    assert.equal(statutPeremption(dans(2), 'en').libelle, 'In 2 days');
+    assert.match(statutPeremption(dans(10), 'en').libelle, /^\d+ /);
+  });
+
+  it('garde les mêmes niveaux, qui ne dépendent pas de la langue', () => {
+    for (const jours of [-3, 0, 2, 3, 4, 10]) {
+      assert.equal(statutPeremption(dans(jours), 'en').niveau, statutPeremption(dans(jours)).niveau);
+    }
+  });
+});
+
 describe('dansNJours', () => {
   it('produit les dates des raccourcis du formulaire', () => {
     assert.equal(dansNJours(0), aujourdhui());

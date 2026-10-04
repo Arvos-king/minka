@@ -9,8 +9,8 @@
  * Logique pure : `node --test` la vérifie seule.
  */
 
-/** Finir ce qui reste, ou sortir : les deux textes libres de toutes les semaines. */
-const DE_DEPART = ['Restes', 'Resto'];
+import { LANGUE, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
 
 /** Cinq pastilles tiennent sur deux lignes à 375 px ; au-delà, elles repousseraient les recettes. */
 const MAX = 5;
@@ -20,12 +20,15 @@ const MAX = 5;
  * figurent pas déjà, quelle qu'en soit la casse — « restes » est déjà
  * « Restes ».
  */
-export function completerRaccourcis(frequents) {
+export function completerRaccourcis(frequents, langue = LANGUE) {
   const vus = new Set();
 
-  return [...frequents, ...DE_DEPART]
+  // Finir ce qui reste, ou sortir : les deux textes libres de toutes les semaines.
+  const deDepart = textes(TEXTES, langue).raccourcisDeDepart;
+
+  return [...frequents, ...deDepart]
     .filter((texte) => {
-      const cle = texte.toLocaleLowerCase('fr');
+      const cle = texte.toLocaleLowerCase(langue);
       if (vus.has(cle)) return false;
       vus.add(cle);
       return true;

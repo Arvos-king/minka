@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { couleurPersonne } from '../lib/people.js';
+import { T } from '../textes.js';
 import { PlusIcon, TrashIcon, UserIcon } from './icons.jsx';
 import { Button } from './ui/Button.jsx';
 
@@ -68,18 +69,21 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={T.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Participants"
+        aria-label={T.membres.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Membres du foyer</h2>
-        <p className="mt-1 text-sm text-sand-500">
-          Les personnes à qui attribuer un événement ou une tâche, qu'elles aient un compte ou non.
-        </p>
+        <h2 className="text-lg font-semibold text-sand-900">{T.membres.titre}</h2>
+        <p className="mt-1 text-sm text-sand-500">{T.membres.intro}</p>
 
         <ul className="mt-4 space-y-2">
           {people.map((personne) => {
@@ -94,7 +98,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
                 <input
                   defaultValue={personne.displayName}
                   onBlur={(e) => renommerSiModifie(personne, e.target.value)}
-                  aria-label={`Nom de ${personne.displayName}`}
+                  aria-label={T.membres.nomDe(personne.displayName)}
                   maxLength={60}
                   className="min-h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-sand-900 outline-none focus:bg-sand-50 focus:ring-2 focus:ring-brand-500"
                 />
@@ -102,16 +106,16 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
                 {personne.hasAccount ? (
                   <span
                     className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sand-100 px-2 py-1 text-xs text-sand-500"
-                    title="Ce participant a un compte de connexion"
+                    title={T.membres.aUnCompte}
                   >
                     <UserIcon className="size-3.5" />
-                    Compte
+                    {T.membres.compte}
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => retirer(personne)}
-                    aria-label={`Retirer ${personne.displayName}`}
+                    aria-label={T.membres.retirer(personne.displayName)}
                     className="grid size-10 shrink-0 place-items-center rounded-lg text-sand-400 active:bg-sand-100"
                   >
                     <TrashIcon className="size-4" />
@@ -126,15 +130,15 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
           <input
             value={nouveau}
             onChange={(e) => setNouveau(e.target.value)}
-            placeholder="Ajouter quelqu'un…"
-            aria-label="Nom de la personne à ajouter"
+            placeholder={T.membres.ajouterQuelquun}
+            aria-label={T.membres.nomAAjouter}
             maxLength={60}
             className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"
             disabled={nouveau.trim() === '' || enCours}
-            aria-label="Ajouter la personne"
+            aria-label={T.membres.ajouter}
             className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors active:bg-brand-800 disabled:bg-sand-300"
           >
             <PlusIcon className="size-6" />
@@ -147,13 +151,10 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
           </p>
         )}
 
-        <p className="mt-3 text-xs text-sand-500">
-          Retirer quelqu'un ne supprime pas ses événements ni ses tâches : ils passent sur
-          «&nbsp;tout le monde&nbsp;».
-        </p>
+        <p className="mt-3 text-xs text-sand-500">{T.membres.retraitSansPerte}</p>
 
         <Button variant="secondary" onClick={onClose} className="mt-4 mb-4 w-full">
-          Fermer
+          {T.commun.fermer}
         </Button>
       </div>
     </div>

@@ -1,18 +1,11 @@
 import { useMemo, useState } from 'react';
 
 import { Button } from '../../../components/ui/Button.jsx';
+import { T as SOCLE } from '../../../textes.js';
 import { menusApi } from '../api.js';
 import { analyserMenus } from '../importation.js';
 import { CRENEAUX, libelleJour } from '../semaine.js';
-
-const EXEMPLE = `Lundi
-Midi : Salade de lentilles
-  - Lentilles vertes : 250 g
-  - Échalote : 1
-Soir : Restes
-
-Mardi
-Soir : Gratin de courgettes`;
+import { T } from '../textes.js';
 
 /**
  * Import d'une semaine écrite en texte.
@@ -88,62 +81,63 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Fermer" onClick={onClose} />
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        aria-label={SOCLE.commun.fermer}
+        onClick={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Importer une semaine de menus"
+        aria-label={T.importation.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">Importer une semaine</h2>
+        <h2 className="text-lg font-semibold text-sand-900">{T.importation.titre}</h2>
 
         {bilan ? (
           <div className="py-6">
-            <p className="text-center font-medium text-sand-900">{bilan.posees} repas posés</p>
+            <p className="text-center font-medium text-sand-900">{T.importation.poses(bilan.posees)}</p>
             <ul className="mx-auto mt-3 max-w-sm space-y-1 text-sm text-sand-500">
               {bilan.recettes?.creees.length > 0 && (
                 <li>
-                  {bilan.recettes.creees.length} recette(s) créée(s) :{' '}
-                  {bilan.recettes.creees.join(', ')}
+                  {T.importation.creees(bilan.recettes.creees.length, bilan.recettes.creees.join(', '))}
                 </li>
               )}
               {bilan.recettes?.completees.length > 0 && (
                 <li>
-                  {bilan.recettes.completees.length} recette(s) complétée(s) :{' '}
-                  {bilan.recettes.completees.join(', ')}
+                  {T.importation.completees(
+                    bilan.recettes.completees.length,
+                    bilan.recettes.completees.join(', '),
+                  )}
                 </li>
               )}
               {/* La recette du foyer fait foi : une liste collée ne réécrit pas
                   une recette qui a déjà sa préparation. Le dire, sans quoi on
                   croirait ses nouveaux ingrédients partis dans les courses. */}
               {bilan.recettes?.conservees.length > 0 && (
-                <li>
-                  Gardée(s) telle(s) quelle(s), car elles ont déjà leur préparation :{' '}
-                  {bilan.recettes.conservees.join(', ')}
-                </li>
+                <li>{T.importation.conservees(bilan.recettes.conservees.join(', '))}</li>
               )}
               {bilan.recettes?.inconnues.length > 0 && (
-                <li>Posés en texte libre : {bilan.recettes.inconnues.join(', ')}</li>
+                <li>{T.importation.libres(bilan.recettes.inconnues.join(', '))}</li>
               )}
             </ul>
             <Button type="button" onClick={onClose} className="mt-5 w-full">
-              Fermer
+              {SOCLE.commun.fermer}
             </Button>
           </div>
         ) : (
           <>
             <p className="mt-1 text-sm text-sand-500">
-              {recettesDisponibles
-                ? 'Colle la semaine proposée. Un plat dont les ingrédients sont listés devient une recette ; sinon, une recette du même nom est réutilisée si elle existe.'
-                : 'Colle la semaine proposée. Les plats seront posés tels quels, en texte : le module recettes ne répond pas.'}
+              {recettesDisponibles ? T.importation.aideAvecRecettes : T.importation.aideSansRecettes}
             </p>
 
             <textarea
               value={texte}
               onChange={(e) => setTexte(e.target.value)}
-              placeholder={EXEMPLE}
-              aria-label="Semaine à importer"
+              placeholder={T.importation.exemple}
+              aria-label={T.importation.champ}
               rows={8}
               className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
             />
@@ -159,7 +153,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
             {parJour.length > 0 && (
               <div className="mt-4">
                 <p className="mb-2 text-sm font-medium text-sand-700">
-                  Ce qui sera posé ({repas.length} repas)
+                  {T.importation.apercu(repas.length)}
                 </p>
                 <ul className="space-y-2">
                   {parJour.map(([date, duJour]) => (
@@ -176,7 +170,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
                           {r.title}
                           {r.ingredients.length > 0 && (
                             <span className="text-sand-400">
-                              {' '}({r.ingredients.length} ingrédient{r.ingredients.length > 1 ? 's' : ''})
+                              {T.importation.ingredients(r.ingredients.length)}
                             </span>
                           )}
                         </p>
@@ -195,7 +189,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
 
             <div className="mt-5 flex gap-2 pb-4">
               <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                Annuler
+                {SOCLE.commun.annuler}
               </Button>
               <Button
                 type="button"
@@ -204,7 +198,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
                 disabled={repas.length === 0}
                 className="flex-1"
               >
-                Poser {repas.length > 0 ? `${repas.length} repas` : ''}
+                {T.importation.poser(repas.length)}
               </Button>
             </div>
           </>

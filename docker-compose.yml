@@ -27,6 +27,11 @@ services:
       PORT: 3000
       DATA_DIR: /data
 
+      # Langue de l'instance : fr ou en. Elle vaut pour les messages de l'API,
+      # ses journaux et le connecteur Claude ; minka-web la reçoit aussi, en
+      # argument de build. En changer demande un `docker compose up -d --build`.
+      MINKA_LANG: ${MINKA_LANG:-fr}
+
       # Secret de signature des jetons de session. OBLIGATOIRE : le conteneur
       # refuse de démarrer s'il est absent ou trop court (voir .env.example).
       SESSION_SECRET: ${SESSION_SECRET}
@@ -85,6 +90,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # L'interface est compilée dans la langue de l'instance — la même que
+      # celle de l'API, puisqu'elles viennent du même .env —, avec la monnaie
+      # du budget.
+      args:
+        MINKA_LANG: ${MINKA_LANG:-fr}
+        MINKA_CURRENCY: ${MINKA_CURRENCY:-EUR}
     image: minka-web:latest
     container_name: minka-web
     restart: unless-stopped

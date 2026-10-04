@@ -3,26 +3,31 @@
  *
  * Les routes de Minka parlent la langue de l'interface — `onDate`, `slot`,
  * `stepCount` —, faite pour un écran qui sait déjà ce qu'il affiche. Claude, lui,
- * arrive sans rien savoir : on lui rend des objets en français, débarrassés de
- * ce qui ne l'aide pas à choisir (dates de création, auteurs), et complétés de
- * ce qu'il devrait sinon déduire — le nom du jour, les cases vides, qu'une
- * recette est achevée ou n'est qu'une ébauche.
+ * arrive sans rien savoir : on lui rend des objets aux clés françaises,
+ * débarrassés de ce qui ne l'aide pas à choisir (dates de création, auteurs), et
+ * complétés de ce qu'il devrait sinon déduire — le nom du jour, les cases vides,
+ * qu'une recette est achevée ou n'est qu'une ébauche.
+ *
+ * Les clés restent françaises dans toutes les langues : ce sont les mots de
+ * l'API du connecteur. Les valeurs écrites pour être lues — noms des jours,
+ * cases, avertissements — suivent la langue de l'instance.
  *
  * Fonctions pures, sans réseau ni base : c'est ce qui les rend testables.
  */
 
+import { LANGUE, textes } from '../../lib/langue.js';
 import { memePlat } from '../../lib/titres.js';
+import { TEXTES } from './textes.js';
 
 const MS_PAR_JOUR = 86_400_000;
-
-const NOMS_DES_JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
 /** Au-delà, la réponse noierait Claude sans l'aider : deux mois et demi suffisent. */
 export const JOURS_MAX = 70;
 
 const enUTC = (date) => new Date(`${date}T00:00:00Z`);
 
-export const nomDuJour = (date) => NOMS_DES_JOURS[enUTC(date).getUTCDay()];
+export const nomDuJour = (date, langue = LANGUE) =>
+  textes(TEXTES, langue).dates.jours[enUTC(date).getUTCDay()];
 
 /** Décale une date AAAA-MM-JJ de N jours, sans passer par le fuseau local. */
 export const decaler = (date, jours) =>
@@ -69,14 +74,14 @@ const caseLisible = (entree) => (entree ? { plat: entree.title, recetteId: entre
  * @param {Array} p.entrees   les cases rendues par `GET /menus/plan`
  * @param {string} p.aujourdhui
  */
-export function planningLisible({ du, au, entrees, aujourdhui }) {
+export function planningLisible({ du, au, entrees, aujourdhui, langue = LANGUE }) {
   const parCase = new Map(entrees.map((entree) => [`${entree.onDate}|${entree.slot}`, entree]));
 
   const jours = [];
   for (let date = du; date <= au; date = decaler(date, 1)) {
     jours.push({
       date,
-      jour: nomDuJour(date),
+      jour: nomDuJour(date, langue),
       midi: caseLisible(parCase.get(`${date}|midi`)),
       soir: caseLisible(parCase.get(`${date}|soir`)),
     });
@@ -129,15 +134,16 @@ export const frigoLisible = (produits) =>
 
 // --- Écrire ---------------------------------------------------------------------
 
-const MOIS = [
-  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
-];
-
 /** « lundi 5 octobre soir » : une case comme on la dit, pour les messages. */
-export function libelleCase(date, creneau) {
+export function libelleCase(date, creneau, langue = LANGUE) {
+  const { mois, creneaux, caseDuPlan } = textes(TEXTES, langue).dates;
   const jour = enUTC(date);
-  return `${nomDuJour(date)} ${jour.getUTCDate()} ${MOIS[jour.getUTCMonth()]} ${creneau}`;
+  return caseDuPlan(
+    nomDuJour(date, langue),
+    jour.getUTCDate(),
+    mois[jour.getUTCMonth()],
+    creneaux[creneau] ?? creneau,
+  );
 }
 
 /**
@@ -193,12 +199,12 @@ export function modificationPourMinka(champs) {
 const cle = (date, creneau) => `${date}|${creneau}`;
 
 /** Les cases demandées deux fois dans la même pose : laquelle l'emporterait ? */
-export function casesEnDouble(repas) {
+export function casesEnDouble(repas, langue = LANGUE) {
   const vues = new Set();
   const doubles = new Set();
   for (const { date, creneau } of repas) {
     const c = cle(date, creneau);
-    if (vues.has(c)) doubles.add(libelleCase(date, creneau));
+    if (vues.has(c)) doubles.add(libelleCase(date, creneau, langue));
     vues.add(c);
   }
   return [...doubles];
@@ -220,13 +226,16 @@ export function periodeDesRepas(repas) {
  * le titre du répertoire, « Soupe de potiron », là où Claude avait écrit
  * « Soupe de potirons ».
  */
-export function casesEnConflit(repas, entrees) {
+export function casesEnConflit(repas, entrees, langue = LANGUE) {
   const parCase = new Map(entrees.map((entree) => [cle(entree.onDate, entree.slot), entree]));
 
   return repas
     .map(({ date, creneau, plat }) => ({ date, creneau, plat, actuel: parCase.get(cle(date, creneau)) }))
-    .filter(({ plat, actuel }) => actuel && !memePlat(actuel.title, plat))
-    .map(({ date, creneau, actuel }) => ({ case: libelleCase(date, creneau), occupeePar: actuel.title }));
+    .filter(({ plat, actuel }) => actuel && !memePlat(actuel.title, plat, langue))
+    .map(({ date, creneau, actuel }) => ({
+      case: libelleCase(date, creneau, langue),
+      occupeePar: actuel.title,
+    }));
 }
 
 /**
@@ -263,26 +272,20 @@ export function casesPourPlanning(repas, resolus, entrees) {
  * dise —, sans quoi il croirait ses ingrédients partis dans la liste de
  * courses.
  */
-export function bilanDePose({ repas, resolus, recettes }) {
+export function bilanDePose({ repas, resolus, recettes, langue = LANGUE }) {
+  const t = textes(TEXTES, langue).bilan;
   const avertissements = [];
 
   if (!recettes) {
-    avertissements.push(
-      'Le module recettes ne répond pas : tout a été posé en texte libre, sans recette ni ingrédients.',
-    );
+    avertissements.push(t.sansRecettes);
   } else if (recettes.conservees.length > 0) {
-    avertissements.push(
-      `Recettes du foyer gardées telles quelles : ${recettes.conservees.join(', ')}. ` +
-        'Elles ont déjà leur préparation, qui fait foi : la version proposée n’a pas été ' +
-        'enregistrée, et ses ingrédients ne sont pas ceux qui partiront dans les courses. ' +
-        'Lis-les avec lire_recette avant d’en parler.',
-    );
+    avertissements.push(t.conservees(recettes.conservees.join(', ')));
   }
 
   return {
     poses: repas.length,
     cases: repas.map(({ date, creneau }, rang) => ({
-      case: libelleCase(date, creneau),
+      case: libelleCase(date, creneau, langue),
       plat: resolus[rang].title,
       recetteId: resolus[rang].recipeId,
     })),

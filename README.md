@@ -1,5 +1,8 @@
 # Minka
 
+> **English:** to deploy an English-speaking instance, see
+> [README.en.md](README.en.md).
+
 Plateforme familiale privée, auto-hébergée sur unRAID. Deux comptes, un tableau
 de bord, et des modules qu'on ajoute au fil des besoins.
 
@@ -68,7 +71,11 @@ main, en marchant dans les rayons :
 - le classement se fait **côté serveur, à l'ajout**, d'après un dictionnaire
   d'environ quatre cents produits courants livré avec le code
   (`modules/shopping/rayons.js`) : les articles poussés par le frigo et par les
-  menus arrivent donc rangés eux aussi, sans rien savoir des rayons ;
+  menus arrivent donc rangés eux aussi, sans rien savoir des rayons. Une
+  instance anglaise a le sien (`rayons.en.js`, à côté de `rayons.fr.js`), lu
+  dans l'autre sens — le nom principal vient en dernier en anglais, « apple
+  juice » est du jus — et avec quelques mots qui décident seuls : « frozen
+  peas » est au surgelé, « tinned tomatoes » en épicerie ;
 - un **appui long** sur une ligne — ou un clic droit — ouvre « Ranger dans… ».
   La correction **est retenue** sous une forme normalisée du nom (« Lait de
   coco », « 2 laits de coco » et « lait de coco (400 ml) » n'en font qu'une), et
@@ -637,6 +644,14 @@ pour y ajouter sa préparation.
 Module sans interface, comme la sauvegarde. Un outil n'est proposé que si le
 module dont il dépend est monté : sans frigo, Claude ne voit pas `lire_frigo`.
 
+Sur une instance anglaise ([Langue](#langue)), les outils portent des noms
+anglais — `read_meal_plan`, `list_recipes`, `read_recipe`, `read_fridge`,
+`plan_meals`, `save_recipe`, `edit_recipe` — et leurs descriptions comme les
+instructions sont en anglais. Les champs JSON échangés, eux, restent ceux de
+l'API du connecteur (`plat`, `creneau`, `aPreparation`…) : les instructions
+anglaises les expliquent. En français, noms, descriptions et instructions sont
+ceux qu'un projet Claude connaît déjà ; un test les fige.
+
 **Les garde-fous de l'écriture.** Claude propose d'abord la semaine dans la
 conversation, et n'écrit qu'une fois d'accord — c'est la consigne de ses
 instructions, et claude.ai demande par défaut l'autorisation avant de se servir
@@ -684,9 +699,9 @@ claude.ai compris.
 
 **Deux textes, deux rôles.** Ce que le connecteur dit de lui-même à chaque
 conversation — comment lire Minka, comment y écrire — vit dans
-`modules/mcp/instructions.js`, à côté des outils qu'il décrit, pour ne jamais
-s'en écarter. Les goûts du foyer — qui mange, ce qu'on évite, le temps qu'on a,
-la cantine — sont les instructions du projet Claude :
+`modules/mcp/instructions.js`, une version par langue, à côté des outils qu'il
+décrit, pour ne jamais s'en écarter. Les goûts du foyer — qui mange, ce qu'on
+évite, le temps qu'on a, la cantine — sont les instructions du projet Claude :
 [`docs/prompt-menus.md`](docs/prompt-menus.md).
 
 #### Mettre le connecteur en service
@@ -967,7 +982,13 @@ trois qui méritent l'attention :
 | `TRUST_PROXY` | `2` | Nombre de proxies devant l'API : Nginx Proxy Manager, puis le nginx de `minka-web`. |
 
 Les variables `MCP_*` du connecteur Claude sont décrites avec lui, dans
-[Mettre le connecteur en service](#mettre-le-connecteur-en-service).
+[Mettre le connecteur en service](#mettre-le-connecteur-en-service) ;
+`MINKA_LANG` et `MINKA_CURRENCY` dans [Langue](#langue).
+
+Le modèle a un jumeau anglais, [`.env.example.en`](.env.example.en), débarrassé
+de ce qui est propre à ce serveur : mêmes variables, dans le même ordre. Une
+variable ajoutée à l'un s'ajoute à l'autre — et au guide anglais,
+[`README.en.md`](README.en.md), quand elle touche au déploiement.
 
 ### ⚠️ `SESSION_COOKIE_SECURE` et l'accès direct par IP
 
@@ -990,6 +1011,52 @@ tous les deux d'un coup.
 
 - `2` — derrière Nginx Proxy Manager (valeur par défaut)
 - `1` — en accès direct sur le port 8070, sans reverse proxy
+
+---
+
+## Langue
+
+Minka parle **une langue par instance** : `fr` (par défaut) ou `en`, fixée par
+`MINKA_LANG` dans `.env`. Tout suit ce réglage — l'interface, les messages de
+l'API, ses journaux, le connecteur Claude. La monnaie du budget se règle à
+côté, par `MINKA_CURRENCY` (code ISO 4217, `EUR` par défaut). L'anglais de
+Minka est britannique : le jour avant le mois, « Monday 5 October ».
+
+Une instance anglaise se déploie avec [`README.en.md`](README.en.md), guide en
+anglais qui ne suppose ni unRAID ni Nginx Proxy Manager, et le modèle
+[`.env.example.en`](.env.example.en).
+
+L'interface est **compilée** dans la langue de l'instance : le manifeste de la
+PWA et `<html lang>` en dépendent, et ne sauraient attendre une réponse du
+serveur — une langue lue au démarrage ferait clignoter l'écran, et dépendrait du
+réseau que l'application doit savoir perdre. `docker-compose.yml` passe donc
+les deux variables en argument de build à `minka-web`, et `MINKA_LANG` en
+environnement à `minka-api`, depuis le même `.env` : l'interface et l'API ne
+peuvent pas se contredire. Changer de langue demande de reconstruire :
+
+```bash
+docker compose up -d --build
+```
+
+Ce qui ne change pas avec la langue : les données déjà saisies, les adresses de
+l'application (`/courses`, `/recettes`…) et le code lui-même — identifiants,
+champs JSON et commentaires restent en français. Ce que Minka sème au premier
+démarrage, comme le plan d'entretien par défaut, naît dans la langue de
+l'instance et n'en change plus.
+
+Une valeur inconnue arrête tout, l'API au démarrage comme l'interface à la
+compilation, plutôt que de retomber en silence sur le français.
+
+En développement, la variable se donne au lancement, des deux côtés
+(`backend/.env` peut aussi la porter) :
+
+```bash
+cd backend && MINKA_LANG=en npm run dev
+```
+
+```bash
+cd frontend && MINKA_LANG=en npm run dev
+```
 
 ---
 
@@ -1131,9 +1198,10 @@ servent : les tâches, qui replanifient depuis l'échéance, et l'entretien, qui
 repart du jour du geste. Également `modules/shopping/rayons.js`, le classement
 d'un nom d'article en rayon : la normalisation qui réunit « Œufs », « oeufs » et
 « 2 œufs », les pièges du français que le dictionnaire doit tenir — le lait de
-coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson — et
-l'invariant qui vérifie que chacun de ses quatre cents termes se range là où il
-est déclaré. Puis `modules/menus/reorganisation.js`, la règle « insérer et
+coco n'est pas de la crémerie, l'eau de Javel n'est pas une boisson —, ceux de
+l'anglais pour l'instance anglaise — le « peanut butter » n'est pas du beurre,
+les « hot dogs » ne vont pas à l'animalerie —, et l'invariant qui vérifie que
+chaque terme de chaque dictionnaire se range là où il est déclaré. Puis `modules/menus/reorganisation.js`, la règle « insérer et
 pousser » qui réorganise le planning : la poussée jusqu'à la première case
 libre, la chaîne qui tourne quand un repas y remonte, le débordement sur la
 semaine suivante. Et `modules/recipes/resolution.js` avec `lib/titres.js`, la
@@ -1164,6 +1232,12 @@ fichier de base, pour vérifier une addition de dates.
 
 Un test vit à côté du code qu'il vérifie, dans le dossier de son module — un
 module reste ainsi entier dans son dossier, tests compris.
+
+Les deux langues se vérifient dans le même `npm test` : une fonction qui produit
+ou lit du texte prend la langue en paramètre, et ses tests anglais la donnent
+explicitement. Hors de Vite, l'interface est en français quelle que soit la
+variable du poste ; l'API, elle, lit `MINKA_LANG` dans l'environnement — les
+tests s'y lancent donc sans elle.
 
 ---
 
@@ -1216,16 +1290,17 @@ sa table n'est jamais créée.
 ```js
 import BudgetPage from './BudgetPage.jsx';
 import { BudgetIcon } from './BudgetIcon.jsx';
+import { T } from './textes.js';
 
 export default {
   id: 'budget',
-  label: 'Budget',
-  description: 'Les dépenses du mois',
+  label: T.module.label,
+  description: T.module.description,
   path: '/budget',
   Component: BudgetPage,
-  Icon: BudgetIcon,      // facultatif
-  shortLabel: 'Budget',  // facultatif — libellé de l'onglet, si `label` est long
-  tabOrder: 3,           // facultatif — rang d'affichage, tuile comme onglet
+  Icon: BudgetIcon,                 // facultatif
+  shortLabel: T.module.shortLabel,  // facultatif — libellé de l'onglet, si `label` est long
+  tabOrder: 3,                      // facultatif — rang d'affichage, tuile comme onglet
 };
 ```
 
@@ -1238,6 +1313,48 @@ Là aussi, deux modules ne peuvent partager ni leur `id` ni leur `path`. Le
 second est écarté du registre avec un message en console, plutôt que de faire
 échouer toute l'interface : un module mal déclaré ne doit pas emporter le reste
 de l'application.
+
+### Les textes d'un module
+
+Un module ne laisse aucune phrase en dur dans ses composants : il les range dans
+son propre `textes.js`, une entrée par langue, avec les mêmes clés.
+
+```js
+// frontend/src/modules/budget/textes.js
+import { textes } from '../../lib/langue.js';
+
+export const TEXTES = {
+  fr: {
+    module: { label: 'Budget', description: 'Où part l’argent du mois' },
+    depenses: (n) => `${n} dépense${n > 1 ? 's' : ''}`,
+  },
+  en: {
+    module: { label: 'Budget', description: 'Where the money goes this month' },
+    depenses: (n) => `${n} expense${n > 1 ? 's' : ''}`,
+  },
+};
+
+export const T = textes(TEXTES);
+```
+
+Une entrée est une chaîne, ou une fonction dès qu'il faut accorder ou
+interpoler : pluriels, élisions et ordre des mots restent l'affaire de chaque
+langue, sans syntaxe de gabarit à apprendre. Côté API, même fichier, même forme,
+dans `backend/src/modules/<nom>/` : messages d'erreur, messages des schémas
+zod, journaux. Le socle tient les siens dans `src/textes.js`, de chaque côté ;
+côté interface, `commun` y rassemble ce que tous les modules partagent
+(« Fermer », « Enregistrer »).
+
+Un test du socle, `lib/langue.test.js` de chaque côté, trouve tous les
+`textes.js` et vérifie que chaque langue porte exactement les mêmes clés, avec
+des fonctions au même nombre de paramètres : une traduction oubliée échoue au
+test, pas à l'écran. Rien à déclarer pour qu'un nouveau module y passe.
+
+Une fonction pure qui produit ou lit du texte — un libellé d'échéance, un
+analyseur d'import — prend la langue en dernier paramètre, celle de l'instance
+par défaut, et choisit son dictionnaire par `textes(TEXTES, langue)`. Les
+formats de date passent par `formateurDate(options, langue)` (`lib/langue.js`),
+qui choisit la locale et garde les formateurs en cache.
 
 ### Ancrer un élément en bas de l'écran
 
@@ -1431,6 +1548,11 @@ exactes les routes des modules, et `/recettes/12` retomberait sur l'accueil.
       et pose la semaine préparée ensemble, recettes entières comprises — sans
       copier-coller. L'accès est délivré par Pocket-ID, et le connecteur ne
       parle aux autres modules que par leurs routes HTTP.
+- [x] **Instance anglaise** : une langue par instance (`MINKA_LANG`), que
+      suivent l'interface, l'API, ses journaux et le connecteur Claude ;
+      rangement par rayon, import de recette et import de semaine en anglais ;
+      monnaie du budget au choix ; guide de déploiement anglais
+      ([README.en.md](README.en.md)).
 
 Pistes pour la suite : chaque nouveau module suit le mode d'emploi ci-dessus.
 Côté hors ligne, l'étape suivante serait la **file d'écriture** :

@@ -7,6 +7,9 @@
  * application de notes, et c'est presque toujours le bon choix.
  */
 
+import { LANGUE, formateurDate, textes } from '../../lib/langue.js';
+import { TEXTES } from './textes.js';
+
 const LONGUEUR_TITRE = 60;
 const LONGUEUR_EXTRAIT = 120;
 
@@ -49,12 +52,8 @@ export function estVide(note) {
   return (note?.title ?? '').trim() === '' && (note?.body ?? '').trim() === '';
 }
 
-const formatDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' });
-const formatDateAvecAnnee = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
+const FORMAT_DATE = { day: 'numeric', month: 'long' };
+const FORMAT_DATE_AVEC_ANNEE = { ...FORMAT_DATE, year: 'numeric' };
 
 /**
  * « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « le 12 août ».
@@ -62,20 +61,22 @@ const formatDateAvecAnnee = new Intl.DateTimeFormat('fr-FR', {
  * Au-delà d'une journée on donne la date plutôt qu'un décompte : « il y a
  * 23 j » demande un calcul mental que « le 26 juillet » épargne.
  */
-export function libelleModification(instant, maintenant = Date.now()) {
+export function libelleModification(instant, maintenant = Date.now(), langue = LANGUE) {
   if (!instant) return null;
 
   const date = new Date(instant);
   if (Number.isNaN(date.getTime())) return null;
 
+  const t = textes(TEXTES, langue).modification;
+
   const minutes = Math.floor((maintenant - date.getTime()) / 60_000);
-  if (minutes < 2) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 2) return t.instant;
+  if (minutes < 60) return t.minutes(minutes);
 
   const heures = Math.floor(minutes / 60);
-  if (heures < 24) return `il y a ${heures} h`;
-  if (heures < 48) return 'hier';
+  if (heures < 24) return t.heures(heures);
+  if (heures < 48) return t.hier;
 
   const memeAnnee = date.getFullYear() === new Date(maintenant).getFullYear();
-  return `le ${(memeAnnee ? formatDate : formatDateAvecAnnee).format(date)}`;
+  return t.le(formateurDate(memeAnnee ? FORMAT_DATE : FORMAT_DATE_AVEC_ANNEE, langue).format(date));
 }

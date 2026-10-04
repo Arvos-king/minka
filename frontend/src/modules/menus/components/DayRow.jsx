@@ -5,6 +5,7 @@ import { adresseRecette } from '../api.js';
 import { PoigneeIcon } from '../PoigneeIcon.jsx';
 import { RecetteIcon } from '../RecetteIcon.jsx';
 import { CRENEAUX, libelleJour } from '../semaine.js';
+import { T } from '../textes.js';
 
 const estCase = (designee, date, slot) => designee?.date === date && designee.slot === slot;
 
@@ -60,7 +61,7 @@ export function DayRow({
         {/* L'espace est écrit, pas seulement dessiné : `gap-2` ne sépare que
             visuellement, et un lecteur d'écran annoncerait « lundi
             17aujourd'hui ». */}
-        {estAujourdhui && <span className="text-xs font-normal">{' '}· aujourd'hui</span>}
+        {estAujourdhui && <span className="text-xs font-normal">{' '}{T.jour.aujourdhui}</span>}
       </h3>
 
       {CRENEAUX.map((creneau, index) => {
@@ -119,7 +120,7 @@ export function DayRow({
               ) : (
                 <span className="flex flex-1 items-center gap-1.5 text-sand-400">
                   <PlusIcon className="size-4" />
-                  <span className="text-sm">{placement ? 'Poser ici' : 'Rien de prévu'}</span>
+                  <span className="text-sm">{placement ? T.jour.poserIci : T.jour.rienDePrevu}</span>
                 </span>
               )}
 
@@ -128,7 +129,7 @@ export function DayRow({
                   ici ». */}
               {placement && (estDepart || intitule) && (
                 <span className="sr-only">
-                  {estDepart ? ' — repas à déplacer : toucher pour annuler' : ' — poser ici'}
+                  {estDepart ? T.jour.aDeplacer : T.jour.poserIciLecteur}
                 </span>
               )}
             </button>
@@ -140,7 +141,7 @@ export function DayRow({
             {recette && (
               <Link
                 to={adresseRecette(recette.id)}
-                aria-label={`Ouvrir la recette : ${recette.title}`}
+                aria-label={T.jour.ouvrirRecette(recette.title)}
                 className="grid min-h-14 w-12 shrink-0 place-items-center text-accent active:bg-brand-50"
               >
                 <RecetteIcon className="size-6" />
@@ -153,7 +154,7 @@ export function DayRow({
               <button
                 type="button"
                 {...poignee({ date, slot }, intitule)}
-                aria-label={`Déplacer « ${intitule} »`}
+                aria-label={T.jour.deplacer(intitule)}
                 className="grid min-h-14 w-10 shrink-0 cursor-grab touch-none place-items-center text-sand-400 select-none active:cursor-grabbing active:bg-sand-50"
               >
                 <PoigneeIcon className="size-5" />

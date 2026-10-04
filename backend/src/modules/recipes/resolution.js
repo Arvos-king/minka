@@ -17,6 +17,7 @@
  * Le titre se compare à l'orthographe près — voir `cleTitre`, dans le socle.
  */
 
+import { LANGUE } from '../../lib/langue.js';
 import { cleTitre } from '../../lib/titres.js';
 
 /**
@@ -40,7 +41,7 @@ export function choisirRecette(titre, recettes) {
     .sort((a, b) => a.id - b.id);
 
   const exacte = candidates.find(
-    (recette) => recette.title.toLocaleLowerCase('fr') === titre.trim().toLocaleLowerCase('fr'),
+    (recette) => recette.title.toLocaleLowerCase(LANGUE) === titre.trim().toLocaleLowerCase(LANGUE),
   );
   return exacte ?? candidates[0] ?? null;
 }

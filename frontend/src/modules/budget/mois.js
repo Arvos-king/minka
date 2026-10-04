@@ -5,8 +5,10 @@
  * bornes se calculent, elles ne s'ajoutent pas.
  */
 
-const formatMois = new Intl.DateTimeFormat('fr-FR', { month: 'long' });
-const formatMoisAnnee = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
+import { LANGUE, formateurDate } from '../../lib/langue.js';
+
+const FORMAT_MOIS = { month: 'long' };
+const FORMAT_MOIS_ANNEE = { month: 'long', year: 'numeric' };
 
 /** Premier jour du mois contenant `date`. */
 export function debutMois(date) {
@@ -35,8 +37,8 @@ export function decalerMois(debut, nombre) {
  * feuilletant les mois passés, on doit voir tout de suite qu'on a changé
  * d'exercice.
  */
-export function libelleMois(debut, maintenant = Date.now()) {
+export function libelleMois(debut, maintenant = Date.now(), langue = LANGUE) {
   const objet = new Date(`${debut}T12:00:00Z`);
   const memeAnnee = objet.getUTCFullYear() === new Date(maintenant).getFullYear();
-  return (memeAnnee ? formatMois : formatMoisAnnee).format(objet);
+  return formateurDate(memeAnnee ? FORMAT_MOIS : FORMAT_MOIS_ANNEE, langue).format(objet);
 }

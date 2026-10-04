@@ -4,7 +4,8 @@
 
 import { db, stmt } from '../../db/index.js';
 import { avancerDe } from '../../lib/recurrence.js';
-import { planningInitial, ZONES } from './planning.js';
+import { planDeDepart, planningInitial } from './planning.js';
+import { T } from './textes.js';
 
 const aujourdhuiUtc = () => new Date().toISOString().slice(0, 10);
 
@@ -173,9 +174,11 @@ export function seedPlanning() {
   const depart = Date.parse(`${aujourdhuiUtc()}T00:00:00Z`);
   const dans = (jours) => new Date(depart + jours * 86_400_000).toISOString().slice(0, 10);
 
+  const { zones } = planDeDepart();
+
   const poser = db.transaction(() => {
     const parNom = new Map();
-    for (const [rang, label] of ZONES.entries()) {
+    for (const [rang, label] of zones.entries()) {
       const { lastInsertRowid } = stmt(
         'INSERT INTO maintenance_zones (label, sort_order) VALUES (?, ?)',
       ).run(label, rang + 1);
@@ -192,5 +195,5 @@ export function seedPlanning() {
   });
 
   poser();
-  console.log(`[entretien] planning de départ posé : ${ZONES.length} pièces.`);
+  console.log(T.journal.planningPose(zones.length));
 }

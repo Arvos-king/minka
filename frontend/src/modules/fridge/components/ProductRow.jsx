@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import { CartIcon, CheckIcon, MinusIcon, PlusIcon, TrashIcon } from '../../../components/icons.jsx';
 import { STYLES_BADGE, statutPeremption } from '../expiry.js';
+import { T } from '../textes.js';
 
 /**
  * Un produit du frigo.
@@ -59,7 +60,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
             // À 1, réduire revient à sortir le produit du frigo : c'est le
             // geste qu'on fait en le consommant.
             onClick={() => (item.quantity > 1 ? onChangeQuantity(item, -1) : onRemove(item))}
-            aria-label={item.quantity > 1 ? `Réduire la quantité de ${item.name}` : `Retirer ${item.name}`}
+            aria-label={item.quantity > 1 ? T.ligne.reduire(item.name) : T.ligne.retirer(item.name)}
             className="grid size-9 place-items-center rounded-lg text-sand-500 active:bg-sand-100"
           >
             {item.quantity > 1 ? <MinusIcon className="size-4" /> : <TrashIcon className="size-4" />}
@@ -67,7 +68,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
 
           <span
             className="w-6 text-center text-sm font-medium tabular-nums text-sand-700"
-            aria-label={`Quantité : ${item.quantity}`}
+            aria-label={T.ligne.quantite(item.quantity)}
           >
             {item.quantity}
           </span>
@@ -75,7 +76,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
           <button
             type="button"
             onClick={() => onChangeQuantity(item, 1)}
-            aria-label={`Augmenter la quantité de ${item.name}`}
+            aria-label={T.ligne.augmenter(item.name)}
             className="grid size-9 place-items-center rounded-lg text-sand-500 active:bg-sand-100"
           >
             <PlusIcon className="size-4" />
@@ -89,7 +90,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
             type="date"
             value={item.expiresOn ?? ''}
             onChange={(event) => onChangeExpiry(item, event.target.value || null)}
-            aria-label={`Date de péremption de ${item.name}`}
+            aria-label={T.ligne.datePeremption(item.name)}
             className="min-h-10 rounded-lg bg-surface px-3 text-sm text-sand-700 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
           />
 
@@ -99,7 +100,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
               onClick={() => onChangeExpiry(item, null)}
               className="min-h-10 rounded-lg px-3 text-sm font-medium text-sand-600 active:bg-sand-100"
             >
-              Retirer la date
+              {T.ligne.retirerLaDate}
             </button>
           )}
 
@@ -114,12 +115,12 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
               {envoyeAuxCourses ? (
                 <>
                   <CheckIcon className="size-4" />
-                  Ajouté
+                  {T.ligne.ajoute}
                 </>
               ) : (
                 <>
                   <CartIcon className="size-4" />
-                  Aux courses
+                  {T.ligne.auxCourses}
                 </>
               )}
             </button>

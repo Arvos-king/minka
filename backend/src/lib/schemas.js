@@ -4,6 +4,8 @@
 
 import { z } from 'zod';
 
+import { T } from '../textes.js';
+
 /**
  * Date nue au format AAAA-MM-JJ.
  *
@@ -13,7 +15,7 @@ import { z } from 'zod';
  */
 export const isoDate = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'La date doit être au format AAAA-MM-JJ.')
+  .regex(/^\d{4}-\d{2}-\d{2}$/, T.schemas.dateFormat)
   .refine(
     (value) => {
       const date = new Date(`${value}T00:00:00Z`);
@@ -24,10 +26,10 @@ export const isoDate = z
       if (Number.isNaN(date.getTime())) return false;
       return date.toISOString().slice(0, 10) === value;
     },
-    { message: "Cette date n'existe pas." },
+    { message: T.schemas.dateInexistante },
   );
 
 /** Heure du jour au format HH:MM, sur 24 heures. */
 export const isoTime = z
   .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "L'heure doit être au format HH:MM.");
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, T.schemas.heureFormat);

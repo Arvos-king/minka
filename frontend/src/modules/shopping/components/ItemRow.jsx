@@ -1,4 +1,5 @@
 import { CheckIcon, MinusIcon, PlusIcon, TrashIcon } from '../../../components/icons.jsx';
+import { T } from '../textes.js';
 import { useAppuiLong } from '../useAppuiLong.js';
 
 /**
@@ -75,7 +76,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
           onClick={() => onRanger(item)}
           className="sr-only focus:not-sr-only focus:absolute focus:inset-y-1 focus:right-2 focus:z-10 focus:grid focus:place-items-center focus:rounded-lg focus:bg-surface-haute focus:px-3 focus:text-sm focus:font-medium focus:text-sand-700 focus:ring-2 focus:ring-brand-500"
         >
-          Ranger dans un rayon
+          {T.ligne.ranger}
         </button>
       )}
 
@@ -83,7 +84,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
         <button
           type="button"
           onClick={() => onRemove(item)}
-          aria-label={`Supprimer ${name}`}
+          aria-label={T.ligne.supprimer(name)}
           className="grid size-12 shrink-0 place-items-center rounded-r-2xl text-sand-400 active:bg-sand-100"
         >
           <TrashIcon className="size-5" />
@@ -96,7 +97,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
             // À 1, le bouton « moins » supprime l'article : c'est le geste
             // naturel pour corriger un ajout de trop, sans encombrer la ligne
             // d'une corbeille supplémentaire.
-            aria-label={quantity > 1 ? `Réduire la quantité de ${name}` : `Supprimer ${name}`}
+            aria-label={quantity > 1 ? T.ligne.reduire(name) : T.ligne.supprimer(name)}
             className="grid size-9 place-items-center rounded-lg text-sand-500 active:bg-sand-100"
           >
             {quantity > 1 ? <MinusIcon className="size-4" /> : <TrashIcon className="size-4" />}
@@ -104,7 +105,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
 
           <span
             className="w-6 text-center text-sm font-medium tabular-nums text-sand-700"
-            aria-label={`Quantité : ${quantity}`}
+            aria-label={T.ligne.quantite(quantity)}
           >
             {quantity}
           </span>
@@ -112,7 +113,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
           <button
             type="button"
             onClick={() => onChangeQuantity(item, 1)}
-            aria-label={`Augmenter la quantité de ${name}`}
+            aria-label={T.ligne.augmenter(name)}
             className="grid size-9 place-items-center rounded-lg text-sand-500 active:bg-sand-100"
           >
             <PlusIcon className="size-4" />
