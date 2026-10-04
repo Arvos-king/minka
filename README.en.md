@@ -61,10 +61,9 @@ file, `data/minka.db`, next to its backups.
 - **Docker with the Compose plugin** (`docker compose`). The images are built on
   your server, from the source; the first build takes a few minutes.
 - **A domain name** — say `minka.example.com` — and **a reverse proxy** serving
-  it over HTTPS, on the standard port: Caddy, nginx, Traefik, Nginx Proxy
-  Manager… HTTPS is not optional. Signing in relies on a `Secure` cookie, and
-  installing the app on a phone needs a service worker, which browsers only
-  allow over HTTPS.
+  it over HTTPS: Caddy, nginx, Traefik, Nginx Proxy Manager… HTTPS is not
+  optional. Signing in relies on a `Secure` cookie, and installing the app on a
+  phone needs a service worker, which browsers only allow over HTTPS.
 
 ---
 
@@ -147,10 +146,11 @@ Forward your domain to `http://<server address>:8070` (the `APP_PORT`), with an
 HTTPS certificate. Minka's own nginx does the rest: it serves the app with the
 right cache headers, and relays `/api` to the API. The proxy must:
 
-- **keep the `Host` header**, or pass it on as `X-Forwarded-Host`. The API
-  checks that every change comes from the domain it is called on; a proxy that
-  rewrites `Host` makes every save fail with *"The request's origin does not
-  match the application's domain."*;
+- **keep the `Host` header** — port included, if the address has one — or pass
+  it on as `X-Forwarded-Host`. The API checks that signing in and every change
+  come from the address it is called on; a proxy that rewrites `Host`, or drops
+  its port, makes them fail with *"The request's origin does not match the
+  application's domain."*;
 - **send `X-Forwarded-For` and `X-Forwarded-Proto`**, as almost all do by
   default;
 - **cache nothing**. Minka's nginx already sets the cache headers — immutable
@@ -180,7 +180,8 @@ server {
 
     location / {
         proxy_pass http://192.168.1.10:8070;
-        proxy_set_header Host              $host;
+        # $http_host keeps the port, which $host drops
+        proxy_set_header Host              $http_host;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
@@ -190,7 +191,8 @@ server {
 **Nginx Proxy Manager**: a *Proxy Host* to `http`, the server's address and
 port `8070`, with *Block Common Exploits*, a Let's Encrypt certificate, *Force
 SSL*, *HTTP/2* and *HSTS* — and **without *Cache Assets***, which would cache
-`index.html` and `sw.js`.
+`index.html` and `sw.js`. It drops the port from the `Host` header, and sends
+no `X-Forwarded-Host`: the address must stay on the standard port, 443.
 
 ### `TRUST_PROXY`
 
@@ -207,13 +209,15 @@ whole household out.
 
 ### Plain HTTP
 
-Use the HTTPS address. On `http://<server address>:8070`, the pages load but
-**signing in fails**, with *"The request's origin does not match the
-application's domain."*: Minka's nginx passes the host name on without its
-port, so the origin check cannot match. Behind your reverse proxy, on the
-standard HTTPS port, the question does not arise. And over plain HTTP, the
-browser would refuse the session cookie anyway: it is `Secure`, as
-`SESSION_COOKIE_SECURE=true` requires.
+Use the HTTPS address. On `http://<server address>:8070`, signing in seems to
+work — the dashboard appears — but the first module you open, or the next
+reload, **brings the sign-in page back**: the session cookie is `Secure`, as
+`SESSION_COOKIE_SECURE=true` requires, and the browser refuses it over plain
+HTTP.
+
+For a one-off test on your local network, set `SESSION_COOKIE_SECURE=false`
+and run `docker compose up -d`; `TRUST_PROXY` stays as it is. Set it back to
+`true` afterwards: a cookie without `Secure` can travel unencrypted.
 
 The plain address is still handy to check that Minka answers:
 `curl http://127.0.0.1:8070/api/health`.
@@ -500,10 +504,10 @@ conversation. The author's own project instructions, in French, are in
 
 | Symptom | Cause |
 | --- | --- |
-| Signing in fails on `http://<server address>:8070` | Minka needs its HTTPS address ([why](#plain-http)) |
+| On `http://<server address>:8070`, the sign-in page comes back after signing in | The session cookie only travels over HTTPS ([Plain HTTP](#plain-http)) |
 | `minka-api` restarts in a loop | A configuration error, spelled out in `docker compose logs minka-api` — `[config] Cannot start: …` |
 | `unable to open database file` in the API's log | `data/` does not belong to `PUID:PGID` ([Installation](#2-prepare-the-data-folder)) |
-| Every save fails: *"The request's origin does not match the application's domain."* | The proxy rewrites the `Host` header, or the public address is not on the standard HTTPS port ([Reverse proxy](#reverse-proxy)) |
+| Signing in and saving fail: *"The request's origin does not match the application's domain."* | The proxy rewrites the `Host` header, or drops its port ([Reverse proxy](#reverse-proxy)) |
 | *"Too many sign-in attempts"* for everyone at once | `TRUST_PROXY` does not match the number of proxies ([TRUST_PROXY](#trust_proxy)) |
 | Phones stay on an old version | A cache in the proxy keeps `index.html` or `sw.js` |
 | Claude: *"Couldn't reach the MCP server"* | Anthropic's addresses are blocked, or the identity provider cannot be reached from the internet |
