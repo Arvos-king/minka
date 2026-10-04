@@ -994,13 +994,15 @@ variable ajoutée à l'un s'ajoute à l'autre — et au guide anglais,
 
 Avec `SESSION_COOKIE_SECURE=true`, **la connexion ne fonctionne pas via
 `http://IP_UNRAID:8070`** : le navigateur refuse d'enregistrer un cookie
-`Secure` reçu en clair. La page de connexion s'affiche, mais l'authentification
-semble « ne rien faire ».
+`Secure` reçu en clair. La connexion semble réussir — le tableau de bord
+s'affiche —, mais le premier module ouvert, comme le moindre rechargement,
+ramène à l'écran de connexion.
 
 Ce n'est pas un bug. L'accès nominal est le sous-domaine HTTPS servi par NPM —
 et le service worker de la PWA exige HTTPS de toute façon. Pour un test
 ponctuel en direct sur le LAN, passer temporairement la variable à `false` et
-relancer `docker compose up -d`.
+relancer `docker compose up -d`. `TRUST_PROXY` reste à `2` : `1` ne vaut que
+sans reverse proxy du tout, NPM retiré ([`TRUST_PROXY`](#trust_proxy)).
 
 ### `TRUST_PROXY`
 
