@@ -132,18 +132,20 @@
 
   /* Ocre doux, pour ce qui approche : échéance « bientôt », bandeau hors
      ligne. 500 est la teinte de la palette ; le texte (800, 900) est assez
-     foncé pour tenir 4,5:1 sur les fonds pâles. */
+     foncé pour tenir 4,5:1 sur les fonds pâles. 100 tire vers le jaune
+     paille, pour se distinguer de l'abricot de « aujourd'hui ». */
   --color-amber-50: #fbf4ea;
-  --color-amber-100: #f5e9d6;
+  --color-amber-100: #f4e8cb;
   --color-amber-200: #ebd4b1;
   --color-amber-500: #d9a86c;
   --color-amber-800: #71501d;
   --color-amber-900: #5c4118;
 
-  /* Pêche appuyée, pour ce qui tombe aujourd'hui : entre l'ocre de
-     « bientôt » et la terracotta de « en retard ». */
-  --color-orange-100: #f8e1d6;
-  --color-orange-800: #8a4632;
+  /* Abricot, pour ce qui tombe aujourd'hui : entre l'ocre de « bientôt » et
+     la terracotta de « en retard ». Une pêche, plus rose, se confondait avec
+     la terracotta sur les badges. */
+  --color-orange-100: #f9dfc6;
+  --color-orange-800: #844619;
 
   /*
    * Couleurs des membres du foyer (src/lib/people.js) : les accents pastel de
@@ -270,13 +272,13 @@
     --color-red-500: #cc7a6f;
 
     --color-amber-50: #352b1f;
-    --color-amber-100: #403324;
+    --color-amber-100: #3e3722;
     --color-amber-200: #56442c;
-    --color-amber-800: #ebc994;
-    --color-amber-900: #f3dcb6;
+    --color-amber-800: #e6d29b;
+    --color-amber-900: #f3e4bb;
 
-    --color-orange-100: #4a322b;
-    --color-orange-800: #f0b9a4;
+    --color-orange-100: #4d3420;
+    --color-orange-800: #f3c29a;
 
     /* Couleurs des membres du foyer : fond et bordure s'assombrissent, la
        pastille garde sa teinte, le texte reprend le pastel d'origine. */
