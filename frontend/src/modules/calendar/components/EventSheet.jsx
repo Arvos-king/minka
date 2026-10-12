@@ -100,7 +100,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
             aria-label={T.feuille.intitule}
             required
             maxLength={120}
-            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           <div className="rounded-xl bg-surface p-3 ring-1 ring-sand-200">
@@ -111,7 +111,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                 value={startsOn}
                 onChange={(e) => setStartsOn(e.target.value)}
                 required
-                className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+                className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
               />
             </label>
 
@@ -132,7 +132,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                   value={startsAt}
                   onChange={(e) => setStartsAt(e.target.value)}
                   aria-label={T.feuille.heureDebut}
-                  className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+                  className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
                 />
                 <span className="text-sand-400">→</span>
                 <input
@@ -140,7 +140,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
                   aria-label={T.feuille.heureFin}
-                  className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+                  className="min-h-10 flex-1 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
                 />
               </div>
             )}
@@ -156,7 +156,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
                 min={startsOn}
                 onChange={(e) => setEndsOn(e.target.value)}
                 aria-label={T.feuille.dateFin}
-                className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+                className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
               />
             </label>
           </div>
@@ -195,7 +195,7 @@ export function EventSheet({ event, dateParDefaut, people, onSave, onDelete, onC
             aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
-            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           {erreur && (

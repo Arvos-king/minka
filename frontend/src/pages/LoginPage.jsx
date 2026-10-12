@@ -42,7 +42,7 @@ export function LoginPage() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
       <div className="mb-8 text-center">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand-600 text-white">
+        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand-600 text-sur-marque">
           <HouseIcon className="size-9" />
         </div>
         <h1 className="mt-4 text-2xl font-semibold tracking-tight text-sand-900">Minka</h1>

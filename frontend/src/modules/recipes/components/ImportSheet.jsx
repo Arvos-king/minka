@@ -61,7 +61,7 @@ export function ImportSheet({ onImporter, onClose }) {
           placeholder={T.importation.exemple}
           aria-label={T.importation.champ}
           rows={10}
-          className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+          className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
         />
 
         {avertissements.length > 0 && (

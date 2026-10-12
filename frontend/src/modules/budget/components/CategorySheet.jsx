@@ -65,7 +65,7 @@ export function CategorySheet({ categories, depensesParCategorie, onSave, onDele
     setErreur(null);
   }
 
-  const champ = 'min-h-11 rounded-lg bg-surface px-3 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500';
+  const champ = 'min-h-11 rounded-lg bg-surface px-3 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600';
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-voile" role="presentation">

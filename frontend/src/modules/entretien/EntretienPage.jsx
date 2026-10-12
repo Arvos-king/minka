@@ -74,7 +74,7 @@ export function EntretienPage() {
                 aria-pressed={actif}
                 className={[
                   'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                  actif ? 'bg-brand-50 text-accent ring-1 ring-brand-300' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
+                  actif ? 'bg-brand-100 text-accent ring-1 ring-brand-300' : 'bg-surface text-sand-600 ring-1 ring-sand-300',
                 ].join(' ')}
               >
                 {zone.label}
@@ -97,7 +97,7 @@ export function EntretienPage() {
           ) : (
             <>
               {groupes.enRetard.length === 0 && groupes.bientot.length === 0 && (
-                <p className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-center text-sm text-accent">
+                <p className="mb-4 rounded-xl bg-brand-100 px-4 py-3 text-center text-sm text-accent">
                   {T.rienCetteSemaine}
                 </p>
               )}
@@ -137,7 +137,7 @@ export function EntretienPage() {
         type="button"
         onClick={() => setSaisie({})}
         aria-label={T.nouvelle}
-        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
+        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />
       </button>

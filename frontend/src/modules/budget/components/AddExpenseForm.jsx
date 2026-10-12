@@ -59,7 +59,7 @@ export function AddExpenseForm({ onAdd, moisAffiche, moisCourant }) {
           inputMode="decimal"
           enterKeyHint="next"
           autoComplete="off"
-          className="min-h-12 w-24 shrink-0 rounded-xl bg-surface px-3 text-right tabular-nums ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+          className="min-h-12 w-24 shrink-0 rounded-xl bg-surface px-3 text-right tabular-nums ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
         />
         <input
           value={libelle}
@@ -69,13 +69,13 @@ export function AddExpenseForm({ onAdd, moisAffiche, moisCourant }) {
           enterKeyHint="done"
           autoCapitalize="sentences"
           autoComplete="off"
-          className="min-h-12 min-w-0 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+          className="min-h-12 min-w-0 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
         />
         <button
           type="submit"
           disabled={!valide}
           aria-label={T.saisie.ajouter}
-          className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
+          className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-sur-marque transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
         >
           <PlusIcon className="size-6" />
         </button>

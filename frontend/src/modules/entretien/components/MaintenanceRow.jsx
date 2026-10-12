@@ -47,7 +47,7 @@ export function MaintenanceRow({ tache, people, onFaite, onOuvrir }) {
         type="button"
         onClick={() => onFaite(tache)}
         aria-label={T.marquerFait(tache.label)}
-        className="grid min-h-14 w-14 shrink-0 place-items-center rounded-r-2xl text-sand-400 active:bg-brand-50 active:text-accent"
+        className="grid min-h-14 w-14 shrink-0 place-items-center rounded-r-2xl text-sand-400 active:bg-brand-100 active:text-accent"
       >
         <span className="grid size-7 place-items-center rounded-full border-2 border-current">
           <CheckIcon className="size-4" strokeWidth={3} />

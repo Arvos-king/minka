@@ -45,7 +45,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
         <span
           className={[
             'grid size-6 shrink-0 place-items-center rounded-full border-2 transition',
-            completed ? 'border-brand-600 bg-brand-600 text-white' : 'border-sand-300',
+            completed ? 'border-brand-600 bg-brand-600 text-sur-marque' : 'border-sand-300',
           ].join(' ')}
           aria-hidden="true"
         >
@@ -74,7 +74,7 @@ export function ItemRow({ item, onToggle, onChangeQuantity, onRemove, onRanger }
         <button
           type="button"
           onClick={() => onRanger(item)}
-          className="sr-only focus:not-sr-only focus:absolute focus:inset-y-1 focus:right-2 focus:z-10 focus:grid focus:place-items-center focus:rounded-lg focus:bg-surface-haute focus:px-3 focus:text-sm focus:font-medium focus:text-sand-700 focus:ring-2 focus:ring-brand-500"
+          className="sr-only focus:not-sr-only focus:absolute focus:inset-y-1 focus:right-2 focus:z-10 focus:grid focus:place-items-center focus:rounded-lg focus:bg-surface-haute focus:px-3 focus:text-sm focus:font-medium focus:text-sand-700 focus:ring-2 focus:ring-brand-600"
         >
           {T.ligne.ranger}
         </button>

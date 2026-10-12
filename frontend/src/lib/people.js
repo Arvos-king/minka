@@ -28,7 +28,7 @@ const peopleApi = {
 const PALETTE = [
   { pastille: 'bg-sky-500', fond: 'bg-sky-50', texte: 'text-sky-800', bordure: 'ring-sky-200' },
   { pastille: 'bg-violet-500', fond: 'bg-violet-50', texte: 'text-violet-800', bordure: 'ring-violet-200' },
-  { pastille: 'bg-rose-500', fond: 'bg-rose-50', texte: 'text-rose-800', bordure: 'ring-rose-200' },
+  { pastille: 'bg-peche-500', fond: 'bg-peche-50', texte: 'text-peche-800', bordure: 'ring-peche-200' },
   { pastille: 'bg-teal-500', fond: 'bg-teal-50', texte: 'text-teal-800', bordure: 'ring-teal-200' },
   { pastille: 'bg-amber-500', fond: 'bg-amber-50', texte: 'text-amber-800', bordure: 'ring-amber-200' },
 ];
@@ -36,7 +36,7 @@ const PALETTE = [
 /** Objet ne concernant personne en particulier. */
 const COMMUN = {
   pastille: 'bg-brand-600',
-  fond: 'bg-brand-50',
+  fond: 'bg-brand-100',
   texte: 'text-accent',
   bordure: 'ring-brand-200',
 };

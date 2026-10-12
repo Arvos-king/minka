@@ -68,7 +68,7 @@ export function RayonSheet({ item, rayons, onRanger, onClose }) {
                 // au pouce, et c'est un écran qu'on utilise debout.
                 className={[
                   'min-h-11 rounded-full px-3.5 text-sm font-medium transition-colors',
-                  actif ? 'bg-brand-600 text-white' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
+                  actif ? 'bg-brand-600 text-sur-marque' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
                 ].join(' ')}
               >
                 {rayon.libelle}

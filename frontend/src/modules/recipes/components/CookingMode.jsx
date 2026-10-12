@@ -151,7 +151,7 @@ export function CookingMode({ recette, onClose }) {
                     <span
                       className={[
                         'grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold transition',
-                        faite ? 'bg-brand-600 text-white' : 'bg-sand-200 text-sand-600',
+                        faite ? 'bg-brand-600 text-sur-marque' : 'bg-sand-200 text-sand-600',
                       ].join(' ')}
                       aria-hidden="true"
                     >
@@ -173,7 +173,7 @@ export function CookingMode({ recette, onClose }) {
           </ol>
 
           {termine && (
-            <div className="mt-4 rounded-xl bg-brand-50 px-4 py-5 text-center">
+            <div className="mt-4 rounded-xl bg-brand-100 px-4 py-5 text-center">
               <p className="font-medium text-accent">{T.cuisine.pret}</p>
               <button
                 type="button"

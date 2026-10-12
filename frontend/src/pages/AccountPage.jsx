@@ -39,7 +39,7 @@ export function AccountPage() {
   return (
     <div className="space-y-6">
       <section className="flex items-center gap-4 rounded-2xl bg-surface p-4 ring-1 ring-sand-200">
-        <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-accent">
+        <span className="grid size-12 place-items-center rounded-full bg-brand-100 text-accent">
           <UserIcon className="size-6" />
         </span>
         <span>
@@ -82,7 +82,7 @@ export function AccountPage() {
           )}
 
           {state.status === 'done' && (
-            <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
+            <p role="status" className="rounded-xl bg-brand-100 px-4 py-3 text-sm text-accent">
               {T.compte.motDePasseMisAJour}
             </p>
           )}

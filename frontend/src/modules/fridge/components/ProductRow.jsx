@@ -91,7 +91,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
             value={item.expiresOn ?? ''}
             onChange={(event) => onChangeExpiry(item, event.target.value || null)}
             aria-label={T.ligne.datePeremption(item.name)}
-            className="min-h-10 rounded-lg bg-surface px-3 text-sm text-sand-700 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+            className="min-h-10 rounded-lg bg-surface px-3 text-sm text-sand-700 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
           />
 
           {item.expiresOn && (
@@ -110,7 +110,7 @@ export function ProductRow({ item, onChangeQuantity, onChangeExpiry, onRemove, o
               type="button"
               onClick={envoyerAuxCourses}
               disabled={envoyeAuxCourses}
-              className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand-50 px-3 text-sm font-medium text-accent active:bg-brand-100"
+              className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-brand-100 px-3 text-sm font-medium text-accent active:bg-brand-200 active:text-brand-800"
             >
               {envoyeAuxCourses ? (
                 <>

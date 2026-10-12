@@ -94,7 +94,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
             aria-label={T.feuille.aFaire}
             required
             maxLength={160}
-            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           <div>
@@ -108,7 +108,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
                     type="button"
                     onClick={() => setZoneId(zone.id)}
                     aria-pressed={actif}
-                    className={`${pastille} ${actif ? 'bg-brand-50 text-accent ring-brand-300' : 'bg-surface text-sand-600 ring-sand-300'}`}
+                    className={`${pastille} ${actif ? 'bg-brand-100 text-accent ring-brand-300' : 'bg-surface text-sand-600 ring-sand-300'}`}
                   >
                     {zone.label}
                   </button>
@@ -128,7 +128,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
                     type="button"
                     onClick={() => setRecurrence(rythme.valeur)}
                     aria-pressed={actif}
-                    className={`${pastille} ${actif ? 'bg-brand-50 text-accent ring-brand-300' : 'bg-surface text-sand-600 ring-sand-300'}`}
+                    className={`${pastille} ${actif ? 'bg-brand-100 text-accent ring-brand-300' : 'bg-surface text-sand-600 ring-sand-300'}`}
                   >
                     {rythme.libelle}
                   </button>
@@ -144,7 +144,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
               value={dueOn}
               onChange={(e) => setDueOn(e.target.value)}
               required
-              className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
             />
           </label>
 
@@ -187,7 +187,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
             aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
-            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           {erreur && (

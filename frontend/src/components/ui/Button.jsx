@@ -7,7 +7,7 @@
  */
 
 const VARIANTS = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
+  primary: 'bg-brand-600 text-sur-marque hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
   secondary:
     'bg-surface text-sand-800 ring-1 ring-sand-300 hover:bg-sand-50 active:bg-sand-100 disabled:text-sand-400',
   ghost: 'text-sand-700 hover:bg-sand-200/70 active:bg-sand-200 disabled:text-sand-400',
@@ -35,7 +35,7 @@ export function Button({
       className={[
         'inline-flex items-center justify-center gap-2 rounded-xl font-medium',
         'transition-colors outline-none',
-        'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+        'focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2',
         'disabled:cursor-not-allowed',
         VARIANTS[variant],
         SIZES[size],

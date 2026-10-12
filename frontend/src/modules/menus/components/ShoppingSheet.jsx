@@ -101,7 +101,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
 
         {resultat !== null ? (
           <div className="py-6 text-center">
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-100 text-accent">
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-200 text-accent">
               <CheckIcon className="size-6" strokeWidth={2.5} />
             </span>
             <p className="mt-3 font-medium text-sand-900">
@@ -147,7 +147,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
                           <span
                             className={[
                               'grid size-6 shrink-0 place-items-center rounded-full border-2 transition',
-                              retenu ? 'border-brand-600 bg-brand-600 text-white' : 'border-sand-300',
+                              retenu ? 'border-brand-600 bg-brand-600 text-sur-marque' : 'border-sand-300',
                             ].join(' ')}
                             aria-hidden="true"
                           >

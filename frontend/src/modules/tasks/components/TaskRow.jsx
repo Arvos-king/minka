@@ -32,7 +32,7 @@ export function TaskRow({ task, people, onToggle, onEdit }) {
         <span
           className={[
             'grid size-6 place-items-center rounded-full border-2 transition',
-            task.done ? 'border-brand-600 bg-brand-600 text-white' : 'border-sand-300',
+            task.done ? 'border-brand-600 bg-brand-600 text-sur-marque' : 'border-sand-300',
           ].join(' ')}
           aria-hidden="true"
         >
