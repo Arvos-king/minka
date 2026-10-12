@@ -40,8 +40,8 @@ export function LoginPage() {
   }
 
   return (
-    // Le seul dégradé de l'application, à peine perceptible : du fond de page
-    // vers une pêche très pâle, comme un papier à lettres.
+    // Un dégradé à peine perceptible, du fond de page vers une pêche très
+    // pâle, comme un papier à lettres — le même que celui des états vides.
     <div className="min-h-dvh bg-linear-to-b from-fond to-peche-50">
       <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
         <div className="mb-8 text-center">
