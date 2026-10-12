@@ -47,7 +47,7 @@ export function AppLayout() {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
+              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-white active:bg-white/20"
               aria-label={T.entete.revenir}
             >
               <ArrowLeftIcon className="size-5" />
@@ -60,7 +60,7 @@ export function AppLayout() {
 
           <Link
             to="/compte"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-medium transition-colors hover:bg-white/25 active:bg-white/30"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-medium transition-colors hover:bg-white/25 focus-visible:outline-white active:bg-white/30"
             aria-label={T.entete.monCompte}
           >
             {initial}

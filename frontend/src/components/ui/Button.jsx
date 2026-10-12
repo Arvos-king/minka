@@ -6,12 +6,17 @@
  * l'interface est pensée pour être utilisée d'une main.
  */
 
+/*
+ * Seule l'action principale prend la forme d'une pilule : elle se repère
+ * ainsi d'un coup d'œil, même quand plusieurs boutons se côtoient.
+ */
 const VARIANTS = {
-  primary: 'bg-brand-600 text-sur-marque hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300',
+  primary:
+    'rounded-full bg-brand-600 text-sur-marque shadow-xs hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300 disabled:shadow-none',
   secondary:
-    'bg-surface text-sand-800 ring-1 ring-sand-300 hover:bg-sand-50 active:bg-sand-100 disabled:text-sand-400',
-  ghost: 'text-sand-700 hover:bg-sand-200/70 active:bg-sand-200 disabled:text-sand-400',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
+    'rounded-xl bg-surface text-sand-800 ring-1 ring-sand-300 hover:bg-sand-50 active:bg-sand-100 disabled:text-sand-400',
+  ghost: 'rounded-xl text-sand-700 hover:bg-sand-100 active:bg-sand-200 disabled:text-sand-400',
+  danger: 'rounded-xl bg-red-600 text-white hover:bg-red-700 active:bg-red-800 disabled:bg-red-300',
 };
 
 const SIZES = {
@@ -33,9 +38,12 @@ export function Button({
       type="button"
       disabled={disabled || loading}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-xl font-medium',
+        'inline-flex items-center justify-center gap-2 font-medium',
         'transition-colors outline-none',
-        'focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2',
+        // L'écart entre le bouton et l'anneau prend la couleur des panneaux, où
+        // vivent la plupart des boutons : blanc par défaut, il cernait d'un
+        // halo clair les boutons du mode sombre.
+        'focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-haute',
         'disabled:cursor-not-allowed',
         VARIANTS[variant],
         SIZES[size],

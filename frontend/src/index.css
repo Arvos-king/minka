@@ -331,6 +331,17 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /*
+   * Anneau de focus commun, pour la navigation au clavier : le contour par
+   * défaut du navigateur, bleu ou noir, détonnait. Les champs et les boutons
+   * dessinent le leur (`outline-none` puis un `ring`) ; sur le rose de
+   * l'en-tête, les boutons le passent en blanc.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+  }
+
   /* Sur iOS, une police inférieure à 16px déclenche un zoom automatique à la
      mise au point d'un champ — très désagréable en pleine saisie. */
   input,

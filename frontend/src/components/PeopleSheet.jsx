@@ -139,7 +139,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
             type="submit"
             disabled={nouveau.trim() === '' || enCours}
             aria-label={T.membres.ajouter}
-            className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-sur-marque transition-colors active:bg-brand-800 disabled:bg-sand-300"
+            className="grid size-12 shrink-0 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-xs transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300 disabled:shadow-none"
           >
             <PlusIcon className="size-6" />
           </button>

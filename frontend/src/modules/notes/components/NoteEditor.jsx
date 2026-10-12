@@ -149,7 +149,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
             type="button"
             onClick={fermer}
             aria-label={T.editeur.fermer}
-            className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
+            className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-white active:bg-white/20"
           >
             <ArrowLeftIcon className="size-5" />
           </button>
@@ -164,7 +164,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
               onClick={basculerEpingle}
               aria-pressed={pinned}
               aria-label={pinned ? T.editeur.detacher : T.editeur.epingler}
-              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
+              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-white active:bg-white/20"
             >
               <PinIcon className="size-5" rempli={pinned} />
             </button>
