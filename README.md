@@ -859,6 +859,43 @@ ferait croire à une connexion valide.
 
 ---
 
+## Palette et polices
+
+Palette « vieux rose » : vieux rose pour la marque, neutres chauds tirés vers la
+prune, accents pastel (bleu-gris, lavande, pêche, sauge, ocre) pour les membres
+du foyer et les échéances. Tout est dans le bloc `@theme` de
+`frontend/src/index.css`, et nulle part ailleurs : aucun composant ne contient
+de couleur en dur. La correspondance avec la palette de référence est écrite en
+tête de ce bloc.
+
+Les échelles portent des noms de rôle (`brand`, `sand`) et non de teinte :
+changer de couleur, c'est changer des valeurs, pas renommer des classes.
+
+Pour retoucher une teinte, deux contraintes à garder en tête, rappelées en
+commentaire à côté de chaque valeur :
+
+- **4,5:1 pour tout texte**, y compris les textes d'attente des champs
+  (`sand-400`) et le texte des boutons sur `brand-600` — c'est pourquoi le
+  vieux rose 500, sur lequel le blanc ne tient que 2,8:1, n'habille pas les
+  boutons ;
+- **3:1 pour ce qu'on manipule** : contour des champs et cases à cocher
+  (`sand-300`), anneau de focus (`brand-600`).
+
+Changer la couleur de marque demande aussi de mettre à jour la barre système
+(`theme-color` dans `frontend/index.html`, `theme_color` du manifeste dans
+`frontend/vite.config.js`) et de régénérer les icônes (voir plus bas).
+
+Les ombres passent par les variables `--ombre-*` de la couche de base : Tailwind
+recopie la valeur des ombres dans chaque utilitaire, et seule une variable
+permet au mode sombre de les remplacer.
+
+Polices : DM Sans pour le texte, Fraunces pour les titres (`font-titre`), toutes
+deux servies par l'application (paquets `@fontsource-variable`) — la CSP
+interdit Google Fonts, et la PWA les garde hors ligne. Ces fichiers n'ont pas de
+chiffres à chasse fixe : `tabular-nums` est sans effet.
+
+---
+
 ## Mode sombre
 
 L'interface suit le réglage du téléphone, sans bouton pour en changer.
@@ -871,10 +908,12 @@ l'élévation, comme le veut l'usage en sombre — une carte posée sur la page 
 plus claire qu'elle, un panneau glissé plus clair encore.
 
 Là où une échelle ne suffit pas, un **jeton de rôle** tranche : `bg-surface`,
-`bg-fond`, `bg-entete`, `text-accent`, `text-danger`, `bg-voile`. Ils existent
-parce qu'une clarté n'est pas une fonction — `brand-700` servait à la fois de
-fond de bouton et de couleur de lien, et en sombre l'un doit rester foncé quand
-l'autre doit s'éclaircir.
+`bg-fond`, `bg-entete`, `text-accent`, `text-danger`, `bg-voile`,
+`text-sur-marque`. Ils existent parce qu'une clarté n'est pas une fonction — une
+même teinte servait à la fois de fond de bouton et de couleur de lien, et en
+sombre l'un doit rester foncé quand l'autre doit s'éclaircir. `text-sur-marque`
+est le texte posé sur `bg-brand-600` : blanc en clair, prune en sombre, où le
+bouton prend un vieux rose éclairci.
 
 **Un module n'a rien à faire pour en profiter**, à condition d'employer ces
 jetons plutôt que `bg-white` ou une couleur en dur.
