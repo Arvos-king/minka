@@ -36,7 +36,7 @@ export function RecipeSheet({ recette, onCuisiner, onModifier, onClose }) {
         aria-label={recette.title}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{recette.title}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{recette.title}</h2>
         {recette.servings && <p className="mt-0.5 text-sm text-sand-500">{T.pour(recette.servings)}</p>}
 
         {recette.tags.length > 0 && (
@@ -56,7 +56,7 @@ export function RecipeSheet({ recette, onCuisiner, onModifier, onClose }) {
           <p className="text-sm font-medium text-sand-700">{T.fiche.ingredients}</p>
 
           {recette.ingredients.length === 0 ? (
-            <p className="mt-2 rounded-xl border border-dashed border-sand-300 px-4 py-5 text-center text-sm text-sand-500">
+            <p className="mt-2 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-5 text-center text-sm text-sand-500">
               {T.fiche.aucunIngredient}
             </p>
           ) : (

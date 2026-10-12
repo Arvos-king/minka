@@ -69,8 +69,8 @@ export function ShoppingPage() {
           </p>
 
           {pending.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <CartIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <CartIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">{T.listeVide}</p>
               <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>
@@ -82,7 +82,7 @@ export function ShoppingPage() {
                     // `top-14` : sous l'en-tête de l'application, qui fait cette
                     // hauteur. `-mx-4` annule la marge du contenu, pour que le
                     // titre collant occupe toute la largeur.
-                    <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-1.5 text-sm font-semibold text-sand-600 backdrop-blur">
+                    <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-1.5 text-sm font-medium text-sand-600 backdrop-blur">
                       {section.libelle}
                     </h2>
                   )}

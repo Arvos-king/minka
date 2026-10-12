@@ -44,8 +44,8 @@ export function NotesPage() {
       {status === 'ready' && (
         <>
           {notes.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <NotesIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <NotesIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">{T.aucuneNote}</p>
               <p className="mt-1 text-sm text-sand-500">{T.aideVide}</p>
             </div>
@@ -83,7 +83,7 @@ export function NotesPage() {
         type="button"
         onClick={() => setEdition({})}
         aria-label={T.nouvelle}
-        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
+        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />
       </button>

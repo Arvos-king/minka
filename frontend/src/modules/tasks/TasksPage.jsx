@@ -74,7 +74,7 @@ export function TasksPage() {
       )}
 
       {replanification && (
-        <p role="status" className="mb-4 rounded-xl bg-brand-50 px-4 py-3 text-sm text-accent">
+        <p role="status" className="mb-4 rounded-xl bg-brand-100 px-4 py-3 text-sm text-accent">
           {T.revient(replanification.titre, libelleDateLongue(replanification.dueOn))}
         </p>
       )}
@@ -134,8 +134,8 @@ export function TasksPage() {
           </p>
 
           {aFaire.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <TasksIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <TasksIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">
                 {counts.pending > 0 ? T.rienPourCettePersonne : T.toutEstFait}
               </p>
@@ -218,7 +218,7 @@ export function TasksPage() {
         type="button"
         onClick={() => setSaisie({})}
         aria-label={T.ajouter}
-        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
+        className="bottom-onglets fixed right-4 z-20 mb-4 grid size-14 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-lg transition-colors hover:bg-brand-700 active:bg-brand-800"
       >
         <PlusIcon className="size-7" />
       </button>

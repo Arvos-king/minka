@@ -71,7 +71,7 @@ export function BudgetPage() {
           <ChevronRightIcon className="size-5 rotate-180" />
         </button>
 
-        <p className="flex-1 text-center font-semibold text-sand-900 first-letter:uppercase">
+        <p className="flex-1 text-center font-titre text-lg font-medium text-sand-900 first-letter:uppercase">
           {libelleMois(debut)}
         </p>
 
@@ -98,7 +98,7 @@ export function BudgetPage() {
       {status === 'ready' && (
         <>
           {/* Le chiffre qu'on vient chercher, avant tout le reste. */}
-          <p className="mb-1 text-center text-3xl font-semibold tabular-nums text-sand-900">
+          <p className="mb-1 text-center text-3xl font-medium tabular-nums text-sand-900">
             {formaterMontantCourt(totals.spentCents)}
           </p>
           <p className="mb-5 text-center text-sm text-sand-500">
@@ -118,7 +118,7 @@ export function BudgetPage() {
             </div>
 
             {categories.length === 0 && sansCategorie === 0 ? (
-              <p className="rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
+              <p className="rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-6 text-center text-sm text-sand-500">
                 {T.aucuneCategorie}
               </p>
             ) : (
@@ -145,8 +145,8 @@ export function BudgetPage() {
           <h2 className="mb-2 text-sm font-medium text-sand-600">{T.leDetail}</h2>
 
           {expenses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <BudgetIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <BudgetIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">{T.rienDeNote}</p>
               <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>

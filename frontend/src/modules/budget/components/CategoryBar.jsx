@@ -34,7 +34,7 @@ export function CategoryBar({ label, spentCents, budgetCents, onOuvrir }) {
           aria-label={T.partDuPlafond(label, Math.round(part * 100))}
         >
           <div
-            className={`h-full rounded-full transition-all ${depasse ? 'bg-red-500' : 'bg-brand-500'}`}
+            className={`h-full rounded-full transition-all ${depasse ? 'bg-red-600' : 'bg-brand-500'}`}
             style={{ width: `${part * 100}%` }}
           />
         </div>

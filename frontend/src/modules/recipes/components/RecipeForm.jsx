@@ -154,7 +154,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
         aria-label={enEdition ? T.formulaire.modifier : T.formulaire.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">
+        <h2 className="font-titre text-xl font-medium text-sand-900">
           {enEdition ? T.formulaire.modifier : T.formulaire.nouvelle}
         </h2>
 
@@ -167,7 +167,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
             aria-label={T.formulaire.nom}
             required
             maxLength={120}
-            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           <label className="flex items-center justify-between gap-3 rounded-xl bg-surface p-3 ring-1 ring-sand-200">
@@ -184,7 +184,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               onChange={(e) => setServings(e.target.value)}
               placeholder="4"
               aria-label={T.formulaire.nombreDeParts}
-              className="min-h-10 w-20 rounded-lg bg-sand-50 px-3 text-center text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="min-h-10 w-20 rounded-lg bg-sand-50 px-3 text-center text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
             />
           </label>
 
@@ -206,7 +206,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                       type="button"
                       onClick={() => setTags((precedents) => precedents.filter((t) => t !== tag))}
                       aria-label={T.formulaire.retirerEtiquette(tag)}
-                      className="flex min-h-9 items-center gap-1.5 rounded-full bg-brand-50 pr-2.5 pl-3 text-sm text-accent ring-1 ring-brand-300"
+                      className="flex min-h-9 items-center gap-1.5 rounded-full bg-brand-100 pr-2.5 pl-3 text-sm text-accent ring-1 ring-brand-300"
                     >
                       {tag}
                       <span aria-hidden="true" className="text-base leading-none">
@@ -225,7 +225,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               onKeyDown={surToucheTag}
               placeholder={T.formulaire.etiquettesExemple}
               maxLength={30}
-              className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
             />
 
             {suggestions.length > 0 && (
@@ -256,7 +256,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                     placeholder={T.formulaire.ingredientExemple}
                     aria-label={T.formulaire.nomIngredient}
                     maxLength={120}
-                    className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+                    className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
                   />
                   <input
                     value={ligne.quantity}
@@ -264,7 +264,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
                     placeholder={T.formulaire.quantiteExemple}
                     aria-label={T.formulaire.quantite}
                     maxLength={60}
-                    className="min-h-12 w-24 rounded-xl bg-surface px-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+                    className="min-h-12 w-24 rounded-xl bg-surface px-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
                   />
                   <button
                     type="button"
@@ -330,7 +330,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               onChange={(e) => setPreparation(e.target.value)}
               placeholder={T.formulaire.preparationExemple}
               rows={6}
-              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -346,7 +346,7 @@ export function RecipeForm({ recette, etiquettesConnues = [], onSave, onDelete, 
               placeholder={T.formulaire.remarquesExemple}
               rows={3}
               maxLength={4000}
-              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="mt-1.5 w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
             />
           </div>
 

@@ -134,13 +134,13 @@ export function MealSheet({
         aria-label={T.repas.dialogue(libelleJour(date), libelleCreneau)}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900 first-letter:uppercase">
+        <h2 className="font-titre text-xl font-medium text-sand-900 first-letter:uppercase">
           {libelleJour(date)} — {libelleCreneau}
         </h2>
         {intitule && <p className="mt-0.5 text-sm text-sand-500">{T.repas.actuellement(intitule)}</p>}
 
         {decalage ? (
-          <div role="status" className="mt-3 flex items-start gap-3 rounded-xl bg-brand-50 px-4 py-3">
+          <div role="status" className="mt-3 flex items-start gap-3 rounded-xl bg-brand-100 px-4 py-3">
             <p className="flex-1 text-sm text-sand-800">
               {decalage === 'envoi' ? T.repas.decalage : decalage.resume}
             </p>
@@ -184,7 +184,7 @@ export function MealSheet({
             onChange={(e) => setSaisie(e.target.value)}
             placeholder={recettesDisponibles ? T.repas.chercherOuEcrire : T.repas.exempleLibre}
             maxLength={120}
-            className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="mt-1.5 min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           {texte !== '' ? (
@@ -221,7 +221,7 @@ export function MealSheet({
                     // visable au pouce.
                     className={[
                       'min-h-11 rounded-full px-3.5 text-sm font-medium transition-colors',
-                      pose ? 'bg-brand-600 text-white' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
+                      pose ? 'bg-brand-600 text-sur-marque' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
                     ].join(' ')}
                   >
                     {raccourci}
@@ -237,7 +237,7 @@ export function MealSheet({
             <p className="text-sm font-medium text-sand-700">{T.repas.mesRecettes}</p>
 
             {visibles.length === 0 ? (
-              <p className="mt-2 rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
+              <p className="mt-2 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-6 text-center text-sm text-sand-500">
                 {recipes.length === 0 ? T.repas.aucuneRecette : T.repas.aucuneCorrespondance}
               </p>
             ) : (
@@ -256,7 +256,7 @@ export function MealSheet({
                         className={[
                           'flex min-h-14 w-full items-center gap-2 rounded-xl px-4 text-left ring-1 transition',
                           posee
-                            ? 'bg-brand-50 ring-brand-300 active:bg-brand-100'
+                            ? 'bg-brand-100 ring-brand-300 active:ring-brand-600'
                             : 'bg-surface ring-sand-200 active:bg-sand-50',
                         ].join(' ')}
                       >

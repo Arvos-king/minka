@@ -92,7 +92,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
         aria-label={enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">
+        <h2 className="font-titre text-xl font-medium text-sand-900">
           {enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         </h2>
 
@@ -105,7 +105,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             aria-label={T.feuille.intitule}
             required
             maxLength={160}
-            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 w-full rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           <div className="rounded-xl bg-surface p-3 ring-1 ring-sand-200">
@@ -124,7 +124,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                     onClick={() => setDueOn(valeur)}
                     className={[
                       'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                      actif ? 'bg-brand-600 text-white' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
+                      actif ? 'bg-brand-600 text-sur-marque' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
                       'disabled:opacity-40',
                     ].join(' ')}
                   >
@@ -137,7 +137,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                 value={dueOn ?? ''}
                 onChange={(e) => setDueOn(e.target.value || null)}
                 aria-label={T.feuille.echeancePrecise}
-                className="rounded-full bg-sand-50 px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+                className="rounded-full bg-sand-50 px-3 py-1 text-sm text-sand-600 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
               />
             </div>
 
@@ -155,7 +155,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
                     aria-pressed={actif}
                     className={[
                       'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                      actif ? 'bg-brand-600 text-white' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
+                      actif ? 'bg-brand-600 text-sur-marque' : 'bg-sand-50 text-sand-600 ring-1 ring-sand-300',
                     ].join(' ')}
                   >
                     {libelle}
@@ -204,7 +204,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
             aria-label={SOCLE.commun.note}
             rows={2}
             maxLength={500}
-            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="w-full rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
 
           {erreur && (

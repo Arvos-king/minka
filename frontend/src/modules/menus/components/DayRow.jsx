@@ -53,8 +53,8 @@ export function DayRow({
     >
       <h3
         className={[
-          'flex items-baseline gap-2 px-4 py-2 text-sm font-semibold first-letter:uppercase',
-          estAujourdhui ? 'bg-brand-50 text-accent' : 'bg-sand-50 text-sand-700',
+          'flex items-baseline gap-2 px-4 py-2 text-sm font-medium first-letter:uppercase',
+          estAujourdhui ? 'bg-brand-100 text-accent' : 'bg-sand-50 text-sand-700',
         ].join(' ')}
       >
         {libelleJour(date)}
@@ -85,7 +85,7 @@ export function DayRow({
               'flex transition-colors',
               index > 0 ? 'border-t border-sand-100' : '',
               // La case où le repas tomberait si on lâchait maintenant.
-              estVisee ? 'bg-brand-50 outline-2 -outline-offset-2 outline-brand-500' : '',
+              estVisee ? 'bg-brand-100 outline-2 -outline-offset-2 outline-brand-600' : '',
               // Le repas « soulevé » : la ligne entière, casserole et poignée
               // comprises, estompée et cernée de pointillés à l'intérieur — que
               // la carte arrondie ne rogne pas.
@@ -142,7 +142,7 @@ export function DayRow({
               <Link
                 to={adresseRecette(recette.id)}
                 aria-label={T.jour.ouvrirRecette(recette.title)}
-                className="grid min-h-14 w-12 shrink-0 place-items-center text-accent active:bg-brand-50"
+                className="grid min-h-14 w-12 shrink-0 place-items-center text-accent active:bg-brand-100"
               >
                 <RecetteIcon className="size-6" />
               </Link>

@@ -61,7 +61,7 @@ export function CookingMode({ recette, onClose }) {
 
   return (
     <div role="dialog" aria-modal="true" aria-label={T.cuisine.dialogue(recette.title)} className="fixed inset-0 z-40 flex flex-col bg-surface">
-      <header className="pt-safe shrink-0 bg-surface-haute shadow-sm">
+      <header className="pt-safe shrink-0 border-b border-sand-200 bg-surface-haute shadow-sm">
         <div className="mx-auto flex min-h-14 w-full max-w-2xl items-center gap-2 px-2">
           <button
             type="button"
@@ -72,7 +72,7 @@ export function CookingMode({ recette, onClose }) {
             <ArrowLeftIcon className="size-5" />
           </button>
 
-          <h2 className="min-w-0 flex-1 truncate font-semibold text-sand-900">{recette.title}</h2>
+          <h2 className="min-w-0 flex-1 truncate font-titre text-lg font-medium text-sand-900">{recette.title}</h2>
 
           <span className="shrink-0 text-sm tabular-nums text-sand-500">
             {faites} / {total}
@@ -150,8 +150,8 @@ export function CookingMode({ recette, onClose }) {
                   >
                     <span
                       className={[
-                        'grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold transition',
-                        faite ? 'bg-brand-600 text-white' : 'bg-sand-200 text-sand-600',
+                        'grid size-7 shrink-0 place-items-center rounded-full text-sm font-medium transition',
+                        faite ? 'bg-brand-600 text-sur-marque' : 'bg-sand-200 text-sand-600',
                       ].join(' ')}
                       aria-hidden="true"
                     >
@@ -173,7 +173,7 @@ export function CookingMode({ recette, onClose }) {
           </ol>
 
           {termine && (
-            <div className="mt-4 rounded-xl bg-brand-50 px-4 py-5 text-center">
+            <div className="mt-4 rounded-xl bg-brand-100 px-4 py-5 text-center">
               <p className="font-medium text-accent">{T.cuisine.pret}</p>
               <button
                 type="button"

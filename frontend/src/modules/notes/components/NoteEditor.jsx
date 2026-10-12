@@ -149,12 +149,12 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
             type="button"
             onClick={fermer}
             aria-label={T.editeur.fermer}
-            className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
+            className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-white active:bg-white/20"
           >
             <ArrowLeftIcon className="size-5" />
           </button>
 
-          <p className="flex-1 truncate text-sm text-white/80" role="status">
+          <p className="flex-1 truncate text-sm text-white" role="status">
             {INDICATEURS[etat] ?? ''}
           </p>
 
@@ -164,7 +164,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
               onClick={basculerEpingle}
               aria-pressed={pinned}
               aria-label={pinned ? T.editeur.detacher : T.editeur.epingler}
-              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 active:bg-white/20"
+              className="grid size-11 place-items-center rounded-full transition-colors hover:bg-white/10 focus-visible:outline-white active:bg-white/20"
             >
               <PinIcon className="size-5" rempli={pinned} />
             </button>
@@ -200,7 +200,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
           placeholder={T.editeur.titrePlaceholder}
           aria-label={T.editeur.titre}
           maxLength={120}
-          className="w-full shrink-0 bg-transparent text-lg font-semibold text-sand-900 outline-none placeholder:font-normal placeholder:text-sand-400"
+          className="w-full shrink-0 bg-transparent text-lg font-medium text-sand-900 outline-none placeholder:font-normal placeholder:text-sand-400"
         />
 
         <textarea

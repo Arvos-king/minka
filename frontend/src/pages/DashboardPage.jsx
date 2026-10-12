@@ -18,14 +18,14 @@ export function DashboardPage() {
 
   return (
     <div>
-      <p className="text-2xl font-semibold tracking-tight text-sand-900">
+      <p className="font-titre text-2xl font-medium text-sand-900">
         {greeting()} {user?.displayName}
       </p>
       <p className="mt-1 text-sm text-sand-600">{T.accueil.question}</p>
 
       {modules.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
-          <HouseIcon className="mx-auto size-8 text-sand-400" />
+        <div className="mt-8 rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-10 text-center">
+          <HouseIcon className="mx-auto size-8 text-brand-500" />
           <p className="mt-3 text-sm font-medium text-sand-700">{T.accueil.aucunModule}</p>
           <p className="mt-1 text-sm text-sand-500">{T.accueil.premierModule}</p>
         </div>
@@ -37,9 +37,9 @@ export function DashboardPage() {
               <li key={module.id}>
                 <Link
                   to={module.path}
-                  className="flex items-center gap-4 rounded-2xl bg-surface p-4 ring-1 ring-sand-200 transition hover:ring-brand-300 active:bg-sand-50"
+                  className="flex items-center gap-4 rounded-2xl bg-surface p-4 shadow-sm ring-1 ring-sand-200 transition hover:shadow-md hover:ring-brand-300 active:bg-sand-50"
                 >
-                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-50 text-accent">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-100 text-accent">
                     {Icon ? <Icon className="size-6" /> : <HouseIcon className="size-6" />}
                   </span>
                   <span className="min-w-0 flex-1">

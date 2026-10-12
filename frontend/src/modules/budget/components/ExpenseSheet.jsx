@@ -74,7 +74,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
         aria-label={T.depense.modifier}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.depense.modifier}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.depense.modifier}</h2>
 
         <form onSubmit={soumettre} className="mt-4 space-y-4 pb-4">
           <div className="flex gap-2">
@@ -84,7 +84,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
               aria-label={T.saisie.montant}
               inputMode="decimal"
               required
-              className="min-h-12 w-28 shrink-0 rounded-xl bg-surface px-3 text-right tabular-nums ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="min-h-12 w-28 shrink-0 rounded-xl bg-surface px-3 text-right tabular-nums ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
             />
             <input
               ref={champLibelle}
@@ -93,7 +93,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
               aria-label={T.saisie.ceQueCEtait}
               required
               maxLength={120}
-              className="min-h-12 min-w-0 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="min-h-12 min-w-0 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -104,7 +104,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
               value={spentOn}
               onChange={(e) => setSpentOn(e.target.value)}
               required
-              className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-500"
+              className="min-h-10 rounded-lg bg-sand-50 px-3 text-sand-800 ring-1 ring-sand-300 outline-none focus:ring-2 focus:ring-brand-600"
             />
           </label>
 
@@ -122,7 +122,7 @@ export function ExpenseSheet({ expense, categories, people, onSave, onDelete, on
                     className={[
                       'inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium ring-1 transition',
                       actif
-                        ? 'bg-brand-50 text-accent ring-brand-300'
+                        ? 'bg-brand-100 text-accent ring-brand-300'
                         : 'bg-surface text-sand-600 ring-sand-300',
                     ].join(' ')}
                   >

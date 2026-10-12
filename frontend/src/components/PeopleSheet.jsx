@@ -82,7 +82,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
         aria-label={T.membres.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.membres.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.membres.titre}</h2>
         <p className="mt-1 text-sm text-sand-500">{T.membres.intro}</p>
 
         <ul className="mt-4 space-y-2">
@@ -100,7 +100,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
                   onBlur={(e) => renommerSiModifie(personne, e.target.value)}
                   aria-label={T.membres.nomDe(personne.displayName)}
                   maxLength={60}
-                  className="min-h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-sand-900 outline-none focus:bg-sand-50 focus:ring-2 focus:ring-brand-500"
+                  className="min-h-10 min-w-0 flex-1 rounded-lg bg-transparent px-2 text-sand-900 outline-none focus:bg-sand-50 focus:ring-2 focus:ring-brand-600"
                 />
 
                 {personne.hasAccount ? (
@@ -133,13 +133,13 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
             placeholder={T.membres.ajouterQuelquun}
             aria-label={T.membres.nomAAjouter}
             maxLength={60}
-            className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+            className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
           />
           <button
             type="submit"
             disabled={nouveau.trim() === '' || enCours}
             aria-label={T.membres.ajouter}
-            className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors active:bg-brand-800 disabled:bg-sand-300"
+            className="grid size-12 shrink-0 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-xs transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300 disabled:shadow-none"
           >
             <PlusIcon className="size-6" />
           </button>

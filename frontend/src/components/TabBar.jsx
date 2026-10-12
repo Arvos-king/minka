@@ -46,12 +46,21 @@ export function TabBar() {
                 // est ouverte — la couleur seule ne le dirait qu'aux voyants.
                 aria-current={estActif ? 'page' : undefined}
                 className={[
-                  'flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 transition-colors',
+                  'group flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 transition-colors',
                   'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600',
                   estActif ? 'text-accent' : 'text-sand-500 active:text-sand-700',
                 ].join(' ')}
               >
-                <Icone className="size-6 shrink-0" />
+                {/* Une pastille rose sous l'icône de l'onglet ouvert : la
+                    couleur du texte seule se remarquait mal. */}
+                <span
+                  className={[
+                    'rounded-full px-4 py-0.5 transition-colors',
+                    estActif ? 'bg-brand-100' : 'group-active:bg-sand-100',
+                  ].join(' ')}
+                >
+                  <Icone className="size-6 shrink-0" />
+                </span>
                 <span className="w-full truncate text-center text-[11px] font-medium">
                   {onglet.label}
                 </span>

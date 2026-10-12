@@ -25,7 +25,7 @@ export function TextField({ label, hint, error, className = '', ...props }) {
           'placeholder:text-sand-400',
           error
             ? 'ring-red-400 focus:ring-2 focus:ring-red-500'
-            : 'ring-sand-300 focus:ring-2 focus:ring-brand-500',
+            : 'ring-sand-300 focus:ring-2 focus:ring-brand-600',
         ].join(' ')}
         {...props}
       />

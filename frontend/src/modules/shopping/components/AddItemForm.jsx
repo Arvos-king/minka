@@ -48,13 +48,13 @@ export function AddItemForm({ onAdd }) {
           enterKeyHint="done"
           autoCapitalize="sentences"
           autoComplete="off"
-          className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+          className="min-h-12 flex-1 rounded-xl bg-surface px-4 ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
         />
         <button
           type="submit"
           disabled={name.trim() === ''}
           aria-label={SOCLE.commun.ajouter}
-          className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-600 text-white transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-sand-300"
+          className="grid size-12 shrink-0 place-items-center rounded-full bg-brand-600 text-sur-marque shadow-xs transition-colors hover:bg-brand-700 active:bg-brand-800 disabled:bg-brand-300 disabled:shadow-none"
         >
           <PlusIcon className="size-6" />
         </button>

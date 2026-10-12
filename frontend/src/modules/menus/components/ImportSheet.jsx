@@ -94,7 +94,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
         aria-label={T.importation.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.importation.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.importation.titre}</h2>
 
         {bilan ? (
           <div className="py-6">
@@ -139,7 +139,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
               placeholder={T.importation.exemple}
               aria-label={T.importation.champ}
               rows={8}
-              className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-500"
+              className="mt-3 w-full rounded-xl bg-surface px-4 py-3 font-mono text-sm leading-relaxed ring-1 ring-sand-300 outline-none placeholder:text-sand-400 focus:ring-2 focus:ring-brand-600"
             />
 
             {avertissements.length > 0 && (
@@ -158,7 +158,7 @@ export function ImportSheet({ debut, recettesDisponibles, onImporte, onClose }) 
                 <ul className="space-y-2">
                   {parJour.map(([date, duJour]) => (
                     <li key={date} className="rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-200">
-                      <p className="text-sm font-semibold text-sand-800 first-letter:uppercase">
+                      <p className="text-sm font-medium text-sand-800 first-letter:uppercase">
                         {libelleJour(date)}
                       </p>
                       {duJour.map((r) => (

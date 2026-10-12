@@ -97,11 +97,11 @@ export function ShoppingSheet({ recipeIds, onClose }) {
         aria-label={T.courses.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.courses.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.courses.titre}</h2>
 
         {resultat !== null ? (
           <div className="py-6 text-center">
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-100 text-accent">
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-brand-200 text-accent">
               <CheckIcon className="size-6" strokeWidth={2.5} />
             </span>
             <p className="mt-3 font-medium text-sand-900">
@@ -119,7 +119,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
             )}
 
             {ingredients?.length === 0 && (
-              <p className="mt-4 rounded-xl border border-dashed border-sand-300 px-4 py-8 text-center text-sm text-sand-500">
+              <p className="mt-4 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-8 text-center text-sm text-sand-500">
                 {T.courses.aucunIngredient}
               </p>
             )}
@@ -147,7 +147,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
                           <span
                             className={[
                               'grid size-6 shrink-0 place-items-center rounded-full border-2 transition',
-                              retenu ? 'border-brand-600 bg-brand-600 text-white' : 'border-sand-300',
+                              retenu ? 'border-brand-600 bg-brand-600 text-sur-marque' : 'border-sand-300',
                             ].join(' ')}
                             aria-hidden="true"
                           >

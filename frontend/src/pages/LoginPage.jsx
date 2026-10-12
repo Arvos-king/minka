@@ -40,55 +40,59 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
-      <div className="mb-8 text-center">
-        <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand-600 text-white">
-          <HouseIcon className="size-9" />
+    // Un dégradé à peine perceptible, du fond de page vers une pêche très
+    // pâle, comme un papier à lettres — le même que celui des états vides.
+    <div className="min-h-dvh bg-linear-to-b from-fond to-peche-50">
+      <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-6 py-10">
+        <div className="mb-8 text-center">
+          <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand-600 text-sur-marque">
+            <HouseIcon className="size-9" />
+          </div>
+          <h1 className="mt-4 font-titre text-3xl font-medium text-sand-900">Minka</h1>
+          <p className="mt-1 text-sm text-sand-600">{T.slogan}</p>
         </div>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-sand-900">Minka</h1>
-        <p className="mt-1 text-sm text-sand-600">{T.slogan}</p>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <TextField
-          label={T.connexion.identifiant}
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          // Indispensables pour que les gestionnaires de mots de passe
-          // proposent le bon compte, et pour éviter la majuscule automatique
-          // des claviers mobiles.
-          autoComplete="username"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck="false"
-          required
-          disabled={submitting}
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextField
+            label={T.connexion.identifiant}
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            // Indispensables pour que les gestionnaires de mots de passe
+            // proposent le bon compte, et pour éviter la majuscule automatique
+            // des claviers mobiles.
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
+            required
+            disabled={submitting}
+          />
 
-        <TextField
-          label={T.connexion.motDePasse}
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          autoComplete="current-password"
-          required
-          disabled={submitting}
-        />
+          <TextField
+            label={T.connexion.motDePasse}
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+            disabled={submitting}
+          />
 
-        {error && (
-          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-danger">
+              {error}
+            </p>
+          )}
 
-        <Button type="submit" loading={submitting} className="w-full">
-          {T.connexion.seConnecter}
-        </Button>
-      </form>
+          <Button type="submit" loading={submitting} className="w-full">
+            {T.connexion.seConnecter}
+          </Button>
+        </form>
 
-      <p className="mt-8 text-center text-xs text-sand-500">
-        {T.connexion.espacePrive}
-      </p>
-    </main>
+        <p className="mt-8 text-center text-xs text-sand-500">
+          {T.connexion.espacePrive}
+        </p>
+      </main>
+    </div>
   );
 }

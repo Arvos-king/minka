@@ -21,7 +21,7 @@ export function Fantome({ ref, glisse, description }) {
         glisse ? '' : 'invisible',
       ].join(' ')}
     >
-      <div className="rounded-xl bg-surface-haute px-4 py-2.5 shadow-xl ring-2 ring-brand-500">
+      <div className="rounded-xl bg-surface-haute px-4 py-2.5 shadow-xl ring-2 ring-brand-600">
         <p className="truncate font-medium text-sand-900">{glisse?.intitule}</p>
         {/* L'issue passe à la ligne plutôt que d'être tronquée : c'est le nom
             du repas délogé qu'on y cherche, et il vient en dernier. */}
