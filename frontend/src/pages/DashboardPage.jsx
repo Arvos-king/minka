@@ -24,8 +24,8 @@ export function DashboardPage() {
       <p className="mt-1 text-sm text-sand-600">{T.accueil.question}</p>
 
       {modules.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
-          <HouseIcon className="mx-auto size-8 text-sand-400" />
+        <div className="mt-8 rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-10 text-center">
+          <HouseIcon className="mx-auto size-8 text-brand-500" />
           <p className="mt-3 text-sm font-medium text-sand-700">{T.accueil.aucunModule}</p>
           <p className="mt-1 text-sm text-sand-500">{T.accueil.premierModule}</p>
         </div>

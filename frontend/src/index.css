@@ -114,7 +114,7 @@
   /* Messages d'erreur, actions destructrices. La terracotta de la palette ne
      tient que 3,9:1 en texte : celle-ci est assombrie et tirée vers la brique,
      ce qui la garde aussi distincte du vieux rose des boutons. */
-  --color-danger: #a24e40;
+  --color-danger: #9a493c;
   --color-voile: rgb(61 52 54 / 0.4); /* fond assombri derrière un panneau */
 
   /* Terracotta : fonds des messages d'erreur (50 à 200), contour d'un champ

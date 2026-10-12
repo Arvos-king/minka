@@ -134,8 +134,8 @@ export function TasksPage() {
           </p>
 
           {aFaire.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <TasksIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <TasksIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">
                 {counts.pending > 0 ? T.rienPourCettePersonne : T.toutEstFait}
               </p>

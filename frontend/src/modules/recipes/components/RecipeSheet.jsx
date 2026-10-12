@@ -56,7 +56,7 @@ export function RecipeSheet({ recette, onCuisiner, onModifier, onClose }) {
           <p className="text-sm font-medium text-sand-700">{T.fiche.ingredients}</p>
 
           {recette.ingredients.length === 0 ? (
-            <p className="mt-2 rounded-xl border border-dashed border-sand-300 px-4 py-5 text-center text-sm text-sand-500">
+            <p className="mt-2 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-5 text-center text-sm text-sand-500">
               {T.fiche.aucunIngredient}
             </p>
           ) : (

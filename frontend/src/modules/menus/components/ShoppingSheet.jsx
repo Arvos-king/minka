@@ -119,7 +119,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
             )}
 
             {ingredients?.length === 0 && (
-              <p className="mt-4 rounded-xl border border-dashed border-sand-300 px-4 py-8 text-center text-sm text-sand-500">
+              <p className="mt-4 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-8 text-center text-sm text-sand-500">
                 {T.courses.aucunIngredient}
               </p>
             )}

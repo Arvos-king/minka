@@ -197,7 +197,7 @@ export function RecipesPage() {
           )}
 
           {resultats.length === 0 ? (
-            <p className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center text-sm text-sand-500">
+            <p className="mt-6 rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-10 text-center text-sm text-sand-500">
               {T.aucuneCorrespondance}
             </p>
           ) : (
@@ -233,8 +233,8 @@ export function RecipesPage() {
       )}
 
       {status === 'ready' && vide && (
-        <div className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
-          <RecipesIcon className="mx-auto size-8 text-sand-400" />
+        <div className="mt-6 rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-10 text-center">
+          <RecipesIcon className="mx-auto size-8 text-brand-500" />
           <p className="mt-3 text-sm font-medium text-sand-700">{T.aucuneRecette}</p>
           <p className="mt-1 text-sm text-sand-500">{T.aideVide}</p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">

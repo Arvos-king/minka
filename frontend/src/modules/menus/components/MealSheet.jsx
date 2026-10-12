@@ -237,7 +237,7 @@ export function MealSheet({
             <p className="text-sm font-medium text-sand-700">{T.repas.mesRecettes}</p>
 
             {visibles.length === 0 ? (
-              <p className="mt-2 rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
+              <p className="mt-2 rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-6 text-center text-sm text-sand-500">
                 {recipes.length === 0 ? T.repas.aucuneRecette : T.repas.aucuneCorrespondance}
               </p>
             ) : (

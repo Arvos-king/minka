@@ -118,7 +118,7 @@ export function BudgetPage() {
             </div>
 
             {categories.length === 0 && sansCategorie === 0 ? (
-              <p className="rounded-xl border border-dashed border-sand-300 px-4 py-6 text-center text-sm text-sand-500">
+              <p className="rounded-xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-4 py-6 text-center text-sm text-sand-500">
                 {T.aucuneCategorie}
               </p>
             ) : (
@@ -145,8 +145,8 @@ export function BudgetPage() {
           <h2 className="mb-2 text-sm font-medium text-sand-600">{T.leDetail}</h2>
 
           {expenses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-sand-300 px-6 py-12 text-center">
-              <BudgetIcon className="mx-auto size-8 text-sand-400" />
+            <div className="rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-12 text-center">
+              <BudgetIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">{T.rienDeNote}</p>
               <p className="mt-1 text-sm text-sand-500">{T.aideAjout}</p>
             </div>

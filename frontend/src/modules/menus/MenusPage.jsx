@@ -280,8 +280,8 @@ export function MenusPage() {
           )}
 
           {repasPrevus === 0 && (
-            <div className="mt-6 rounded-2xl border border-dashed border-sand-300 px-6 py-10 text-center">
-              <MenusIcon className="mx-auto size-8 text-sand-400" />
+            <div className="mt-6 rounded-2xl border border-dashed border-brand-300 bg-linear-to-b from-brand-50 to-peche-50 px-6 py-10 text-center">
+              <MenusIcon className="mx-auto size-8 text-brand-500" />
               <p className="mt-3 text-sm font-medium text-sand-700">{T.page.semaineVide}</p>
               <p className="mt-1 text-sm text-sand-500">{T.page.aideVide}</p>
             </div>
