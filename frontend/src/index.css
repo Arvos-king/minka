@@ -4,31 +4,71 @@
  * Thème Minka. En Tailwind v4 la configuration se fait ici, en CSS : chaque
  * variable déclarée dans @theme génère les utilitaires correspondants
  * (bg-brand-600, text-sand-500…).
+ *
+ * Palette « vieux rose » : une papeterie plutôt qu'une confiserie. Couleurs
+ * poudrées, neutres chauds tirés vers la prune, aucune teinte saturée.
+ *
+ * Les échelles portent des noms de rôle (brand, sand) et non de teinte : la
+ * palette a déjà changé deux fois, et changer de couleur doit rester une
+ * affaire de valeurs ici, pas un renommage de six cents classes. `rose-*`
+ * était d'ailleurs déjà pris par la couleur d'un membre du foyer.
+ *
+ * Correspondance avec la palette de référence :
+ *   --rose-50 … --rose-700    → --color-brand-50 … 700 (600 assombri, voir plus bas)
+ *   texte principal, secondaire → --color-sand-900, --color-sand-500
+ *   bordures                    → --color-sand-200
+ *   fond, surfaces              → --color-fond, --color-surface
+ *   erreur (terracotta)         → --color-red-500 ; texte : --color-danger
+ *   avertissement (ocre)        → --color-amber-500
+ *   succès (sauge)              → --color-teal-500
+ *   info (bleu-gris)            → --color-sky-500
+ *   pêche, lavande              → --color-peche-*, --color-violet-*
+ *
+ * Pour retoucher la palette : changer les valeurs ici, puis vérifier les
+ * contrastes (seuils rappelés en commentaire) — aucun composant ne contient
+ * de couleur en dur.
  */
 @theme {
-  /* Vert profond de la marque — également la theme_color de la PWA. */
-  --color-brand-50: #edfbf5;
-  --color-brand-100: #d3f5e7;
-  --color-brand-200: #a9ead2;
-  --color-brand-300: #74d9b7;
-  --color-brand-400: #40c098;
-  --color-brand-500: #1fa57e;
-  --color-brand-600: #0d7c66;
-  --color-brand-700: #0b6553;
-  --color-brand-800: #0b5043;
-  --color-brand-900: #0a4238;
+  /*
+   * Vieux rose. 500 est la teinte de la marque, mais le blanc n'y tient que
+   * 2,8:1 : les boutons, qui portent du texte, prennent 600 — le #A86F74 de la
+   * palette, assombri jusqu'à 4,7:1 sous du blanc. 600 sert aussi d'anneau de
+   * focus, qui doit se détacher à 3:1 de tout fond clair ; 400 n'y arrive
+   * pas (2,2:1). 700 survole et colore les liens (5,3:1 sur le fond).
+   * 50 à 300 sont des fonds : teintes de sélection, pastilles, encadrés.
+   */
+  --color-brand-50: #fbf6f5;
+  --color-brand-100: #f6e7e8;
+  --color-brand-200: #ebcfd1;
+  --color-brand-300: #dfbabd;
+  --color-brand-400: #d4a5a8;
+  --color-brand-500: #c48b8f;
+  --color-brand-600: #9c6469;
+  --color-brand-700: #8a5a5f;
+  --color-brand-800: #744b50;
+  --color-brand-900: #5e3d41;
 
-  /* Neutres légèrement chauds : moins clinique qu'un gris pur. */
-  --color-sand-50: #fdfdfc;
-  --color-sand-100: #f7f7f5;
-  --color-sand-200: #eeeeea;
-  --color-sand-300: #e0e0da;
-  --color-sand-400: #b8b8ae;
-  --color-sand-500: #8a8a7e;
-  --color-sand-600: #66665c;
-  --color-sand-700: #4a4a43;
-  --color-sand-800: #2f2f2a;
-  --color-sand-900: #1c1c19;
+  /*
+   * Neutres chauds, de la prune très sombre (900, texte principal) au rose
+   * presque blanc : jamais de gris froid ni de noir pur.
+   *
+   * 300 est le trait des éléments qu'on manipule — champs, cases à cocher,
+   * boutons secondaires — et tient 3:1 sur tous les fonds clairs ; 200 est le
+   * filet décoratif des cartes, volontairement discret. 400 (textes d'attente,
+   * indications) tient 4,5:1 comme tout texte : un champ vide doit rester
+   * lisible. 500 (texte secondaire) et au-delà tiennent 4,5:1 jusque sur les
+   * teintes roses.
+   */
+  --color-sand-50: #f8f2f1;
+  --color-sand-100: #f3eae9;
+  --color-sand-200: #e8dcdb;
+  --color-sand-300: #938486;
+  --color-sand-400: #776a6d;
+  --color-sand-500: #6f6265;
+  --color-sand-600: #5f5356;
+  --color-sand-700: #504548;
+  --color-sand-800: #463c3e;
+  --color-sand-900: #3d3436;
 
   /*
    * Jetons de rôle, pour ce qu'une échelle ne sait pas exprimer.
@@ -38,13 +78,89 @@
    * l'un doit rester foncé, l'autre s'éclaircir. Les rôles ci-dessous tranchent,
    * et laissent les échelles aux seuls arrière-plans.
    */
-  --color-fond: #f7f7f5; /* fond de page */
+  --color-fond: #faf6f4; /* fond de page */
   --color-surface: #ffffff; /* cartes, lignes, champs */
-  --color-surface-haute: #fdfdfc; /* panneaux glissés, barre d'onglets */
-  --color-entete: #0b6553; /* en-tête de l'application */
-  --color-accent: #0b6553; /* liens, onglet actif */
-  --color-danger: #991b1b; /* messages d'erreur, actions destructrices */
-  --color-voile: rgb(28 28 25 / 0.4); /* fond assombri derrière un panneau */
+  --color-surface-haute: #ffffff; /* panneaux glissés, barre d'onglets */
+  --color-entete: #9c6469; /* en-tête de l'application : vieux rose soutenu */
+  --color-accent: #8a5a5f; /* liens, onglet actif */
+  /* Texte posé sur un fond `brand-600` : blanc en clair, prune en sombre, où
+     le bouton s'éclaircit au point de ne plus porter le blanc. */
+  --color-sur-marque: #ffffff;
+  /* Messages d'erreur, actions destructrices. La terracotta de la palette ne
+     tient que 3,9:1 en texte : celle-ci est assombrie et tirée vers la brique,
+     ce qui la garde aussi distincte du vieux rose des boutons. */
+  --color-danger: #a24e40;
+  --color-voile: rgb(61 52 54 / 0.4); /* fond assombri derrière un panneau */
+
+  /* Terracotta : fonds des messages d'erreur (50 à 200), contour d'un champ
+     en erreur (400, 3:1), barre de dépassement (500, la teinte de la
+     palette), fonds du bouton « danger » sous du texte blanc (600 à 800). */
+  --color-red-50: #f9ebe8;
+  --color-red-100: #f3dad5;
+  --color-red-200: #e8bdb5;
+  --color-red-300: #d99e93;
+  --color-red-400: #c4796c;
+  --color-red-500: #c0675e;
+  --color-red-600: #a24e40;
+  --color-red-700: #8a4236;
+  --color-red-800: #72372d;
+
+  /* Ocre doux, pour ce qui approche : échéance « bientôt », bandeau hors
+     ligne. 500 est la teinte de la palette ; le texte (800, 900) est assez
+     foncé pour tenir 4,5:1 sur les fonds pâles. */
+  --color-amber-50: #fbf4ea;
+  --color-amber-100: #f5e9d6;
+  --color-amber-200: #ebd4b1;
+  --color-amber-500: #d9a86c;
+  --color-amber-800: #71501d;
+  --color-amber-900: #5c4118;
+
+  /* Pêche appuyée, pour ce qui tombe aujourd'hui : entre l'ocre de
+     « bientôt » et la terracotta de « en retard ». */
+  --color-orange-100: #f8e1d6;
+  --color-orange-800: #8a4632;
+
+  /*
+   * Couleurs des membres du foyer (src/lib/people.js) : les accents pastel de
+   * la palette — bleu-gris, lavande, pêche, sauge, ocre. Le vieux rose est
+   * réservé à « tout le monde ». Fond 50 et bordure 200 restent pâles ; la
+   * pastille 500 est assez soutenue pour se voir sur une carte blanche ; le
+   * texte 800 tient 4,5:1 sur le fond 50.
+   */
+  --color-sky-50: #eef1f6;
+  --color-sky-200: #c9d2e1;
+  --color-sky-500: #8a9bb8;
+  --color-sky-800: #3e4a61;
+  --color-violet-50: #f3f0f8;
+  --color-violet-200: #dcd5e8;
+  --color-violet-500: #a497c2;
+  --color-violet-800: #4b4163;
+  --color-peche-50: #fcf1ec;
+  --color-peche-200: #f2d6c9;
+  --color-peche-500: #dfa58c;
+  --color-peche-800: #7a4535;
+  --color-teal-50: #eff3ed;
+  --color-teal-200: #cbd6c6;
+  --color-teal-500: #7fa287;
+  --color-teal-800: #3c5842;
+
+  /*
+   * Ombres teintées de rose : une ombre grise salirait la page. Elles restent
+   * très légères — l'élévation se lit, elle ne se voit pas.
+   *
+   * Tailwind recopie la valeur d'une ombre dans chaque utilitaire au lieu de
+   * renvoyer à la variable : la redéfinir en mode sombre resterait sans effet.
+   * Les teintes passent donc par les variables `--ombre-*` de la couche de
+   * base, que le mode sombre, lui, peut changer.
+   */
+  --shadow-xs: 0 1px 2px 0 var(--ombre-faible);
+  --shadow-sm: 0 2px 8px 0 var(--ombre-legere);
+  --shadow-md: 0 4px 14px -2px var(--ombre-moyenne);
+  --shadow-lg: 0 10px 24px -6px var(--ombre-portee), 0 3px 8px -3px var(--ombre-legere);
+  --shadow-xl: 0 18px 36px -8px var(--ombre-portee), 0 6px 12px -6px var(--ombre-moyenne);
+
+  /* Transitions douces : un peu plus lentes que les 150 ms de Tailwind. */
+  --default-transition-duration: 180ms;
 }
 
 /*
@@ -54,6 +170,9 @@
  * l'emporte sur une déclaration en couche, quel que soit l'ordre. Seules les
  * valeurs changent — aucun composant ne connaît le mode.
  *
+ * Même douceur qu'en clair, sans néon : fond prune, vieux rose éclairci pour
+ * les liens et les boutons — qui portent alors du texte prune.
+ *
  * L'échelle des neutres s'inverse : `text-sand-900` reste « le texte le plus
  * lisible », `bg-sand-200` reste « à peine détaché du fond ». Les surfaces, en
  * revanche, ne s'inversent pas mais s'éclaircissent avec l'élévation, comme le
@@ -62,64 +181,82 @@
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-sand-50: #141412;
-    --color-sand-100: #1b1b18;
-    --color-sand-200: #262622;
-    --color-sand-300: #33332d;
-    --color-sand-400: #7a7a70;
-    --color-sand-500: #93938a;
-    --color-sand-600: #adada2;
-    --color-sand-700: #c9c9bf;
-    --color-sand-800: #e2e2da;
-    --color-sand-900: #f4f4f0;
+    --color-sand-50: #241e20;
+    --color-sand-100: #2b2427;
+    --color-sand-200: #4a3f43;
+    --color-sand-300: #8f7f82;
+    --color-sand-400: #b2a4a6;
+    --color-sand-500: #c2b3b4;
+    --color-sand-600: #d0c3c3;
+    --color-sand-700: #ddd1d0;
+    --color-sand-800: #e9dedd;
+    --color-sand-900: #f3e9e8;
 
-    --color-fond: #191916;
-    --color-surface: #232320;
-    --color-surface-haute: #2b2b27;
-    --color-entete: #0d2f28;
-    --color-accent: #58cfae;
-    --color-danger: #f5a3a3;
+    --color-fond: #2a2326;
+    --color-surface: #352d30;
+    --color-surface-haute: #3d3437;
+    /* Un vieux rose profond plutôt que le rose éclairci des boutons : une
+       barre claire éblouirait en haut d'un écran sombre. */
+    --color-entete: #5c4247;
+    --color-accent: #d8a7ab;
+    --color-sur-marque: #2a2326;
+    --color-danger: #eba497;
     /* Le voile reste sombre : c'est un assombrissement, pas un neutre. */
     --color-voile: rgb(0 0 0 / 0.55);
+    /* Une ombre rose éclaircirait le fond autour des éléments, comme un halo :
+       en sombre, l'ombre redevient une ombre. */
+    --ombre-faible: rgb(0 0 0 / 0.15);
+    --ombre-legere: rgb(0 0 0 / 0.25);
+    --ombre-moyenne: rgb(0 0 0 / 0.3);
+    --ombre-portee: rgb(0 0 0 / 0.4);
 
-    /* Teintes de marque : elles servent de fonds discrets, jamais de texte. */
-    --color-brand-50: #10312a;
-    --color-brand-100: #144136;
-    --color-brand-200: #1a5546;
-    --color-brand-300: #24705c;
+    /* Vieux rose : 50 à 300 deviennent des roses sombres, fonds discrets ;
+       500 s'éclaircit pour les pastilles ; 600 est la teinte principale du
+       mode sombre, sous du texte prune ; 700 et 800 l'éclaircissent au
+       survol et à l'appui. */
+    --color-brand-50: #33292c;
+    --color-brand-100: #4a3a3e;
+    --color-brand-200: #5a454a;
+    --color-brand-300: #6e5559;
+    --color-brand-400: #9c7b7f;
+    --color-brand-500: #c09094;
+    --color-brand-600: #d8a7ab;
+    --color-brand-700: #e2b8bb;
+    --color-brand-800: #ebc9cb;
+    --color-brand-900: #f3dcdd;
 
-    /* Rouges : les tons clairs deviennent des fonds sombres ; 600 à 800
+    /* Terracotta : les tons clairs deviennent des fonds sombres ; 600 à 800
        restent les fonds du bouton « danger », sous du texte blanc. */
-    --color-red-50: #2a1414;
-    --color-red-100: #3a1a1a;
-    --color-red-200: #4a2020;
-    --color-red-300: #7f3838;
-    --color-red-400: #a04a4a;
-    --color-red-500: #c05555;
+    --color-red-50: #3d2724;
+    --color-red-100: #4a2d29;
+    --color-red-200: #5c3631;
+    --color-red-300: #7a453d;
+    --color-red-400: #b8695c;
+    --color-red-500: #cc7a6f;
 
-    --color-amber-50: #2c2210;
-    --color-amber-100: #3a2c14;
-    --color-amber-200: #4a3a1c;
-    --color-amber-800: #f0c274;
-    --color-amber-900: #f7dba8;
+    --color-amber-50: #352b1f;
+    --color-amber-100: #403324;
+    --color-amber-200: #56442c;
+    --color-amber-800: #ebc994;
+    --color-amber-900: #f3dcb6;
 
-    --color-orange-100: #3a2413;
-    --color-orange-800: #f0b27a;
+    --color-orange-100: #4a322b;
+    --color-orange-800: #f0b9a4;
 
     /* Couleurs des membres du foyer : fond et bordure s'assombrissent, la
-       pastille garde sa saturation, le texte s'éclaircit. */
-    --color-sky-50: #12232e;
-    --color-sky-200: #1d3c50;
-    --color-sky-800: #7fc6ea;
-    --color-violet-50: #201a33;
-    --color-violet-200: #352a56;
-    --color-violet-800: #bfa6f5;
-    --color-rose-50: #2e1620;
-    --color-rose-200: #4d2437;
-    --color-rose-800: #f0a3b5;
-    --color-teal-50: #102624;
-    --color-teal-200: #1b4340;
-    --color-teal-800: #7fd3c8;
+       pastille garde sa teinte, le texte reprend le pastel d'origine. */
+    --color-sky-50: #262c37;
+    --color-sky-200: #3b4558;
+    --color-sky-800: #c9d2e1;
+    --color-violet-50: #2d2936;
+    --color-violet-200: #463f55;
+    --color-violet-800: #dcd5e8;
+    --color-peche-50: #3a2c27;
+    --color-peche-200: #5a4239;
+    --color-peche-800: #f2d6c9;
+    --color-teal-50: #263028;
+    --color-teal-200: #3b4a3e;
+    --color-teal-800: #cbd6c6;
   }
 }
 
@@ -133,6 +270,12 @@
        d'ajout d'un pixel — invisible à l'œil, mais il vole le premier pixel de
        la zone tactile des onglets. */
     --bordure-onglets: 1px;
+    /* Teintes des ombres (voir @theme) : le #A86F74 de la palette, à
+       différentes opacités. */
+    --ombre-faible: rgb(168 111 116 / 0.06);
+    --ombre-legere: rgb(168 111 116 / 0.14);
+    --ombre-moyenne: rgb(168 111 116 / 0.18);
+    --ombre-portee: rgb(138 90 95 / 0.24);
   }
 
   html {
