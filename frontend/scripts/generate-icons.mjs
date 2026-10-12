@@ -19,8 +19,10 @@ import { fileURLToPath } from 'node:url';
 
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
-const BRAND = [0x0d, 0x7c, 0x66]; // --color-brand-600
-const WHITE = [0xff, 0xff, 0xff];
+// Le vieux rose de la marque (--color-brand-500) plutôt que le 600 des
+// boutons : une icône ne porte pas de texte, elle peut garder la teinte douce.
+const BRAND = [0xc4, 0x8b, 0x8f]; // --color-brand-500
+const CREME = [0xfa, 0xf6, 0xf4]; // --color-fond : la maison prend la couleur des écrans
 
 // --- Encodeur PNG -----------------------------------------------------------
 
@@ -141,7 +143,7 @@ function drawIcon(size, { radius, motifScale }) {
 
       const offset = (py * size + px) * 4;
       for (let channel = 0; channel < 3; channel += 1) {
-        rgba[offset + channel] = Math.round(BRAND[channel] * (1 - mix) + WHITE[channel] * mix);
+        rgba[offset + channel] = Math.round(BRAND[channel] * (1 - mix) + CREME[channel] * mix);
       }
       rgba[offset + 3] = Math.round(alpha * 255);
     }
@@ -173,8 +175,8 @@ for (const [name, buffer] of files) {
 // Le favicon reste en SVG : net à toutes les tailles, et quelques centaines
 // d'octets seulement.
 const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="22" fill="#0d7c66"/>
-  <path d="M50 22 L18 50 L30 50 L30 78 L44 78 L44 62 L56 62 L56 78 L70 78 L70 50 L82 50 Z" fill="#fff"/>
+  <rect width="100" height="100" rx="22" fill="#c48b8f"/>
+  <path d="M50 22 L18 50 L30 50 L30 78 L44 78 L44 62 L56 62 L56 78 L70 78 L70 50 L82 50 Z" fill="#faf6f4"/>
 </svg>
 `;
 writeFileSync(path.join(publicDir, 'favicon.svg'), favicon);

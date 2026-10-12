@@ -61,7 +61,7 @@ export function CookingMode({ recette, onClose }) {
 
   return (
     <div role="dialog" aria-modal="true" aria-label={T.cuisine.dialogue(recette.title)} className="fixed inset-0 z-40 flex flex-col bg-surface">
-      <header className="pt-safe shrink-0 bg-surface-haute shadow-sm">
+      <header className="pt-safe shrink-0 border-b border-sand-200 bg-surface-haute shadow-sm">
         <div className="mx-auto flex min-h-14 w-full max-w-2xl items-center gap-2 px-2">
           <button
             type="button"

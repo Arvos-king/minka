@@ -154,7 +154,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
             <ArrowLeftIcon className="size-5" />
           </button>
 
-          <p className="flex-1 truncate text-sm text-white/80" role="status">
+          <p className="flex-1 truncate text-sm text-white" role="status">
             {INDICATEURS[etat] ?? ''}
           </p>
 
