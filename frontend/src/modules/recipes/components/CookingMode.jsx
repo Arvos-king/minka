@@ -72,7 +72,7 @@ export function CookingMode({ recette, onClose }) {
             <ArrowLeftIcon className="size-5" />
           </button>
 
-          <h2 className="min-w-0 flex-1 truncate font-semibold text-sand-900">{recette.title}</h2>
+          <h2 className="min-w-0 flex-1 truncate font-titre text-lg font-medium text-sand-900">{recette.title}</h2>
 
           <span className="shrink-0 text-sm tabular-nums text-sand-500">
             {faites} / {total}
@@ -150,7 +150,7 @@ export function CookingMode({ recette, onClose }) {
                   >
                     <span
                       className={[
-                        'grid size-7 shrink-0 place-items-center rounded-full text-sm font-semibold transition',
+                        'grid size-7 shrink-0 place-items-center rounded-full text-sm font-medium transition',
                         faite ? 'bg-brand-600 text-sur-marque' : 'bg-sand-200 text-sand-600',
                       ].join(' ')}
                       aria-hidden="true"

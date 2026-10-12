@@ -53,7 +53,7 @@ export function DayRow({
     >
       <h3
         className={[
-          'flex items-baseline gap-2 px-4 py-2 text-sm font-semibold first-letter:uppercase',
+          'flex items-baseline gap-2 px-4 py-2 text-sm font-medium first-letter:uppercase',
           estAujourdhui ? 'bg-brand-100 text-accent' : 'bg-sand-50 text-sand-700',
         ].join(' ')}
       >

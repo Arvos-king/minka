@@ -82,7 +82,7 @@ export function PeopleSheet({ people, onAdd, onRename, onRemove, onClose }) {
         aria-label={T.membres.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.membres.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.membres.titre}</h2>
         <p className="mt-1 text-sm text-sand-500">{T.membres.intro}</p>
 
         <ul className="mt-4 space-y-2">

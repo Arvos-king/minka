@@ -190,7 +190,7 @@ export function MenusPage() {
           <ChevronRightIcon className="size-5 rotate-180" />
         </button>
 
-        <p className="flex-1 text-center font-semibold text-sand-900">{libelleSemaine(debut)}</p>
+        <p className="flex-1 text-center font-titre text-lg font-medium text-sand-900">{libelleSemaine(debut)}</p>
 
         <button
           type="button"

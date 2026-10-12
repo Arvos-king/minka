@@ -18,7 +18,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      <p className="text-2xl font-semibold tracking-tight text-sand-900">
+      <p className="font-titre text-2xl font-medium text-sand-900">
         {greeting()} {user?.displayName}
       </p>
       <p className="mt-1 text-sm text-sand-600">{T.accueil.question}</p>

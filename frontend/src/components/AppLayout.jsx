@@ -54,13 +54,13 @@ export function AppLayout() {
             </button>
           )}
 
-          <h1 className={`flex-1 truncate text-lg font-semibold ${surUnOnglet ? 'pl-3' : ''}`}>
+          <h1 className={`flex-1 truncate font-titre text-xl font-medium ${surUnOnglet ? 'pl-3' : ''}`}>
             {title}
           </h1>
 
           <Link
             to="/compte"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-semibold transition-colors hover:bg-white/25 active:bg-white/30"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-medium transition-colors hover:bg-white/25 active:bg-white/30"
             aria-label={T.entete.monCompte}
           >
             {initial}

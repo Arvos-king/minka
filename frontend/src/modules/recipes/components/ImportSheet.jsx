@@ -52,7 +52,7 @@ export function ImportSheet({ onImporter, onClose }) {
         aria-label={T.importation.titre}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.importation.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.importation.titre}</h2>
         <p className="mt-1 text-sm text-sand-500">{T.importation.aide}</p>
 
         <textarea
@@ -77,7 +77,7 @@ export function ImportSheet({ onImporter, onClose }) {
             <p className="mb-2 text-sm font-medium text-sand-700">{T.importation.apercu}</p>
 
             <div className="rounded-xl bg-surface px-4 py-3 ring-1 ring-sand-200">
-              <p className="font-semibold text-sand-900">{recette.title}</p>
+              <p className="font-medium text-sand-900">{recette.title}</p>
               {recette.servings && (
                 <p className="text-sm text-sand-500">{T.pour(recette.servings)}</p>
               )}

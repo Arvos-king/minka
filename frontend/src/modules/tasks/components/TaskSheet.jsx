@@ -92,7 +92,7 @@ export function TaskSheet({ task, people, onSave, onDelete, onClose }) {
         aria-label={enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">
+        <h2 className="font-titre text-xl font-medium text-sand-900">
           {enEdition ? T.feuille.modifier : T.feuille.nouvelle}
         </h2>
 

@@ -1,6 +1,31 @@
 @import 'tailwindcss';
 
 /*
+ * Polices servies par l'application elle-même : la politique de sécurité
+ * (font-src 'self') interdit Google Fonts, et la PWA doit les avoir hors
+ * ligne. Seul le jeu latin est déclaré — il couvre le français, € et
+ * guillemets compris ; un caractère rare retombe sur la police du système.
+ * Fichiers variables : un seul fichier par police, quel que soit le poids.
+ */
+@font-face {
+  font-family: 'DM Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 1000;
+  src: url('@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+@font-face {
+  font-family: 'Fraunces Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+
+/*
  * Thème Minka. En Tailwind v4 la configuration se fait ici, en CSS : chaque
  * variable déclarée dans @theme génère les utilitaires correspondants
  * (bg-brand-600, text-sand-500…).
@@ -158,6 +183,16 @@
   --shadow-md: 0 4px 14px -2px var(--ombre-moyenne);
   --shadow-lg: 0 10px 24px -6px var(--ombre-portee), 0 3px 8px -3px var(--ombre-legere);
   --shadow-xl: 0 18px 36px -8px var(--ombre-portee), 0 6px 12px -6px var(--ombre-moyenne);
+
+  /*
+   * DM Sans pour tout le texte : ronde sans être enfantine, très lisible
+   * petite. Fraunces, une serif douce, pour les seuls titres (`font-titre`),
+   * toujours en poids moyen.
+   */
+  --font-sans:
+    'DM Sans Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji';
+  --font-titre: 'Fraunces Variable', ui-serif, Georgia, serif;
 
   /* Transitions douces : un peu plus lentes que les 150 ms de Tailwind. */
   --default-transition-duration: 180ms;

@@ -97,7 +97,7 @@ export function ShoppingSheet({ recipeIds, onClose }) {
         aria-label={T.courses.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.courses.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.courses.titre}</h2>
 
         {resultat !== null ? (
           <div className="py-6 text-center">

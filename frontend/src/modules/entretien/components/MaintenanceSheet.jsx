@@ -81,7 +81,7 @@ export function MaintenanceSheet({ tache, zones, people, onSave, onRepousser, on
         aria-label={enEdition ? T.feuille.regler : T.feuille.nouvelle}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">
+        <h2 className="font-titre text-xl font-medium text-sand-900">
           {enEdition ? T.feuille.regler : T.feuille.nouvelle}
         </h2>
 

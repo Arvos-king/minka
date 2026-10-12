@@ -200,7 +200,7 @@ export function NoteEditor({ note, onEnregistree, onEpingler, onSupprimer, onClo
           placeholder={T.editeur.titrePlaceholder}
           aria-label={T.editeur.titre}
           maxLength={120}
-          className="w-full shrink-0 bg-transparent text-lg font-semibold text-sand-900 outline-none placeholder:font-normal placeholder:text-sand-400"
+          className="w-full shrink-0 bg-transparent text-lg font-medium text-sand-900 outline-none placeholder:font-normal placeholder:text-sand-400"
         />
 
         <textarea

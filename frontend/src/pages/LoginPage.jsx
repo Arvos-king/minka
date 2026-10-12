@@ -45,7 +45,7 @@ export function LoginPage() {
         <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-brand-600 text-sur-marque">
           <HouseIcon className="size-9" />
         </div>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-sand-900">Minka</h1>
+        <h1 className="mt-4 font-titre text-3xl font-medium text-sand-900">Minka</h1>
         <p className="mt-1 text-sm text-sand-600">{T.slogan}</p>
       </div>
 

@@ -47,7 +47,7 @@ export function RayonSheet({ item, rayons, onRanger, onClose }) {
         aria-label={T.rayon.dialogue}
         className="pb-safe relative max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-surface-haute px-4 pt-5"
       >
-        <h2 className="text-lg font-semibold text-sand-900">{T.rayon.titre}</h2>
+        <h2 className="font-titre text-xl font-medium text-sand-900">{T.rayon.titre}</h2>
         <p className="mt-1 truncate text-sm text-sand-500">{item.name}</p>
 
         <div className="mt-4 flex flex-wrap gap-1.5">

@@ -11,7 +11,7 @@ import { T } from '../textes.js';
 export function DayGroup({ date, events, people, onSelect }) {
   return (
     <section>
-      <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-2 text-sm font-semibold text-sand-600 backdrop-blur">
+      <h2 className="sticky top-14 z-10 -mx-4 bg-fond/95 px-4 py-2 text-sm font-medium text-sand-600 backdrop-blur">
         {libelleJour(date)}
       </h2>
 
