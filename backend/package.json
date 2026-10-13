@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "API modulaire de Minka — plateforme familiale auto-hébergée",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "engines": {
     "node": ">=22"

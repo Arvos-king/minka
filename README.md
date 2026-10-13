@@ -1613,3 +1613,15 @@ Côté calendrier, les événements récurrents et un
 flux ICS en lecture seule, pour s'abonner depuis l'application native du
 téléphone. Une notification à l'approche d'une date de péremption ou d'un
 rendez-vous supposerait d'ajouter le push web (VAPID), non configuré à ce jour.
+
+## Licence
+
+Minka est distribué sous la **GNU Affero General Public License, version 3**
+(AGPL-3.0-only), dont le texte complet est dans [LICENSE](LICENSE).
+Copyright (C) 2026 arvostettu.
+
+Chacun peut installer Minka, l'étudier, le modifier et le redistribuer. La
+contrepartie vise les versions modifiées : qui en redistribue une doit en
+fournir le code sous la même licence, et qui en fait tourner une en ligne pour
+d'autres doit offrir ce code à ses utilisateurs. Un dérivé de Minka ne peut
+donc pas devenir un service fermé. Le code est fourni sans aucune garantie.

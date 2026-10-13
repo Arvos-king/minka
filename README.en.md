@@ -536,3 +536,15 @@ deployment `.env`: that is where local test accounts live. `SESSION_SECRET` is
 optional in development. `npm test` runs the tests on each side, both languages
 included. Everything else — architecture, writing a module — is in
 [README.md](README.md), in French.
+
+## License
+
+Minka is released under the **GNU Affero General Public License, version 3**
+(AGPL-3.0-only); the full text is in [LICENSE](LICENSE).
+Copyright (C) 2026 arvostettu.
+
+You may install, study, modify and redistribute Minka. The conditions apply to
+modified versions: if you redistribute one, you must provide its source code
+under the same license, and if you run one online for others, you must offer
+that source code to its users. A derivative of Minka therefore cannot become a
+closed service. Minka comes with no warranty.
